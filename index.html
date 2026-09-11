@@ -694,7 +694,7 @@ let tt; function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add
 /* ---------- Music ---------- */
 const TRACKS=[['Theme I','audio/theme-1.m4a'],['Theme II','audio/theme-2.m4a'],['Theme III','audio/theme-3.m4a'],['Theme IV','audio/theme-4.m4a'],['Theme V','audio/theme-5.m4a']];
 const audio=new Audio(); audio.volume=.8; audio.preload='none';
-let musicWanted = S.music!==false; // default on; first play waits for a tap
+let musicWanted = S.music===true; // off until the player turns it on; then it resumes on the next tap after a reload
 function updateMusicUI(){
   const playing=!audio.paused && !audio.ended && audio.src;
   const b=$('#musicBtn'); b.classList.toggle('on', !!playing); b.title = playing ? 'Music: '+TRACKS[S.track||0][0]+' (tap to pause)' : 'Music off (tap to play)';

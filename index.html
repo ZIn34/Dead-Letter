@@ -1,4 +1,5 @@
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Dead Letter</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=Special+Elite&family=Caveat:wght@400;600&family=Schoolbell&display=swap">
 <style>
@@ -14,17 +15,17 @@
   --child: "Schoolbell", "Comic Sans MS", cursive;
 }
 *{box-sizing:border-box}
-html,body{height:100%}
+html,body{height:100%;overflow-x:hidden}
 body{margin:0;background:var(--ground);color:var(--paper);font-family:var(--sans);font-size:17px;line-height:1.4;-webkit-text-size-adjust:100%}
 button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
 button:focus-visible,[tabindex]:focus-visible,textarea:focus-visible{outline:2px solid var(--lamp);outline-offset:2px}
-#app{max-width:480px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;background:
+#app{max-width:480px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;overflow-x:clip;background:
   radial-gradient(120% 60% at 50% -10%, rgba(232,193,90,.20), transparent 60%), var(--desk);
   box-shadow:0 0 0 1px var(--desk-edge)}
-header{display:flex;align-items:baseline;justify-content:space-between;padding:14px 18px 10px;border-bottom:1px solid var(--brass-dim)}
+header{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:14px 16px 10px;border-bottom:1px solid var(--brass-dim)}
 header h1{font:400 22px/1 var(--fell);margin:0;letter-spacing:.02em;color:var(--brass)}
 header h1 small{display:block;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass-dim);margin-top:5px;font-family:var(--sans)}
-.ledger{display:flex;gap:14px;font-variant-numeric:tabular-nums;font-size:14px;color:var(--brass)}
+.ledger{display:flex;gap:12px;flex:none;font-variant-numeric:tabular-nums;font-size:14px;color:var(--brass)}
 .ledger b{display:block;font:400 20px/1 var(--fell);color:var(--paper)}
 .ledger span{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass-dim)}
 .music{width:34px;height:34px;border-radius:50%;border:1px solid var(--brass-dim);color:var(--brass-dim);font:400 18px/32px var(--fell);text-align:center;align-self:center}
@@ -38,6 +39,8 @@ main{flex:1;min-height:0;position:relative}
 .panel.on{display:block}
 @keyframes fade{from{opacity:.6}to{opacity:1}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+@media (max-width:380px){header h1{font-size:20px} .ledger{gap:9px} .ledger b{font-size:18px} .music{width:30px;height:30px;line-height:28px;font-size:16px} .panel{padding-left:12px;padding-right:12px} .paper{padding:22px 16px 20px}}
 
 /* Coach */
 .coach{background:rgba(232,193,90,.10);border:1px solid var(--brass);border-left:4px solid var(--lamp);padding:12px 14px;margin:0 0 14px;color:var(--paper)}
@@ -62,7 +65,7 @@ main{flex:1;min-height:0;position:relative}
 .env.pulse{box-shadow:2px 3px 0 rgba(0,0,0,.25),0 0 0 2px var(--lamp)}
 .empty{color:var(--brass-dim);font-style:italic;padding:8px 2px}
 
-.paper{background:var(--paper);color:var(--ink);padding:26px 22px 22px;position:relative;box-shadow:0 10px 24px rgba(0,0,0,.35), 0 1px 0 var(--paper-shadow) inset;margin-bottom:14px}
+.paper{overflow-wrap:anywhere;background:var(--paper);color:var(--ink);padding:26px 22px 22px;position:relative;box-shadow:0 10px 24px rgba(0,0,0,.35), 0 1px 0 var(--paper-shadow) inset;margin-bottom:14px}
 .paper::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.02),transparent 30%,rgba(0,0,0,.03));pointer-events:none}
 .paper .addr{font-size:19px;line-height:1.35;margin:0 0 18px;padding-bottom:12px;border-bottom:1px solid var(--paper-shadow);white-space:pre-line}
 .paper .body{font-size:19px;line-height:1.5;margin:0 0 14px;white-space:pre-line}

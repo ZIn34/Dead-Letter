@@ -1,18 +1,26 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Dead Letter</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=Special+Elite&family=Caveat:wght@400;600&family=Schoolbell&display=swap">
+<meta name="theme-color" content="#1b2320">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dead Letter">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=Special+Elite&family=Caveat:wght@400;600&family=Homemade+Apple&family=Dancing+Script:wght@500&family=Rock+Salt&family=Shadows+Into+Light&display=swap">
 <style>
 :root{
   --ground:#1b2320; --desk:#243129; --desk-edge:#2f4035; --brass:#b8925a; --brass-dim:#7d6640;
   --paper:#efe6d2; --paper-deep:#e3d7bc; --paper-shadow:#c9bb9c; --ink:#232f3b; --ink-soft:#4a5561;
   --pencil:#6f675a; --red:#b0392e; --red-soft:rgba(176,57,46,.16); --lamp:#e8c15a; --lamp-soft:rgba(232,193,90,.22);
-  --map:#e9dfc6; --map-ink:#3a3a33; --water:#8ea3a1;
+  --wood:#3a2a1e; --wood-edge:#5a4331;
   --sans: "Crimson Pro", Georgia, "Times New Roman", serif;
   --fell: "IM Fell English", "Crimson Pro", Georgia, serif;
   --typed: "Special Elite", "Courier New", Courier, monospace;
   --hand: "Caveat", "Segoe Script", "Bradley Hand", cursive;
-  --child: "Schoolbell", "Comic Sans MS", cursive;
+  --nbfont: var(--hand); --nbsize:21px; --nbline:28px;
 }
 *{box-sizing:border-box}
 html,body{height:100%;overflow-x:hidden}
@@ -30,16 +38,11 @@ header h1 small{display:block;font-size:11px;letter-spacing:.18em;text-transform
 .ledger span{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass-dim)}
 .music{width:34px;height:34px;border-radius:50%;border:1px solid var(--brass-dim);color:var(--brass-dim);font:400 18px/32px var(--fell);text-align:center;align-self:center}
 .music.on{color:#1b1b17;background:var(--brass);border-color:#d8b478}
-.musicbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:18px 0 0;padding:10px 12px;border:1px solid var(--brass-dim);color:var(--brass);font-size:14px}
-.musicbar b{font:400 15px var(--fell);color:var(--paper)}
-.musicbar .row{gap:14px}
-.musicbar .row button{font:400 12px var(--fell);letter-spacing:.12em;text-transform:uppercase;color:var(--brass)}
 main{flex:1;min-height:0;position:relative}
 .panel{display:none;padding:16px 16px 110px;animation:fade .25s ease}
 .panel.on{display:block}
 @keyframes fade{from{opacity:.6}to{opacity:1}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-
 @media (max-width:380px){header h1{font-size:20px} .ledger{gap:9px} .ledger b{font-size:18px} .music{width:30px;height:30px;line-height:28px;font-size:16px} .panel{padding-left:12px;padding-right:12px} .paper{padding:22px 16px 20px}}
 
 /* Coach */
@@ -50,145 +53,144 @@ main{flex:1;min-height:0;position:relative}
 .coach .row button.ok{color:#1b1b17;background:var(--brass);padding:6px 12px}
 .coach small{display:block;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass);margin-bottom:6px}
 
-/* Desk */
-.eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass);margin:6px 0 10px}
-.tray{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
-.env{display:flex;align-items:center;gap:12px;background:var(--paper-deep);color:var(--ink);padding:12px 14px;border:1px solid var(--paper-shadow);text-align:left;width:100%;position:relative;box-shadow:2px 3px 0 rgba(0,0,0,.25)}
-.env:nth-child(2n){transform:rotate(.6deg)}
-.env:nth-child(2n+1){transform:rotate(-.4deg)}
-.env .to{font-size:16px;line-height:1.25}
-.env .to i{display:block;font-style:normal;font-size:12px;color:var(--pencil);letter-spacing:.06em;text-transform:uppercase;margin-top:3px}
-.env .stampbox{margin-left:auto;width:34px;height:40px;border:1px dashed var(--pencil);flex:none;display:grid;place-items:center;font:11px var(--fell);color:var(--pencil)}
-.env.reply{background:#f4ecd9}
-.env.reply .stampbox{border-style:solid;border-color:var(--red);color:var(--red)}
-.env.unread::after{content:"";position:absolute;left:-4px;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--red)}
-.env.pulse{box-shadow:2px 3px 0 rgba(0,0,0,.25),0 0 0 2px var(--lamp)}
-.empty{color:var(--brass-dim);font-style:italic;padding:8px 2px}
+/* Shelf */
+.shelf{position:relative;height:74px;margin:0 -4px 18px;background:linear-gradient(180deg,#4a3627,var(--wood) 60%,#2a1d14);border-top:2px solid var(--wood-edge);border-bottom:6px solid #1c130d;box-shadow:0 8px 16px rgba(0,0,0,.4) inset,0 2px 0 #5a4331}
+.shelf .items{position:absolute;left:14px;right:14px;bottom:4px;display:flex;align-items:flex-end;justify-content:space-around;height:64px}
+.shelf svg{height:52px;width:auto;filter:drop-shadow(0 3px 2px rgba(0,0,0,.5))}
+.shelf .hint{position:absolute;inset:0;display:grid;place-items:center;font:italic 14px var(--fell);color:rgba(232,193,90,.55)}
 
+/* Common */
+.eyebrow{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--brass);margin:6px 0 10px}
 .paper{overflow-wrap:anywhere;background:var(--paper);color:var(--ink);padding:26px 22px 22px;position:relative;box-shadow:0 10px 24px rgba(0,0,0,.35), 0 1px 0 var(--paper-shadow) inset;margin-bottom:14px}
 .paper::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.02),transparent 30%,rgba(0,0,0,.03));pointer-events:none}
-.paper .addr{font-size:19px;line-height:1.35;margin:0 0 18px;padding-bottom:12px;border-bottom:1px solid var(--paper-shadow);white-space:pre-line}
-.paper .body{font-size:19px;line-height:1.5;margin:0 0 14px;white-space:pre-line}
-.paper .sign{text-align:right;font-size:19px;margin:0}
-.paper.typed .addr,.paper.typed .body,.paper.typed .sign{font-family:var(--typed);font-size:15px;line-height:1.55}
-.paper.hand .addr,.paper.hand .body,.paper.hand .sign{font-family:var(--hand);font-size:23px;line-height:1.35}
-.paper.child .addr,.paper.child .body,.paper.child .sign{font-family:var(--child);font-size:19px;line-height:1.5}
-.paper.caps .addr,.paper.caps .body,.paper.caps .sign{font-family:var(--fell);letter-spacing:.08em;font-size:17px;line-height:1.6}
-.paper .meta{position:absolute;top:8px;right:12px;font:italic 12px var(--fell);color:var(--pencil)}
-.w{cursor:pointer;border-radius:2px;padding:0 1px;transition:background .12s}
-.w:hover{background:rgba(0,0,0,.05)}
-.w.pin{background:var(--red-soft);text-decoration:underline wavy var(--red);text-decoration-thickness:1.5px;text-underline-offset:3px}
-.w.faded{filter:blur(3px);opacity:.55;user-select:none;cursor:not-allowed}
-.w.clear{background:var(--lamp-soft);box-shadow:0 0 0 2px var(--lamp-soft);border-radius:3px}
-.w.clear.pin{background:var(--red-soft)}
-.stamp{position:absolute;right:14px;bottom:14px;transform:rotate(-12deg);border:2px solid var(--red);color:var(--red);font:400 13px/1.15 var(--fell);letter-spacing:.1em;text-transform:uppercase;padding:6px 8px;text-align:center;opacity:.85;border-radius:3px;mix-blend-mode:multiply}
+.file{font-family:var(--typed);font-size:14px;line-height:1.55}
+.file h2{font:400 22px var(--fell);margin:0 0 2px;letter-spacing:.02em}
+.file .no{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--pencil);margin-bottom:12px}
+.file dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0 0 12px}
+.file dt{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--pencil);padding-top:3px}
+.file dd{margin:0}
+.file .sec{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--pencil);margin:12px 0 4px;border-bottom:1px solid var(--paper-shadow)}
+.file ul{margin:0;padding-left:18px}
+.file li{margin:3px 0}
+.file .gaz{font-family:var(--sans);font-style:italic;font-size:16px;margin:0}
+.stamp{position:absolute;right:14px;top:14px;transform:rotate(-10deg);border:2px solid var(--red);color:var(--red);font:400 13px/1.15 var(--fell);letter-spacing:.1em;text-transform:uppercase;padding:6px 8px;text-align:center;opacity:.85;border-radius:3px;mix-blend-mode:multiply}
+.stamp.cold{border-color:var(--ink-soft);color:var(--ink-soft)}
+
+.suspects{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.sus{background:var(--paper-deep);color:var(--ink);padding:12px 12px 10px;text-align:left;border:1px solid var(--paper-shadow);box-shadow:2px 3px 0 rgba(0,0,0,.25);display:flex;flex-direction:column;gap:6px;position:relative}
+.sus:nth-child(2n){transform:rotate(.5deg)} .sus:nth-child(2n+1){transform:rotate(-.4deg)}
+.sus .med{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font:400 18px var(--fell);color:var(--paper);border:2px solid var(--paper);box-shadow:0 0 0 1px var(--paper-shadow)}
+.sus b{font:400 17px var(--fell);line-height:1.15}
+.sus i{font-size:13px;color:var(--pencil);font-style:normal;letter-spacing:.04em}
+.sus p{margin:0;font-size:14px;line-height:1.3}
+.sus .asked{position:absolute;top:8px;right:10px;font:400 11px var(--fell);color:var(--pencil);letter-spacing:.1em}
+.sus.guessed{outline:2px dashed var(--ink-soft);outline-offset:-2px}
+.sus.culprit{outline:2px solid var(--red);outline-offset:-2px}
+
 .hintline{font-style:italic;color:var(--brass);font-size:15px;margin:0 0 10px}
-.leads{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
-.lead{background:var(--paper);color:var(--ink);font-size:14px;padding:5px 10px;border-left:3px solid var(--red);box-shadow:1px 2px 0 rgba(0,0,0,.25)}
-.lead small{color:var(--pencil);margin-left:6px}
 .row{display:flex;gap:10px;flex-wrap:wrap}
 .btn{background:var(--brass);color:#1b1b17;font:400 15px var(--fell);letter-spacing:.06em;padding:11px 16px;border:1px solid #d8b478;box-shadow:0 2px 0 var(--brass-dim);text-transform:uppercase}
 .btn.ghost{background:transparent;color:var(--brass);border-color:var(--brass-dim);box-shadow:none}
-.btn.on{background:var(--lamp);border-color:#f0d27a}
+.btn.danger{background:var(--red);color:var(--paper);border-color:#d0645a;box-shadow:0 2px 0 #6e231c}
 .btn:active{transform:translateY(1px);box-shadow:none}
 .btn[disabled]{opacity:.45;pointer-events:none}
-.toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}
 .card-note{background:rgba(0,0,0,.18);border:1px solid var(--brass-dim);padding:14px 16px;margin:0 0 16px;color:var(--paper)}
 .card-note h2{font:400 20px var(--fell);margin:0 0 6px;color:var(--brass)}
 .card-note p{margin:0 0 8px;font-size:16px}
 .card-note p:last-child{margin:0}
 .card-note .row{margin-top:10px}
 
-/* Map */
-.mapwrap{background:var(--map);padding:6px;box-shadow:0 10px 24px rgba(0,0,0,.35)}
-svg.map{width:100%;height:auto;display:block;font-family:var(--fell)}
-.bld rect{fill:#f2ead6;stroke:var(--map-ink);stroke-width:1.1;transition:fill .2s}
-.bld text{fill:var(--map-ink);font-size:8px;pointer-events:none}
-.bld .num{font-size:7px;fill:#6a6a60}
-.bld.lit rect{fill:#f6df9c;stroke:#8a6a1f}
-.bld.hot rect{fill:var(--lamp);stroke:#6a4c10;stroke-width:1.6}
-.bld.done rect{fill:#d9d1bb}
-.bld.sel rect{stroke:var(--red);stroke-width:2}
-.street{font-size:10px;fill:#5a5a50;letter-spacing:.14em;text-transform:uppercase}
-.street.circled{fill:var(--red)}
-.hintring{fill:none;stroke:var(--red);stroke-width:1.6;stroke-dasharray:3 2}
-.water{fill:var(--water)}
-.wave{fill:none;stroke:#6e8583;stroke-width:.8}
-.mapkey{display:flex;justify-content:space-between;align-items:center;margin:12px 2px 0;font-size:14px;color:var(--brass)}
-.mapkey i{display:inline-block;width:12px;height:12px;background:var(--lamp);border:1px solid #6a4c10;vertical-align:-1px;margin-right:6px}
-
 /* Sheet */
-#sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,110%);width:100%;max-width:480px;background:var(--paper);color:var(--ink);padding:18px 18px 22px;box-shadow:0 -10px 30px rgba(0,0,0,.45);transition:transform .25s ease;z-index:20;max-height:75dvh;overflow:auto}
+#sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,110%);width:100%;max-width:480px;background:var(--paper);color:var(--ink);padding:18px 18px 22px;box-shadow:0 -10px 30px rgba(0,0,0,.45);transition:transform .25s ease;z-index:20;max-height:82dvh;overflow:auto}
 #sheet.open{transform:translate(-50%,0)}
 #sheet h3{font:400 22px var(--fell);margin:0 0 2px}
 #sheet .sub{color:var(--pencil);font-size:14px;letter-spacing:.06em;text-transform:uppercase;margin:0 0 10px}
 #sheet p{margin:0 0 10px;font-size:16px}
-#sheet .bounce{font-family:var(--hand);font-size:22px;color:var(--red);line-height:1.25;margin:8px 0 12px}
 #sheet .close{position:absolute;top:10px;right:14px;font:20px var(--fell);color:var(--pencil)}
+.qs{display:flex;flex-direction:column;gap:8px;margin:10px 0 14px}
+.q{text-align:left;border:1px solid var(--paper-shadow);background:#f6efdc;padding:10px 12px;font-size:15.5px;color:var(--ink);width:100%}
+.q small{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--pencil);margin-bottom:2px}
+.a{font-family:var(--hand);font-size:21px;line-height:1.25;color:#2f2a22;padding:8px 12px 10px 16px;border-left:3px solid var(--brass);margin:0 0 4px}
 .scrim{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:15;display:none}
 .scrim.on{display:block}
-textarea.nb{width:100%;min-height:220px;resize:vertical;border:0;border-top:1px solid var(--paper-shadow);padding:10px 4px;font:400 21px/28px var(--hand);color:#2f2a22;background:
-  repeating-linear-gradient(transparent 0 27px, var(--paper-shadow) 27px 28px) 0 9px/100% 28px, #f6efdc}
-.fab{position:fixed;right:max(14px, calc(50% - 226px));bottom:72px;width:48px;height:48px;border-radius:50%;background:var(--brass);color:#1b1b17;font:24px/48px var(--fell);text-align:center;box-shadow:0 4px 12px rgba(0,0,0,.4);z-index:12;border:1px solid #d8b478}
-.fab.pulse{box-shadow:0 4px 12px rgba(0,0,0,.4),0 0 0 3px var(--lamp)}
+.verdict{font:400 30px var(--fell);color:var(--red);margin:0 0 4px}
+.verdict.cold{color:var(--ink-soft)}
+.pay{font:400 24px var(--fell);color:#3b6b3f;margin:0 0 8px}
 
-/* Files */
-.subtabs{display:flex;gap:2px;margin-bottom:14px;border-bottom:1px solid var(--brass-dim)}
-.subtabs button{flex:1;padding:8px 4px;font:400 15px var(--fell);color:var(--brass-dim);letter-spacing:.06em;text-transform:uppercase;border-bottom:2px solid transparent;margin-bottom:-1px}
-.subtabs button.on{color:var(--brass);border-bottom-color:var(--brass)}
-.dir{background:var(--paper);color:var(--ink);padding:14px 16px;font-size:16px;box-shadow:0 10px 24px rgba(0,0,0,.35)}
-.dir h4{font:400 13px var(--fell);letter-spacing:.2em;text-transform:uppercase;color:var(--pencil);margin:0 0 10px;text-align:center}
-.dir .e{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px dotted var(--paper-shadow)}
-.dir .e:last-child{border:0}
-.dir .e span:last-child{color:var(--ink-soft);text-align:right;white-space:nowrap}
-.dir .e.pencil{font-family:var(--hand);font-size:19px;color:#4a4238}
-.census{display:flex;flex-direction:column;gap:12px}
-.ccard{background:#f6efdc;color:var(--ink);padding:12px 14px;font-family:var(--typed);font-size:13.5px;line-height:1.5;border:1px solid var(--paper-shadow);box-shadow:2px 3px 0 rgba(0,0,0,.25)}
-.ccard b{display:block;font-size:14px;margin-bottom:2px}
-.arch{display:flex;flex-direction:column;gap:10px}
+/* Cases */
+.caselist{display:flex;flex-direction:column;gap:10px}
+.casebtn{display:flex;align-items:center;gap:12px;background:var(--paper-deep);color:var(--ink);padding:12px 14px;border:1px solid var(--paper-shadow);text-align:left;width:100%;box-shadow:2px 3px 0 rgba(0,0,0,.25)}
+.casebtn .n{font:400 13px var(--fell);color:var(--pencil);letter-spacing:.1em;width:28px;flex:none}
+.casebtn b{font:400 17px var(--fell);display:block}
+.casebtn i{font-style:normal;font-size:12px;color:var(--pencil);letter-spacing:.06em;text-transform:uppercase}
+.casebtn .st{margin-left:auto;font:400 13px var(--fell);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.casebtn .st.ok{color:#3b6b3f} .casebtn .st.cold{color:var(--pencil)} .casebtn .st.open{color:var(--red)}
+.casebtn.locked{opacity:.45}
+.casebtn.cur{outline:2px solid var(--lamp);outline-offset:-2px}
 
-/* Notes */
-.board{display:flex;flex-direction:column;gap:10px}
-.fact{background:var(--paper);color:var(--ink);padding:10px 12px;font-size:15.5px;box-shadow:1px 2px 0 rgba(0,0,0,.25);border-left:3px solid var(--brass)}
-.fact small{display:block;color:var(--pencil);font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
-.fact.who{transform:rotate(-.5deg)}
-.nbview{background:#f6efdc;color:#2f2a22;padding:12px 14px;font:400 20px/28px var(--hand);white-space:pre-wrap;box-shadow:0 10px 24px rgba(0,0,0,.35);margin-bottom:10px;min-height:60px}
-.nbview.empty-nb{color:var(--pencil);font-style:italic;font-family:var(--sans);font-size:15px;line-height:1.4}
+/* Notebook */
+textarea.nb{width:100%;min-height:260px;resize:vertical;border:0;border-top:1px solid var(--paper-shadow);padding:10px 6px;font-family:var(--nbfont);font-size:var(--nbsize);line-height:var(--nbline);color:#2f2a22;background:
+  repeating-linear-gradient(transparent 0 calc(var(--nbline) - 1px), var(--paper-shadow) calc(var(--nbline) - 1px) var(--nbline)) 0 9px/100% var(--nbline), #f6efdc;box-shadow:0 10px 24px rgba(0,0,0,.35)}
+.stm{background:var(--paper);color:var(--ink);padding:10px 12px;margin-bottom:8px;box-shadow:1px 2px 0 rgba(0,0,0,.25);border-left:3px solid var(--brass)}
+.stm b{font:400 16px var(--fell);display:block;margin-bottom:4px}
+.stm div{font-family:var(--typed);font-size:12.5px;line-height:1.5;margin:0 0 4px}
+.stm div span{color:var(--pencil)}
+
+/* Shop */
+.money{font:400 26px var(--fell);color:var(--lamp);margin:0 0 12px}
+.money small{font:400 12px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--brass);margin-left:8px}
+.goods{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:22px}
+.good{background:var(--paper-deep);color:var(--ink);border:1px solid var(--paper-shadow);padding:12px;display:flex;flex-direction:column;gap:6px;align-items:flex-start;box-shadow:2px 3px 0 rgba(0,0,0,.25)}
+.good svg{height:48px;width:auto;align-self:center;margin:4px 0}
+.good b{font:400 16px var(--fell)}
+.good i{font-style:normal;font-size:13px;color:var(--pencil)}
+.good .buy{margin-top:auto;align-self:stretch;text-align:center;font:400 14px var(--fell);letter-spacing:.08em;text-transform:uppercase;padding:7px 10px;background:var(--brass);color:#1b1b17;border:1px solid #d8b478}
+.good .buy.owned{background:transparent;color:var(--pencil);border-color:var(--paper-shadow)}
+.good .buy[disabled]{opacity:.45}
+.hands{display:flex;flex-direction:column;gap:10px}
+.handrow{background:var(--paper);color:#2f2a22;padding:10px 12px;display:flex;align-items:center;gap:12px;border:1px solid var(--paper-shadow);box-shadow:2px 3px 0 rgba(0,0,0,.25)}
+.handrow .prev{flex:1;line-height:1.25;overflow-wrap:anywhere}
+.handrow .prev small{display:block;font:400 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--pencil);margin-top:4px}
+.handrow .buy{flex:none;font:400 13px var(--fell);letter-spacing:.08em;text-transform:uppercase;padding:7px 10px;background:var(--brass);color:#1b1b17;border:1px solid #d8b478;min-width:74px;text-align:center}
+.handrow .buy.use{background:transparent;color:var(--ink);border-color:var(--pencil)}
+.handrow .buy.inuse{background:var(--lamp);border-color:#f0d27a}
+.handrow .buy[disabled]{opacity:.45}
 
 /* Tabs */
 nav.tabs{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:100%;max-width:480px;display:grid;grid-template-columns:repeat(4,1fr);background:#141a17;border-top:1px solid var(--brass-dim);z-index:10;padding-bottom:env(safe-area-inset-bottom)}
 nav.tabs button{padding:12px 4px 10px;font:400 14px var(--fell);letter-spacing:.1em;text-transform:uppercase;color:var(--brass-dim);position:relative}
 nav.tabs button.on{color:var(--lamp)}
-nav.tabs button .dot{position:absolute;top:8px;right:22%;width:7px;height:7px;border-radius:50%;background:var(--red)}
 nav.tabs button.pulse{color:var(--lamp);text-shadow:0 0 8px var(--lamp)}
 #toast{position:fixed;left:50%;top:14px;transform:translate(-50%,-140%);background:var(--paper);color:var(--ink);padding:10px 16px;font:400 16px var(--fell);box-shadow:0 8px 20px rgba(0,0,0,.4);transition:transform .3s;z-index:30;max-width:90vw;text-align:center}
 #toast.on{transform:translate(-50%,0)}
+.musicbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:18px 0 0;padding:10px 12px;border:1px solid var(--brass-dim);color:var(--brass);font-size:14px}
+.musicbar b{font:400 15px var(--fell);color:var(--paper)}
+.musicbar .row{gap:14px}
+.musicbar .row button{font:400 12px var(--fell);letter-spacing:.12em;text-transform:uppercase;color:var(--brass)}
 .foot{margin-top:24px;font-size:13px;color:var(--brass-dim);text-align:center}
 .foot button{text-decoration:underline;color:var(--brass-dim)}
 </style>
 
 <div id="app">
   <header>
-    <h1>Dead Letter<small id="hDistrict">Saltmarsh · The Docks</small></h1>
+    <h1>Dead Letter<small>Saltmarsh · Detective's desk</small></h1>
     <div class="ledger">
-      <div><b id="hDay">1</b><span>Night</span></div>
-      <div><b id="hStamps">0</b><span>Stamped</span></div>
-      <div><b id="hWrong">0</b><span>Bounced</span></div>
+      <div><b id="hMoney">£0</b><span>Purse</span></div>
+      <div><b id="hSolved">0</b><span>Solved</span></div>
       <button class="music" id="musicBtn" data-act="music" aria-label="Music on or off" title="Music">♪</button>
     </div>
   </header>
   <main>
     <section class="panel on" id="p-desk"></section>
-    <section class="panel" id="p-map"></section>
-    <section class="panel" id="p-files"></section>
-    <section class="panel" id="p-notes"></section>
+    <section class="panel" id="p-cases"></section>
+    <section class="panel" id="p-notebook"></section>
+    <section class="panel" id="p-shop"></section>
   </main>
-  <button class="fab" id="fab" data-act="notebook" aria-label="Open your notebook" title="Notebook">✎</button>
   <nav class="tabs">
     <button data-tab="desk" class="on">Desk</button>
-    <button data-tab="map">Map</button>
-    <button data-tab="files">Files</button>
-    <button data-tab="notes">Notes</button>
+    <button data-tab="cases">Cases</button>
+    <button data-tab="notebook">Notebook</button>
+    <button data-tab="shop">Shop</button>
   </nav>
   <div class="scrim" id="scrim"></div>
   <div id="sheet"></div>
@@ -197,223 +199,138 @@ nav.tabs button.pulse{color:var(--lamp);text-shadow:0 0 8px var(--lamp)}
 
 <script id="game-data" type="application/json">
 {
-"districts":[
-{
-"id":"docks","name":"The Docks","tagline":"Saltmarsh · The Docks",
-"intro":{"title":"Night shift","text":"Letters nobody could deliver end up on this desk. Read each one. Tap the words that could tell you where it belongs. Then find the door on the map.\n\nDeliver it right and a reply comes with the morning. Deliver it wrong and it bounces back, and the town talks.","button":"Trim the lamp"},
-"ending":{"title":"End of the Docks","text":"Twelve letters, one drowned boat, one man home. Uphill, the Old Quarter has older money and a clock that stopped in 1871.","button":"Take the tram to the Old Quarter"},
-"streets":{"G":"Gull Lane","R":"Rope Walk","C":"Cannery Row","Q":"Quay Street"},
-"extras":"<rect class='water' x='0' y='470' width='360' height='90'/><path class='wave' d='M0 485 q15 -4 30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0'/><path class='wave' d='M0 505 q15 -4 30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0'/><path class='wave' d='M0 525 q15 -4 30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0'/><text x='180' y='550' text-anchor='middle' font-size='11' fill='#3f5553' font-style='italic'>Saltmarsh Bay</text><rect x='296' y='450' width='10' height='70' fill='#8a7a5a' stroke='#3a3a33' stroke-width='.8'/><text x='312' y='500' font-size='7' fill='#3a3a33' transform='rotate(90 312 500)'>cannery pier</text><rect x='238' y='452' width='30' height='14' fill='none' stroke='#3a3a33' stroke-width='.7' stroke-dasharray='2 1.5'/><text x='253' y='462' text-anchor='middle' font-size='7' fill='#3a3a33'>berth 14</text><path d='M334 8 l6 0 l3 28 l-12 0 z' fill='#f2ead6' stroke='#3a3a33' stroke-width='.9'/><circle cx='337' cy='6' r='3' fill='#e8c15a' stroke='#3a3a33' stroke-width='.7'/><text x='323' y='42' font-size='6.5' fill='#6a6a60'>lighthouse rock</text>",
-"buildings":[
- {"id":"g1","st":"G","num":1,"sign":"St Brendan's Chapel","who":"Father Amos","bounce":"Father Amos turns the envelope over twice. 'Not for the parish, I think. God's post comes by other routes.'"},
- {"id":"g3","st":"G","num":3,"sign":"Schoolhouse","who":"Miss Corliss, teacher","bounce":"Miss Corliss reads the direction over her spectacles. 'Whoever this is, I have not taught them. Try elsewhere.'"},
- {"id":"g5","st":"G","num":5,"sign":"Cottage, blue door","who":"","learn":"Josephine Anse","bounce":"A thin woman opens the blue door a hand's width, reads the name, and shakes her head without a word."},
- {"id":"g7","st":"G","num":7,"sign":"Cottage, green shutters","who":"","learn":"The Halloran family","bounce":"A tired woman with a baby on her hip glances at it. 'Not us, love. Half of Gull Lane is Hallorans but that isn't one.'"},
- {"id":"g9","st":"G","num":9,"sign":"Keeper's Cottage","who":"Pieter Voss, lighthouse keeper","bounce":"Voss squints at it from the doorway, salt in his beard. 'Nobody writes to me. That is the point of a lighthouse.'"},
- {"id":"r2","st":"R","num":2,"sign":"Hallam's Bakery","who":"Ines Hallam, baker","bounce":"Ines Hallam wipes flour on her apron and hands it straight back. 'Not mine. Mind the step.'"},
- {"id":"r4","st":"R","num":4,"sign":"Rooming house","who":"","learn":"Mrs Pell's lodgers","bounce":"A stout landlady blocks the doorway. 'I've six lodgers and none of that name. Good night.'"},
- {"id":"r6","st":"R","num":6,"sign":"Chandler","who":"Old Fenwick","bounce":"Fenwick holds it up to the lamp among the coiled rope. 'Wrong shop. I sell things that keep boats from drowning, not letters.'"},
- {"id":"r8","st":"R","num":8,"sign":"Sailmaker","who":"Agnes Thorne","bounce":"Agnes Thorne does not stop stitching. 'Read it to me. No? Then it isn't mine.'"},
- {"id":"r10","st":"R","num":10,"sign":"Apothecary","who":"Dr Lisle","bounce":"Dr Lisle peers at the address. 'I get bills, clerk, not letters. This is neither of mine.'"},
- {"id":"c2","st":"C","num":2,"sign":"Cannery Office","who":"M. Grady, foreman","bounce":"Grady doesn't take it. 'Office is for cannery business. If that's cannery business it'd have my name on it.'"},
- {"id":"c4","st":"C","num":4,"sign":"Workers' Dormitory","who":"Seasonal hands","bounce":"Twenty-two men look up from their bunks. Nobody claims it."},
- {"id":"c6","st":"C","num":6,"sign":"Pawnbroker","who":"Solly Marsh","bounce":"Solly Marsh smiles with no teeth showing. 'I'd give you sixpence for the stamp. The letter's no good to me.'"},
- {"id":"c8","st":"C","num":8,"sign":"Boatwright's Yard","who":"Ruth Kessler","bounce":"Ruth Kessler reads it by the light of the forge. 'Not for the yard. I'd remember.'"},
- {"id":"c10","st":"C","num":10,"sign":"Telegraph Office","who":"Clerk Winn","bounce":"Winn taps the counter. 'If it were mine it would be shorter and cost by the word.'"},
- {"id":"q1","st":"Q","num":1,"sign":"Harbourmaster's Office","who":"Tomas Reyes, harbourmaster","bounce":"Reyes' clerk shakes his head. 'Berths and tides. Anything else goes back to you.'"},
- {"id":"q3","st":"Q","num":3,"sign":"The Drowned Bell","who":"Marta Kell, licensee","bounce":"Marta Kell reads the name aloud to the bar. Laughter. 'Not one of mine, and I know all of mine.'"},
- {"id":"q5","st":"Q","num":5,"sign":"Oduya & Sons, Fishmongers","who":"Joseph Oduya and sons","bounce":"Joseph Oduya shakes his head over the ice. 'Nobody here by that direction.'"},
- {"id":"q7","st":"Q","num":7,"sign":"Net Loft","who":"","bounce":"The loft is dark and the door is chained. Nobody has lived here for years."},
- {"id":"q9","st":"Q","num":9,"sign":"Customs House","who":"Inspector Dace","bounce":"Dace's man does not open the door fully. 'Customs correspondence comes sealed. That isn't sealed.'"},
- {"id":"q11","st":"Q","num":11,"sign":"Dead Letter Office","who":"You","bounce":"It is your own desk. You put it back in the tray."}
+"cases":[
+{"id":"bell","title":"The Yard Behind the Bell","reward":4,
+ "brief":{"victim":"Dennis Quaile, 31, cooper's mate","weapon":"A cooper's mallet, found in the rain barrel. Marked T.V.","time":"Between eleven and midnight, Tuesday","place":"The yard behind the Drowned Bell, Quay Street",
+  "public":"\"A dock labourer found dead behind the Drowned Bell; foul play suspected.\" Nothing about the mallet, nothing about the barrel.",
+  "facts":["Struck once, from behind.","The yard gate onto Quay Street was bolted from inside. The only other way in is through the taproom.","The cannery dormitory is bolted at ten every night by the foreman, and was."]},
+ "questions":["Where were you between eleven and midnight?","How did you know Dennis Quaile?","What do you know about how he died?"],
+ "suspects":[
+  {"id":"kell","name":"Marta Kell","age":52,"job":"landlady of the Drowned Bell","color":"#6b4a3a","look":"Broad, quick, a bar-towel over one shoulder.","note":"Has run the Bell for twenty years. Twenty drinkers saw her behind the bar until she rang the bell at midnight.",
+   "answers":["Behind my own bar, where I always am, till I rang midnight. Ask any of the twenty.","He drank here. Paid, mostly. Owed Sam Rooney money and Rooney let everyone know it.","Only what the constable told me: found him in my yard this morning. Nobody uses that yard but me and the barrels."]},
+  {"id":"rooney","name":"Sam Rooney","age":27,"job":"dock hand","color":"#3f5560","look":"Big hands, small eyes, a fresh scrape across the right knuckles.","note":"Quaile owed him two pounds since the spring. Sleeps in the cannery dormitory when he is working, which this week he is.",
+   "answers":["In my bunk at the dormitory by eleven. Slept like the dead.","He owed me two pound and he'd have paid it too. No sense killing a man who owes you money.","I don't know anything about any mallet, and I'll thank you not to say I do."]},
+  {"id":"vane","name":"Teddy Vane","age":40,"job":"cooper, Quaile's brother-in-law","color":"#7a6a2e","look":"Sawdust in his beard, a limp from an old dropped cask.","note":"Employed Quaile. Owns a set of mallets marked T.V.; reported one stolen from his Quay Street yard a week ago.",
+   "answers":["Home in Gull Lane with my wife, his sister. She'll tell you. She'll tell you at length.","I married his sister and I gave him work, and he was bad at it, and I kept him on anyway.","The constable showed me the mallet. It's mine. I reported it gone last Wednesday and there's a constable's note to say so."]},
+  {"id":"lil","name":"Lil Marr","age":19,"job":"barmaid","color":"#5a3f5e","look":"Small, tired, a cannery hand's roughened palms.","note":"Serves at the Bell four nights a week. Quaile had been pestering her; Marta had warned him off.",
+   "answers":["Serving. I never left the taproom till we'd cleared the glasses at half past twelve.","He wouldn't leave me be. Marta told him if he touched me again she'd bar him. That was Sunday.","Somebody hit him, they say. Good. I'm sorry, but good."]}
+ ],
+ "culprit":"rooney",
+ "solution":"Nobody outside the police knew a mallet was used; the Gazette said only foul play. Rooney denied knowing about 'any mallet' before anyone had mentioned one. His alibi was a bunk in a dormitory that is bolted at ten, an hour before he says he climbed into it. The scrape on his knuckles is from the rim of the rain barrel. Teddy Vane's stolen mallet was stolen by the man who worked the same yard.",
+ "arrest":"Rooney goes quietly, which surprises everyone but Marta."},
+
+{"id":"loft","title":"The Sailmaker's Loft","reward":5,
+ "brief":{"victim":"Nathaniel Crewe, 58, sail merchant from Harrowgate","weapon":"A sailmaker's needle, driven in under the ribs","time":"Between five and six in the morning, Thursday","place":"The loft above Thorne's sail shop, 8 Rope Walk",
+  "public":"\"A visiting merchant found dead in a Rope Walk loft.\" No weapon, no hour.",
+  "facts":["The loft's inside stair was taken down on Wednesday for rebuilding. Since then the only way up is the outside ladder, which Kessler's yard delivered at five on Thursday morning.","Rain fell steadily from four until seven.","Crewe had come to buy Thorne's shop out from under her. The papers were on the loft table, unsigned."]},
+ "questions":["Where were you between five and six?","What was your business with Nathaniel Crewe?","How did you learn he was dead?"],
+ "suspects":[
+  {"id":"thorne","name":"Agnes Thorne","age":61,"job":"sailmaker","color":"#4b5d4a","look":"Thimble-scarred fingers; she does not sit still.","note":"Has made sail on Rope Walk for forty years. Crewe's offer would have made her his employee in her own shop.",
+   "answers":["In my bed at the back of the shop, under the loft. I heard the ladder go up against the wall at five and thought it was Kessler's boys.","He wanted my shop and he'd have had it, the way things are. I told him I'd think on it. I was thinking on it.","I heard two voices overhead a little after five. One was Crewe. The other had that flat up-coast way of talking. Then nothing. I went up when the light came and found him."]},
+  {"id":"piet","name":"Piet Hallam","age":24,"job":"yard hand, the baker's brother","color":"#8a7040","look":"Flour to the elbows, even now.","note":"Works nights at the boatyard and mornings at his sister's ovens. Crewe had refused him a berth on a Harrowgate boat last year and said why, loudly.",
+   "answers":["At the ovens from four, like every morning. Ines will swear to it, and so will half of Rope Walk's noses.","He called me a thief in front of a crew once, over a coil of rope I never took. I hadn't spoken to him since and didn't mean to.","Ines told me when I came off the ovens at seven. The whole street had it by then."]},
+  {"id":"dunn","name":"Cornelius Dunn","age":35,"job":"Crewe's clerk","color":"#4a4f6b","look":"Up-coast vowels; a good coat, damp at the hem.","note":"Kept Crewe's books for nine years. Rooms at the Drowned Bell. Stood to lose his place if Crewe's business failed, which it was doing.",
+   "answers":["Asleep at the Bell until eight. I'd been in the taproom until two. Mrs Kell will remember; she remembers everyone's tab.","I kept his books for nine years. He was a hard man to keep books for, latterly.","I went to the loft at eight to bring him the day's letters. I came up the stair and there he was, on the floor by the table. I sent the boy for the constable."]},
+  {"id":"kessler","name":"Ruth Kessler","age":44,"job":"boatwright","color":"#6b3f3f","look":"Forearms like hawsers; smells of pitch.","note":"Her yard supplied the ladder. She had quarrelled with Crewe over an unpaid bill for a mast.",
+   "answers":["At my forge from five. My boys carried the ladder round to Thorne's at five and were back by ten past. I never left the yard.","He owed me eleven pounds for a mizzen and had done since March. I'd have taken it out of his hide, but not with a needle.","One of my boys came running at eight, said the merchant was dead. I'd had the fire going three hours by then."]}
+ ],
+ "culprit":"dunn",
+ "solution":"Dunn says he 'came up the stair' at eight and found Crewe. There was no stair. It had been taken down the day before, and anyone who actually climbed to that loft on Thursday would remember a ladder in the rain. He was not there at eight. He was there a little after five, when Agnes Thorne heard an up-coast voice overhead, and his coat hem was still damp from the ladder. With Crewe dead before he signed for Thorne's shop, Dunn was left holding nine years of books nobody would ever audit.",
+ "arrest":"Dunn asks to fetch his good hat. He is not allowed."},
+
+{"id":"light","title":"The Light Went Out","reward":6,
+ "brief":{"victim":"Pieter Voss, 66, lighthouse keeper","weapon":"None. A fall of sixty feet from the lamp gallery onto the rock.","time":"Between nine and ten at night, Saturday","place":"The lighthouse, off the end of Gull Lane",
+  "public":"\"The keeper fell from the rocks while fishing.\" The police know better: the gallery door was open and his pipe was on the rail.",
+  "facts":["The harbourmaster's log records the light going out at 9:40, and the Halcyon, inbound, sheering off the rock with feet to spare.","Winn's telegraph log shows a wire delivered to the rock at 9:05; the receipt is signed by Voss.","Voss did not fish. He said so to anyone who asked."]},
+ "questions":["Where were you between nine and ten?","What did Pieter Voss mean to you?","What do you think happened to him?"],
+ "suspects":[
+  {"id":"jonas","name":"Jonas Voss","age":33,"job":"nephew, assistant keeper","color":"#3f5560","look":"Tall, wind-reddened, hands in his pockets.","note":"Next in line for the keeper's post and the cottage. Had asked the Board twice to retire his uncle. The Board had refused twice.",
+   "answers":["The Weavers' Arms, from eight until Pike put me out at eleven. Up the hill. I saw nothing.","My uncle taught me the lamp. He should have given it up five years ago and I said so to his face.","He'd no business out on the gallery in that wind at his age. He'll have leaned on the rail for his pipe and gone over. I told him. I told him a dozen times."]},
+  {"id":"brid","name":"Bríd Nolan","age":70,"job":"brings the keeper his supper","color":"#5a3f5e","look":"Bent, sharp, a basket on her arm from habit.","note":"Has walked Voss's supper out along the causeway every evening for eleven years. The last person known to see him alive but one.",
+   "answers":["Home by half past eight. I left him his supper at eight with the lamp already lit and himself asleep in his chair, and I let myself out.","He was a kind man who never said two words together. I'll miss the quiet of him.","The rocks are wicked in the wet. But he didn't fish, whatever the paper says. He hadn't the patience."]},
+  {"id":"steel","name":"Captain Amos Steel","age":50,"job":"master of the barque Halcyon","color":"#6b4a3a","look":"Beard like a hedge; still shaking with anger.","note":"His ship came within feet of the rock when the light failed. Twenty crew swear he was on his own quarterdeck all night.",
+   "answers":["On my quarterdeck bringing her in, and then on my quarterdeck bringing her about with the rock under my bowsprit. Ask my crew. Ask my ship's paint.","Nothing, until his light went out and near killed forty men. I'd have had words with him. I never got the chance.","The light went out. That is all I know and all I care to. A keeper who lets his light go out has failed at the one thing."]},
+  {"id":"winn","name":"Clerk Winn","age":45,"job":"telegraphist","color":"#4b5d4a","look":"Ink on his cuffs; precise to the minute.","note":"Delivered a wire to the rock himself at 9:05, the telegraph boy being off sick. The wire was from the Board, about Jonas's application.",
+   "answers":["On the rock at five past nine, off it by quarter past, at my desk by half past. My log says so, and my log is never wrong.","A customer. Four wires a year, all from the Board. I read them, of course. One reads everything.","He was alive and trimming the wick when I left him at quarter past. Whatever happened, happened after."]}
+ ],
+ "culprit":"jonas",
+ "solution":"The Gazette printed that Voss fell from the rocks while fishing. Only the police knew he had gone from the gallery, with his pipe left on the rail. Jonas Voss described exactly that: the gallery, the rail, the pipe, before anyone had told him. He was not at the Weavers' Arms at 9:40. He was on the rock, where the wire Winn delivered at 9:05 had just told his uncle what Jonas had asked the Board to do to him.",
+ "arrest":"Jonas asks who will light the lamp tonight. Nobody answers him."},
+
+{"id":"milk","title":"Milk in the Coffee","reward":7,
+ "brief":{"victim":"Mr Selim, 60, proprietor of the Turk's Head","weapon":"Laudanum, a heavy dose, in his afternoon coffee","time":"Between three and four in the afternoon, Monday","place":"His own back table at the Turk's Head, Clock Square",
+  "public":"\"The coffee-house keeper died suddenly at his table.\" No mention of poison.",
+  "facts":["Selim took his coffee with milk. Everyone else at the table took it black. The pot was shared; the milk jug was his alone.","Mrs Ashby's shop girl carried the milk jug across the square at three, as she did every afternoon. Ashby supplied it under the lease.","Dr Lisle's poison register shows two ounces of laudanum sold that morning to 'Mrs Ashby, for her nerves.'","Winn's telegraph log shows a wire sent by Yusuf Selim at 3:35."]},
+ "questions":["Where were you between three and four?","How did you stand with Selim?","Do you take milk in your coffee?"],
+ "suspects":[
+  {"id":"lisle","name":"Dr Lisle","age":55,"job":"apothecary","color":"#4a4f6b","look":"Stooped, dry, spectacles pushed up.","note":"Took coffee with Selim most afternoons at three. Sells laudanum, keeps a register, and is tired of being asked about it.",
+   "answers":["At Selim's table from three until a quarter past, then back to my shop. Daubeny took my chair when I left.","Friends, of a sort. I have few. He didn't mind a man who read at the table.","Black. Always. Milk spoils coffee and I said so to him weekly."]},
+  {"id":"ashby","name":"Mrs Ashby","age":48,"job":"draper, Selim's landlady","color":"#6b3f3f","look":"Tall, corseted, a tape measure round her neck.","note":"Owns the Turk's Head building and wants it for a larger shop. Had tried for a year to end Selim's lease, and failed.",
+   "answers":["In my shop, measuring Mrs Halloran for a mourning dress. The whole afternoon. She'll say so.","He was a tenant. A tidy one, I'll give him that. We had a disagreement about the lease and left it to the lawyers.","I never touch coffee. Nor laudanum, before you ask; I have never bought a drop of it in my life."]},
+  {"id":"yusuf","name":"Yusuf Selim","age":28,"job":"the son","color":"#7a6a2e","look":"His father's eyes, a newer coat.","note":"Wanted to sell the coffee house and go to London. They had quarrelled about it in front of customers.",
+   "answers":["Sending a wire to London at half past three. Winn will have it in his book. Then walking. I didn't go back in till five, and by then...","We fought. Fathers and sons. I wanted him to sell and rest, and he wanted to die at that table, and he did.","Black. Like him? No. He took milk. He was the only one who did; he said it was how his mother made it."]},
+  {"id":"daubeny","name":"Daubeny","age":63,"job":"printer, chess partner","color":"#3f5560","look":"Ink under every nail; a slow talker.","note":"Played chess with Selim every afternoon from three. Left at four when Selim said he felt unwell. Prints the Gazette.",
+   "answers":["At his table from three, when Lisle gave up his chair, till four. We'd got to the middle game. He said he felt heavy and I said go and lie down, and I went home.","Twenty years of chess. He was better than me and never let it show.","Black. We drank from the one pot, the two of us, and I'm still here, so it wasn't the pot."]}
+ ],
+ "culprit":"ashby",
+ "solution":"The pot was shared and only Selim died, so the poison was in the one thing only he took: the milk, sent across the square from Mrs Ashby's shop at three. Dr Lisle's register records Mrs Ashby buying two ounces of laudanum that same morning. She told you she has never bought a drop in her life. Yusuf's wire at 3:35 puts him at the telegraph office. Daubeny drank from the same pot and lived.",
+ "arrest":"Mrs Ashby asks to close the shop first. The shop stays open."},
+
+{"id":"pier","title":"A Shot on the Pier","reward":8,
+ "brief":{"victim":"Constable Jory Penhale, 29, on guard over the seized Kittiwake","weapon":"A .38 revolver, one shot. Recovered from the water at dawn, its number filed off.","time":"Half past midnight, Friday. The harbourmaster's log records the shot.","place":"The cannery pier, off Cannery Row",
+  "public":"\"A constable shot on the cannery pier.\" The revolver's recovery was not printed.",
+  "facts":["Under the revolver's grip, scratched into the metal: the letters S.M. Pawnbrokers mark their stock that way.","Solly Marsh's pawn ledger shows a .38 revolver sold on the 3rd to a customer entered only as 'T.'","The tide was on the flood at midnight. Anything dropped off the pier's north side drifts toward Kessler's yard, where the gun was found.","Penhale was shot from the front, at close range, by someone he had let walk right up to him."]},
+ "questions":["Where were you at half past midnight?","What do you know about the revolver?","Did you see anyone on Cannery Row that night?"],
+ "suspects":[
+  {"id":"marsh","name":"Solly Marsh","age":58,"job":"pawnbroker","color":"#5a3f5e","look":"Small, neat, fingers that never stop counting.","note":"Fled the Docks when Grady was arrested and came back a month later swearing his innocence. Paid the Kittiwake's berth for four years.",
+   "answers":["In my bed above the shop, with the door locked, as a man who has been threatened does.","I sell what's brought to me. A .38 came in, a .38 went out, to a customer who gave an initial. That's the trade. Half this town is an initial in my book.","I saw nothing. I heard the shot and put my head under the pillow, and I'd do it again."]},
+  {"id":"ben","name":"Ben Oduya","age":19,"job":"fishmonger's son","color":"#4b5d4a","look":"Tall, restless, in a blue coat.","note":"Was on the pier at eleven by his own admission, waiting for a girl who did not come. Knew Penhale from school.",
+   "answers":["On the pier till near midnight, then walking home along the Row. I was on Quay Street when the shot went. I ran back.","Nothing. I've never held one.","Yes. Running from the pier end toward Cannery Row, past me as I turned back. A small man in a long coat, hat down. He went into the dark by the pawnshop."]},
+  {"id":"trask","name":"Constable Trask","age":38,"job":"Customs House, suspended","color":"#3f5560","look":"Tall, heavy, a moustache he is proud of.","note":"Named in Grady's confession as the customs man paid to look away. Suspended, not charged. Hated Penhale, who reported him.",
+   "answers":["In the Customs House, on the cot in the back room, where I've slept since my wife found out what Grady said. I heard the shot and got there second. Oduya was first.","I've a service revolver, a .45, and it's in the Inspector's safe, where he put it when he suspended me. I never bought a .38 from Marsh or anyone. 'T.' is not me.","Nobody. The Row was empty by the time I got down it."]},
+  {"id":"kessler2","name":"Ruth Kessler","age":44,"job":"boatwright","color":"#6b3f3f","look":"Forearms like hawsers; smells of pitch.","note":"Her yard is beside the pier. She found the revolver in the shallows at dawn and brought it in herself.",
+   "answers":["In my yard, working late on a hull. The forge was going. I heard the shot over it, just.","I found it. Six in the morning, in a foot of water off my slip. I know what a filed number means and I brought it straight to Dace.","Nobody on the Row. But a lantern went along the pier at half past twelve, walking, not running, toward the Kittiwake."]}
+ ],
+ "culprit":"marsh",
+ "solution":"The revolver carries a pawnbroker's mark, S.M., under the grip. Marsh's ledger says he sold it to 'T.', an initial meant to point at Trask, who is six feet tall with a moustache. Ben Oduya saw the man who ran from the pier: small, long coat, hat down, vanishing into the dark by the pawnshop. Trask is not small. Marsh is. Penhale let his killer walk right up to him, as a constable would for a harmless little pawnbroker with a complaint. Marsh had paid the Kittiwake's berth for four years, and Penhale was guarding what was still aboard her.",
+ "arrest":"Marsh asks what the revolver will fetch. Nobody laughs."},
+
+{"id":"tower","title":"A Quarter Past Six","reward":10,
+ "brief":{"victim":"E. Rooke, 51, manager of the Savings Bank","weapon":"His own gold watch chain, from behind","time":"Between six and seven in the evening, Wednesday","place":"The stair inside the clock tower, Clock Square",
+  "public":"\"The bank manager found dead in the clock tower.\" No cause given.",
+  "facts":["Rooke had held a tower key since the ledgers business. He went up at six each evening to check the mechanism, having no faith in the Vells.","The clock struck six. The quarter-past chime never sounded: the mechanism jammed at 6:15 when the chain fouled the rope in the struggle. It has not struck since.","The mark of the chain runs upward. The killer stood on the step above and pulled. That takes height. Rooke was five feet eight.","Lucie Ferrand found the body at seven, when she came to wind."]},
+ "questions":["Where were you between six and seven?","What was your business with Rooke?","Did you hear the clock?"],
+ "suspects":[
+  {"id":"vell","name":"Auguste Vell","age":74,"job":"clockmaker","color":"#7a6a2e","look":"Bent, small, a watchmaker's glass on a ribbon.","note":"Holds the other tower key. Resented Rooke checking 'his' mechanism nightly. Cannot climb the tower stair without stopping four times.",
+   "answers":["In my shop, with my daughter, from five until Lucie came screaming across the square at seven.","He had a tower key. The bank's key. He'd go up at six and put his hands on my mechanism, and I'd hear it from the shop, the way he handled the escapement.","Six, yes. Then nothing. I said to Marguerite, he's stopped it, the fool. I meant Rooke."]},
+  {"id":"lucie","name":"Lucie Ferrand","age":16,"job":"the clockmaker's granddaughter","color":"#5a3f5e","look":"Small, quick, oil on her fingers.","note":"Winds the clock at seven each evening. Found the body. Had argued with Rooke that morning about his 'interfering'.",
+   "answers":["At my school books at Mama's, on Mercer Row, until I went across to wind at seven. Mama was with me. I found him on the stair.","He treated the clock like a bank vault. I told him so on Monday. He told me I was a child.","It struck six while I was reading. It didn't strike the quarter. I noticed. I notice everything about that clock."]},
+  {"id":"coyle","name":"Mr Coyle","age":45,"job":"'a corn factor, from up the coast'","color":"#4a4f6b","look":"Very tall, very calm, a heavy gold Albert across his waistcoat.","note":"Arrived Monday; rooms at the Turk's Head. Nobody in the corn trade has heard of him. Had called on Rooke twice about the seized ledgers.",
+   "answers":["Dining at the Turk's Head from half past five. The younger Selim served me and can say so. I was still at table at seven.","Business. I represent certain interests who had money in the ledgers Inspector Dace took. I asked Rooke whether copies existed. He said no. I believed him.","I heard it strike six from the dining room. After that I was not listening for it."]},
+  {"id":"quint","name":"Jasper Quint","age":30,"job":"formerly Haldane's clerk","color":"#3f5560","look":"Tall, pale, a coat too thin for the season.","note":"Unemployed since Haldane's arrest. Rooke had refused him a loan that morning and, Quint says, laughed while he did it.",
+   "answers":["The Weavers' Arms. I went in at five with my last shilling and I was still there when I heard the clock strike seven, and I went home.","He refused me a loan of four pounds and laughed. That is the whole of it. I am not proud of being poor.","Six, and seven. I told you. I heard seven strike and I got up and went home to Weavers' Court."]}
+ ],
+ "culprit":"quint",
+ "solution":"The clock jammed at a quarter past six and has not struck since. Lucie, who notices everything about that clock, said so. Quint says he heard it strike seven and got up to go home. It did not strike seven. He was not in the Weavers' Arms listening for it; he was on the tower stair, a step above a man who had laughed at him, and he is tall enough to have pulled the chain upward. Coyle is taller still, but Yusuf Selim served him dinner through the whole hour. Old Vell cannot climb the stair. Lucie is too small to have pulled from above.",
+ "arrest":"Quint asks whether the Arms will keep his tab open. It will not."}
 ],
-"directory":[
- ["Amos, Fr.","1 Gull Lane"],["Corliss, Miss E.","3 Gull Lane"],["Dace, Insp. H.","Customs House, 9 Quay St"],
- ["Fenwick, A., chandler","6 Rope Walk"],["Grady, M., foreman","2 Cannery Row"],["Hallam, I., baker","2 Rope Walk"],
- ["Kell, M., licensee","3 Quay St"],["Kessler, R., boatwright","8 Cannery Row"],["Lisle, Dr P.","10 Rope Walk"],
- ["Marsh, S., pawnbroker","6 Cannery Row"],["Oduya, J. & Sons","5 Quay St"],["Reyes, T., harbourmaster","1 Quay St"],
- ["Thorne, A., sailmaker","8 Rope Walk"],["Voss, P., keeper","9 Gull Lane"],["Winn, C., telegraphist","10 Cannery Row"]
+"decor":[
+ {"id":"pipe","name":"Briar pipe","price":3,"desc":"Never lit at the desk. Chewed, mostly."},
+ {"id":"photo","name":"Framed photograph","price":2,"desc":"Someone you don't discuss."},
+ {"id":"fern","name":"Potted fern","price":3,"desc":"Thrives on lamplight and neglect."},
+ {"id":"lamp","name":"Brass reading lamp","price":4,"desc":"Green shade. The good kind."},
+ {"id":"decanter","name":"Decanter and glass","price":4,"desc":"For after the arrest, not before."},
+ {"id":"ship","name":"Ship in a bottle","price":5,"desc":"The Kittiwake, someone says. It isn't."},
+ {"id":"cat","name":"Office cat","price":6,"desc":"Answers to nothing. Sleeps on the case files."},
+ {"id":"typewriter","name":"Remington typewriter","price":8,"desc":"Reports in triplicate. The Inspector is impressed."}
 ],
-"census":[
- {"id":"anse","start":true,"text":"ANSE, Josephine (widow), b. Tully. Husband Calloway Anse, fisherman, master of the KITTIWAKE, lost in the November gale, 1892. No children. Gull Lane."},
- {"id":"halloran","start":true,"text":"HALLORAN, Dermot, cooper. Wife Síle. Four children (eldest Nuala, at school inland). Mother-in-law Bríd Nolan resident. Gull Lane."},
- {"id":"oduya","start":true,"text":"ODUYA, Joseph, fishmonger. Widower. Sons Benedict (19) and Samuel (14). Quay Street, shop and dwelling."},
- {"id":"dorm","start":true,"text":"CANNERY DORMITORY, 4 Cannery Row. Twenty-two men, seasonal, names not recorded. Foreman responsible: M. Grady."},
- {"id":"pell","start":false,"text":"PELL, Margaret (widow). Keeps lodgers. Rope Walk, the house between the bakery and the chandler. Lodgers at last count: D. Sorrow, cooper's mate. T. Blackwood, no occupation given, right hand injured. E. Marr, cannery."}
-],
-"letters":[
- {"id":"reyes","style":"typed","tag":"Typed, a shipping firm's letterhead","to":"Mr T. Reyes,\nThe Harbour,\nSaltmarsh.","body":"Sir, — The barque Halcyon will make Saltmarsh on or about the 12th with timber for the cannery. Kindly hold a berth of not less than ninety feet. Our agent will settle the fees on arrival, as before.","from":"J. Pryce, for Corrigan & Pryce, Shipping.",
-  "clues":[{"p":"Reyes","t":["q1"],"why":"in the directory"},{"p":"Harbour","t":["q1","q9"],"why":"waterfront offices"},{"p":"berth","t":["q1"],"why":"harbourmaster's business"}],
-  "answer":"q1",
-  "reply":{"from":"T. Reyes, Harbourmaster","style":"typed","body":"Clerk — Received, with thanks. Pryce's people are always sloppy with a direction. Berth held.\n\nWhile I have your ear. Someone has paid the mooring on berth 14 every quarter for four years, in coin, through the pawnbroker. Berth 14 was the Kittiwake's, and the Kittiwake is on the bottom of the bay. A drowned boat wants no berth. If a letter about it ever crosses your desk, I should like to know.","facts":[{"who":"Berth 14","f":"The Kittiwake's old berth is still paid for, quarterly, in coin, through Solly Marsh the pawnbroker."}]}},
- {"id":"bakery","style":"hand","tag":"Pencil, a man's hand","to":"Ines,\nat the bakery,\nSaltmarsh.","body":"Ines — I know you said not to write. The rent here is gone up again and the work at the yards has dried up. I am not asking. I am only saying. Mother would have wanted you to know how things stand.\n\nTell no one at the cannery I wrote.","from":"Your brother, Piet.",
-  "clues":[{"p":"bakery","t":["r2"],"why":"one on the map"},{"p":"Ines","t":["r2"],"why":"I. Hallam, in the directory"},{"p":"cannery","t":["c2","c4"],"why":"Cannery Row"}],
-  "answer":"r2",
-  "reply":{"from":"I. Hallam, 2 Rope Walk","style":"hand","body":"To the clerk — Thank you for bringing Piet's letter, though I could have done without it. I am at the ovens from four every morning and the whole of Rope Walk knows it by the smell, so I suppose there is no hiding from anyone.\n\nIf more come from him, bring them to the side door, not the shop.","facts":[{"who":"Ines Hallam","f":"Bakes from four in the morning. Rope Walk smells of bread before dawn."}]}},
- {"id":"priest","style":"hand","tag":"Ink, an elderly hand, posted inland","to":"The Priest,\nSaltmarsh, by the sea.","body":"Father — My daughter Josephine has not answered me since Michaelmas. She was married to a fisherman there who was lost, and I fear she has taken it worse this year than the last. Would you look in on her? I do not know her street, only that she keeps a blue door and will not paint it.","from":"Mrs A. Tully, Harrowgate.",
-  "clues":[{"p":"Priest","t":["g1"],"why":"the chapel"},{"p":"Father","t":["g1"],"why":"the chapel"},{"p":"blue door","t":["g5"],"why":"a cottage on Gull Lane"},{"p":"Josephine","t":[],"why":"see the census"}],
-  "answer":"g1",
-  "bounces":{"g5":"The woman at the blue door reads 'Josephine' on the page and goes very still. 'This is for the priest,' she says, and closes the door."},
-  "reply":{"from":"Fr. Amos, St Brendan's","style":"hand","body":"Clerk — I have called on Mrs Anse. She is well enough, if thin. She lights a candle for Calloway every Sunday at the side altar and has done since the Kittiwake went down in the November gale of '92. Four years this month.\n\nThank you for the letter. Her mother worries. I have written to say so, and I have put a stamp on it.","facts":[{"who":"Josephine Anse","f":"Née Tully. Keeps the blue door on Gull Lane. Lights a candle every Sunday for her husband Calloway, lost with the Kittiwake, November 1892."}]}},
- {"id":"grandma","style":"child","tag":"Pencil, a child's hand","to":"To Grandma,\nGull Lane, the house with the green shutters,\nSaltmarsh.","body":"Dear Grandma, I am at school in the town now and I do not like it. Mam says you would send a cake if you knew. The nuns say I have a good hand. Please tell Da the pup is called Biscuit.\n\nP.S. Did the lady next door with the blue door get her letters? The ones with no stamp. Mam said not to ask.","from":"Love, Nuala.",
-  "clues":[{"p":"Gull Lane","t":["g1","g3","g5","g7","g9"],"why":"the whole lane"},{"p":"green shutters","t":["g7"],"why":"one cottage"},{"p":"blue door","t":["g5"],"why":"next door, not this one"},{"p":"Nuala","t":[],"why":"see the census"}],
-  "answer":"g7",
-  "bounces":{"g5":"Jo Anse reads 'Grandma' and almost smiles. 'Next door. And tell the child I did get them.'"},
-  "reply":{"from":"S. Halloran, 7 Gull Lane","style":"hand","body":"Clerk — Nuala's letter arrived and Mother wept over it, so you have done a good thing.\n\nAbout the child's question, since she will only ask again. Jo Anse next door has had three letters this year with no stamp, pushed under the blue door in the night. She says she burns them unread. I do not think she does.","unlockCensus":["pell"],"facts":[{"who":"Josephine Anse","f":"Three unstamped letters this year, pushed under her door at night. She claims to burn them."}]}},
- {"id":"tincture","style":"typed","tag":"Typed, the name smudged by rain","to":"Dr L—,\n—— Walk,\nSaltmarsh.","body":"Dear Doctor, Enclosed is your invoice for tincture of laudanum, 12 fl. oz., and camphorated oil, 1 pt. We note this is your fourth such order this quarter and remind you that the Board requires a register of purchasers to be kept and produced on demand.","from":"Whitlock & Daughter, Wholesale Chemists.",
-  "clues":[{"p":"Doctor","t":["r10"],"why":"Dr Lisle, the apothecary"},{"p":"tincture","t":["r10"],"why":"an apothecary's stock"},{"p":"laudanum","t":["r10"],"why":"an apothecary's stock"},{"p":"Walk","t":["r2","r4","r6","r8","r10"],"why":"Rope Walk"}],
-  "answer":"r10",
-  "bounces":{"g3":"Miss Corliss reads 'Doctor' and sniffs. 'Not that kind, and not any kind. Rope Walk, I should think.'"},
-  "reply":{"from":"P. Lisle, Apothecary","style":"typed","body":"Clerk — Whitlock's letter, yes. I keep a register, whatever they think.\n\nThree of the four orders went to one man. A lodger at Pell's who gives no name, pays in foreign coin, and keeps his right hand gloved indoors and out. The laudanum is for the hand, he says. I do not think it is only for the hand.","facts":[{"who":"The lodger at Pell's","f":"No name given. Pays in foreign coin. Right hand always gloved. Buys laudanum from Lisle."}]}},
- {"id":"mainsail","style":"hand","tag":"Ink, hurried, no name","to":"To the woman who mended\nthe Kittiwake's mainsail.\nSaltmarsh.","body":"Madam — The stitching held through the crossing and I am grateful for it. I will pay the rest when I can, which may be soon.\n\nDo not speak the boat's name to anyone. Not to the harbourmaster. Not to the priest.","from":"A friend of Cal's.",
-  "clues":[{"p":"mended","t":["r8"],"why":"the sailmaker"},{"p":"mainsail","t":["r8"],"why":"the sailmaker"},{"p":"Kittiwake","t":[],"why":"a drowned boat"},{"p":"Cal","t":[],"why":"see the census"}],
-  "answer":"r8",
-  "reply":{"from":"A. Thorne, Sailmaker","style":"hand","body":"Clerk — I did mend a mainsail three weeks ago. The boy who brought it would not say whose it was, but it was an old sail, well made, and the boat's name had been picked out of the leech stitch by stitch.\n\nThere is one boat in this town whose sail I would know blind, because I made it. She is meant to be on the bottom of the bay.","facts":[{"who":"The Kittiwake","f":"Agnes Thorne mended what she swears is the Kittiwake's mainsail three weeks ago. Somebody unpicked the name."}]}},
- {"id":"warning","style":"caps","tag":"Block capitals, no stamp, found on the step","to":"THE CLERK,\nDEAD LETTER OFFICE,\nQUAY STREET.","body":"YOU HAVE BEEN CAREFUL WITH OTHER PEOPLE'S LETTERS.\n\nBE CAREFUL WITH YOUR OWN.\n\nTHE KITTIWAKE IS A DROWNED BOAT. LET HER LIE.","from":"",
-  "requires":["mainsail"],
-  "clues":[{"p":"CLERK","t":["q11"],"why":"that is you"},{"p":"DEAD LETTER OFFICE","t":["q11"],"why":"your own desk"},{"p":"QUAY STREET","t":["q1","q3","q5","q7","q9","q11"],"why":"the waterfront"}],
-  "answer":"q11","deliverLabel":"Keep it",
-  "reply":{"from":"Your own drawer","style":"caps","body":"You put it in the drawer with the pencil stubs and the sealing wax, and you lock the drawer, and you do not sleep well.","facts":[{"who":"Someone","f":"Knows what crosses your desk, and does not want the Kittiwake mentioned."}]}},
- {"id":"ben","style":"hand","tag":"Violet ink, a young woman's hand","to":"Ben,\nwhose father sells the fish,\nSaltmarsh.","body":"Ben — Papa says I am not to see you and I have told him I will do as I like. Meet me at the end of the cannery pier on Friday after the lamps are lit. Bring nothing. Wear the blue coat.","from":"M.",
-  "clues":[{"p":"father sells the fish","t":["q5"],"why":"the fishmonger"},{"p":"Ben","t":["q5"],"why":"Benedict Oduya, see the census"},{"p":"cannery pier","t":["c2","c4","c6","c8","c10"],"why":"a meeting place, not an address"}],
-  "answer":"q5",
-  "reply":{"from":"B. Oduya, 5 Quay St","style":"hand","body":"Clerk — Thank you. I will be there Friday.\n\nI have been at the end of that pier most nights this month waiting for a girl who did not come, so I will tell you what I did see. Lanterns out on the water past the cannery, late, with no riding lights. A boat that came in to berth 14, quiet, and left before the tide turned. Reyes says nothing is berthed at 14.","facts":[{"who":"Berth 14","f":"Ben Oduya has seen an unlit boat use berth 14 at night and leave before the tide."}]}},
- {"id":"sister","style":"hand","tag":"Ink, a woman's hand, no street given","to":"Mr T. Blackwood,\ncare of Mrs Pell,\nSaltmarsh.","body":"Tom — if that is what I am to call you now. The money came again. I do not want it and Mother would not have taken it either.\n\nYou have a wife three streets away who lights candles for you. Whatever Grady has you doing on that boat, it is not worth her. Go home to her, Cal. I will not write again.","from":"Nell.",
-  "requires":["grandma","tincture"],
-  "clues":[{"p":"Blackwood","t":["r4"],"why":"a lodger, see the Pell census card"},{"p":"Mrs Pell","t":["r4"],"why":"between the bakery and the chandler"},{"p":"Grady","t":["c2"],"why":"the cannery foreman"},{"p":"Cal","t":[],"why":"Calloway Anse, drowned"},{"p":"candles","t":["g1","g5"],"why":"the chapel, the blue door"}],
-  "answer":"r4",
-  "bounces":{"r2":"Ines Hallam reads 'care of Mrs Pell' and jerks a thumb at the wall. 'Next door, clerk. Between me and Fenwick.'","r6":"Fenwick grunts. 'Pell's is next door. Between me and the bakery. You can smell it.'","c2":"Grady reads the name on the envelope and his face does something you do not like. 'No Blackwood here.' He does not give it back at once."},
-  "reply":{"from":"Returned, next morning","style":"hand","body":"The letter is back on your desk before you arrive, with NO ONE OF THAT NAME pencilled across the front in a hand that is trying not to look like a hand.\n\nThe flap has been opened and resealed with wax that is not yours. Under it, pressed flat, is a sea-pink, the kind that grows only on the lighthouse rock.","facts":[{"who":"Tom Blackwood","f":"The lodger at Pell's is Calloway Anse. His sister Nell knows. Grady has him working a boat."}]}},
- {"id":"grady","style":"typed","tag":"Typed, no signature, posted from up the coast","to":"Mr G.,\nthe cannery,\nSaltmarsh.","body":"G. — The fourteenth, as before. Have the crates on the pier by the second bell and the Inspector's man will not be on it.\n\nYour boatman is asking for more. Remind him what the Widow would think of a husband who ran, and what the town would think of a widow who kept a dead man's berth paid.","from":"S.",
-  "clues":[{"p":"cannery","t":["c2","c4"],"why":"office or dormitory"},{"p":"Mr G.","t":["c2"],"why":"M. Grady, foreman"},{"p":"Inspector","t":["q9"],"why":"Customs House"},{"p":"boatman","t":[],"why":"Cal Anse?"},{"p":"berth","t":[],"why":"berth 14, see Notes"}],
-  "answer":"c2",
-  "bounces":{"c4":"Twenty-two men and none of them is 'G.' One of them jerks his head toward the office without looking up.","q9":"Dace's man reads it, and reads it again, and hands it back too quickly. 'Not ours.'"},
-  "reply":{"from":"M. Grady, Cannery Office","style":"typed","body":"Clerk. You did right to bring it.\n\nYou would do better to forget it.","facts":[{"who":"M. Grady","f":"Runs crates off the cannery pier on the fourteenth. Customs is paid to look away. 'S.' who pays the berth money is Solly Marsh."},{"who":"Inspector Dace","f":"His man will 'not be on the pier' on the fourteenth. Bought, or careless."}]}},
- {"id":"jo","style":"hand","tag":"Ink, a woman's hand, water-marked","to":"Cal,\nwherever you are.","body":"Cal — I write this every November and put it in the post, because a letter that cannot be delivered is the only kind I can bear to send. Four years.\n\nI have stopped burning the ones under the door. I know your hand, even with the letters cut from the newspaper. I know it is you.\n\nIf you are three streets from me and alive, I would rather know that than have you drowned and honest. Come home.","from":"Jo.",
-  "requires":["sister"],
-  "clues":[{"p":"Cal","t":[],"why":"a drowned man. Or a lodger with another name?"},{"p":"under the door","t":["g5"],"why":"her own door"},{"p":"three streets","t":[],"why":"count them on the map"},{"p":"November","t":[],"why":"the month the Kittiwake went down"}],
-  "answer":"r4","deliverLabel":"Deliver to the lodger",
-  "bounces":{"g5":"You have brought her own letter back to her. Jo Anse takes it and does not close the door for a long moment. 'He is not here,' she says. 'You know that. You know where he is.'","g1":"Father Amos reads the first line and gives it back gently. 'Not to the chapel, clerk. To the man. If there is a man.'","q1":"Reyes' clerk frowns. 'A drowned man's letter? Try the bottom of the bay.'"},
-  "reply":{"from":"C. Anse, at Pell's","style":"hand","body":"Clerk — She wrote to a dead man and you brought it to a live one. I have been Tom Blackwood for four years and it took you a month to undo.\n\nI am going to do a thing tomorrow night that will finish Grady or finish me. Either way she will have a letter from me, and it will have a stamp on it.","facts":[{"who":"Calloway Anse","f":"Alive, at Pell's, under the name Blackwood. Moving against Grady tomorrow night."}]}},
- {"id":"home","style":"hand","tag":"Ink, a man's hand, a stamp at last","to":"The blue door,\nGull Lane,\nSaltmarsh.","body":"Jo — It is done. The Kittiwake is at berth 14 with Dace's own seal on her hatches and Grady in the customs cell, and my name is on the charge sheet as witness, which is to say my own name.\n\nI will be at the side altar on Sunday. Do not light the candle.","from":"Cal.",
-  "requires":["jo"],
-  "clues":[{"p":"blue door","t":["g5"],"why":"one cottage"},{"p":"Gull Lane","t":["g1","g3","g5","g7","g9"],"why":"the whole lane"},{"p":"side altar","t":["g1"],"why":"where he'll be Sunday, not where this goes"}],
-  "answer":"g5",
-  "reply":{"from":"J. Anse, 5 Gull Lane","style":"hand","body":"Clerk — He came home at four in the morning with the bakery smell in his coat, and I did not ask where he had been for four years, and he did not ask why I had kept his boots by the door.\n\nThank you for being bad at your job. A letter that reaches the Dead Letter Office is meant to stay dead.","facts":[{"who":"Josephine Anse","f":"Cal came home. She kept his boots by the door for four years."}],
-   "second":{"from":"H. Dace, Customs House","style":"typed","body":"Clerk — Grady named you. Not to me. To the people 'S.' answers to, up the coast, before we took him.\n\nI would not walk Quay Street alone after dark. I would not stop reading the letters either. There will be more.","facts":[{"who":"Inspector Dace","f":"Warns you: Grady named you to the people up the coast. The next district's trouble is already on its way."}]}}}
-]
-},
-{
-"id":"old","name":"The Old Quarter","tagline":"Saltmarsh · The Old Quarter",
-"intro":{"title":"The Old Quarter","text":"Uphill from the harbour. Older money, older grudges, and a clock in the square that stopped at twelve minutes past three in 1871 and has not been wound since.\n\nThe postmaster has left a magnifying glass in your drawer. Rain gets to letters up here.","button":"Light the lamp"},
-"ending":{"title":"End of the Old Quarter","text":"Twelve letters, one stopped clock, one solicitor in a cell. Up the coast, the Committee is still reading its post. District Three is not written yet.","button":null},
-"streets":{"K":"Clock Square","M":"Mercer Row","W":"Weavers' Court","S":"Bell Steps"},
-"extras":"<rect x='0' y='470' width='360' height='90' fill='#ddd2b6'/><rect x='150' y='478' width='60' height='60' fill='#f2ead6' stroke='#3a3a33' stroke-width='1'/><rect x='168' y='466' width='24' height='14' fill='#f2ead6' stroke='#3a3a33' stroke-width='.9'/><circle cx='180' cy='506' r='16' fill='#fff8e6' stroke='#3a3a33' stroke-width='1'/><line x1='180' y1='506' x2='180' y2='494' stroke='#3a3a33' stroke-width='1.4'/><line x1='180' y1='506' x2='190' y2='509' stroke='#3a3a33' stroke-width='1.6'/><text x='180' y='552' text-anchor='middle' font-size='8' fill='#5a5a50' font-style='italic'>the clock, stopped at 3:12</text><text x='14' y='552' font-size='7' fill='#6a6a60'>↓ tram to the Docks</text><text x='346' y='552' text-anchor='end' font-size='7' fill='#6a6a60'>up the coast →</text>",
-"buildings":[
- {"id":"k1","st":"K","num":1,"sign":"Vell, Clockmaker","who":"A. Vell, clockmaker","bounce":"Nobody comes to the door. Through the glass, an old man among stopped clocks shakes his head once."},
- {"id":"k2","st":"K","num":2,"sign":"Assembly Rooms","who":"Committee of Subscribers","bounce":"The porter reads it under the chandelier. 'Not for the Rooms. We get invitations, not letters.'"},
- {"id":"k3","st":"K","num":3,"sign":"Haldane & Pryor, Solicitors","who":"G. Haldane","bounce":"A pale clerk takes it in, and brings it back out. 'Mr Haldane says it is not ours, and to say so firmly.'"},
- {"id":"k4","st":"K","num":4,"sign":"Savings Bank","who":"E. Rooke, manager","bounce":"Rooke reads it twice behind the grille. 'Not the bank's. I am quite sure.'"},
- {"id":"k5","st":"K","num":5,"sign":"The Turk's Head, coffee","who":"Mr Selim, proprietor","bounce":"Selim holds it away from the steam. 'Half the square reads its letters here. None of them is this one.'"},
- {"id":"m1","st":"M","num":1,"sign":"Ashby's, Draper","who":"Mrs Ashby","bounce":"Mrs Ashby measures the envelope with her eye. 'No.'"},
- {"id":"m3","st":"M","num":3,"sign":"Quill, Stationer","who":"Mr Quill","bounce":"Quill peers. 'I sell the paper. I don't receive it.'"},
- {"id":"m5","st":"M","num":5,"sign":"Lund, Photographer","who":"O. Lund","bounce":"Lund comes out with silver-stained fingers. 'Wrong sitter, clerk.'"},
- {"id":"m7","st":"M","num":7,"sign":"Mme Ferrand, Milliner","who":"Mme M. Ferrand","bounce":"Mme Ferrand looks at the direction and not at you. 'Not mine.'"},
- {"id":"m9","st":"M","num":9,"sign":"Daubeny, Printer","who":"Daubeny","bounce":"Daubeny wipes ink on his apron. 'If I'd printed it I'd know it.'"},
- {"id":"w1","st":"W","num":1,"sign":"Almshouse","who":"Six almswomen","bounce":"Six old women read it in turn and hand it back with six opinions, none of them yes."},
- {"id":"w2","st":"W","num":2,"sign":"Old Dyer's, rooms above","who":"","learn":"The Marr family","bounce":"A young woman leans from the upper window. 'Nobody of that name, and I'd know. There's only us.'"},
- {"id":"w3","st":"W","num":3,"sign":"Sig. Abate, Music","who":"L. Abate, music teacher","bounce":"A scale stops halfway. Abate opens the door a crack. 'Not for me. Continue, Miss Ashby.'"},
- {"id":"w4","st":"W","num":4,"sign":"The Weavers' Arms","who":"Pike, landlord","bounce":"Pike squints at it over the pumps. 'Not one of my regulars.'"},
- {"id":"w5","st":"W","num":5,"sign":"Mrs Okonkwo, Midwife","who":"R. Okonkwo, midwife","bounce":"Mrs Okonkwo has her bag half packed. 'Unless somebody's in labour inside that envelope, no.'"},
- {"id":"s2","st":"S","num":2,"sign":"St Cuthbert's","who":"Locked since 1871","bounce":"The church is locked and has been since 1871. A slot in the door takes coins and, apparently, nothing else."},
- {"id":"s4","st":"S","num":4,"sign":"Sexton's House","who":"A. Fell, sexton","bounce":"Fell reads it by lantern. 'I bury folk and I keep the poor box. This is neither.'"},
- {"id":"s6","st":"S","num":6,"sign":"House with the sundial","who":"","learn":"The Misses Pryor","bounce":"Two identical old ladies read it together. 'No, dear.' 'No.'"},
- {"id":"s8","st":"S","num":8,"sign":"Doctor's House","who":"Dr H. Sallow","bounce":"Dr Sallow glances at it between patients. 'Not medical. Not mine.'"},
- {"id":"s10","st":"S","num":10,"sign":"Empty house","who":"","bounce":"Shutters nailed, step unswept. Nobody has answered this door in years."}
-],
-"directory":[
- ["Abate, Sig. L., music","3 Weavers' Ct"],["Ashby, Mrs, draper","1 Mercer Row"],["Daubeny, printer","9 Mercer Row"],
- ["Fell, A., sexton","4 Bell Steps"],["Ferrand, Mme, milliner","7 Mercer Row"],["Haldane & Pryor, solicitors","3 Clock Square"],
- ["Lund, O., photographer","5 Mercer Row"],["Okonkwo, Mrs R., midwife","5 Weavers' Ct"],["Pike, landlord","4 Weavers' Ct"],
- ["Quill, stationer","3 Mercer Row"],["Rooke, E., bank manager","4 Clock Square"],["Sallow, Dr H.","8 Bell Steps"],
- ["Selim, coffee house","5 Clock Square"],["Vell, A., clockmaker","1 Clock Square"]
-],
-"census":[
- {"id":"vell","start":true,"text":"VELL, Auguste, clockmaker, widower. Daughter Marguerite, b. 1854, MISSING since 9 June 1871. Constable's note: 'gone with a foreigner, no crime.' Clock Square."},
- {"id":"ferrand","start":true,"text":"FERRAND, Mme M., milliner, husband abroad (Genoa). One daughter, at school abroad. Resident Mercer Row since 1885. Attends no church."},
- {"id":"dyer","start":true,"text":"OLD DYER'S, 2 Weavers' Court. Works closed 1880. Rooms above let to the Marr family, cannery hands, seasonal. Sister of E. Marr (lodger, Pell's, the Docks)."},
- {"id":"pryor","start":false,"text":"PRYOR, the Misses Adela and Constance. Brother Julian Pryor, solicitor, d. 1889, late partner of G. Haldane. Bell Steps, the house with the sundial."},
- {"id":"committee","start":false,"text":"HALDANE, Gideon, solicitor. Clients of record: the Assembly Rooms, the Savings Bank, and 'certain coastal interests', unspecified. Clock Square."}
-],
-"letters":[
- {"id":"sundial","style":"hand","tag":"Ink, rain-spoiled","to":"The Misses ⟦Pryor⟧,\nthe house with the ⟦sundial⟧,\nBell Steps.","body":"Dear ladies — I return the ⟦pattern⟧ book with many thanks. Cousin Edith is much improved and asks after the cat, whose name I have shamefully forgotten.","from":"Winifred.",
-  "clues":[{"p":"Pryor","t":["s6"],"why":"not in the directory, but on the Steps"},{"p":"sundial","t":["s6"],"why":"one house on the Steps"},{"p":"Bell Steps","t":["s2","s4","s6","s8","s10"],"why":"the whole stair"}],
-  "answer":"s6",
-  "reply":{"from":"A. & C. Pryor, Bell Steps","style":"hand","body":"Clerk — Winifred's note came, though the rain had been at it first. Since you are the new person who reads things: our late brother Julian was the Pryor in Haldane & Pryor, and Mr Haldane still sends us a goose at Christmas, which we give to the almshouse.\n\nWe do not care for Mr Haldane. We thought someone ought to say so to somebody.","unlockCensus":["pryor"],"facts":[{"who":"The Misses Pryor","f":"Their late brother was Haldane's partner. They do not trust Haldane, and they notice things."}]}},
- {"id":"haldane","style":"typed","tag":"Typed, posted from up the coast","to":"H.,\nwho keeps the accounts,\nClock Square.","body":"H. — Our friend at the cannery is taken and our friend at the customs house has turned. The clerk at the dead letter office reads more than a clerk should.\n\nMove the ledgers out of the square before quarter day, and see that the clerk is ⟦discouraged⟧.","from":"For the Committee.",
-  "clues":[{"p":"H.","t":["k3"],"why":"Haldane, solicitor"},{"p":"accounts","t":["k3","k4"],"why":"a solicitor or a bank"},{"p":"Clock Square","t":["k1","k2","k3","k4","k5"],"why":"the whole square"},{"p":"ledgers","t":[],"why":"whose?"},{"p":"clerk at the dead letter office","t":[],"why":"that is you"},{"p":"discouraged","t":[],"why":"they mean you"}],
-  "answer":"k3",
-  "bounces":{"k4":"Rooke, the manager, reads 'H.' and goes pale for no reason he will explain. 'Not this house. The solicitors, perhaps.'"},
-  "reply":{"from":"G. Haldane, Solicitor","style":"typed","body":"Clerk — A letter intended for me reached me by your hand, having been opened, I assume, by the weather. I keep clients' accounts, as any solicitor does.\n\nI would take it as a professional courtesy if the next one came sealed, and as a personal one if you forgot this one.","unlockCensus":["committee"],"facts":[{"who":"G. Haldane","f":"Keeps 'the ledgers' for the Committee up the coast. Knows you read his letter."}]}},
- {"id":"clock","style":"hand","tag":"Ink, an impatient hand","to":"The man who stopped the clock,\nOld Quarter,\nSaltmarsh.","body":"Sir — My late wife's watch was left with you in March and I have heard nothing since. I am told your shop keeps no hours because the clock in the square keeps none. I do not want an explanation. I want the watch.","from":"T. Ambler, Harrowgate.",
-  "clues":[{"p":"stopped the clock","t":["k1"],"why":"the clockmaker faces the tower"},{"p":"watch","t":["k1"],"why":"a clockmaker's trade"},{"p":"clock in the square","t":[],"why":"stopped at 3:12"}],
-  "answer":"k1",
-  "reply":{"from":"A. Vell, Clockmaker","style":"hand","body":"Clerk — The watch is done. It has been done since April. I do not go to the door; bring Ambler here if he wants it.\n\nThe clock in the square stopped at twelve minutes past three on the morning of the 9th of June, 1871, and I have not had the heart to wind it, or anything, since. You will hear the rest from someone. Everyone tells it.","facts":[{"who":"A. Vell","f":"The square's clock stopped at 3:12 a.m., 9 June 1871, the night his daughter Marguerite vanished. He has wound nothing since."}]}},
- {"id":"midwife","style":"hand","tag":"Pencil, a rough hand, from the Docks","to":"The woman who caught\nthe Marr baby,\nWeavers' Court.","body":"Missus — You came to my sister in the Court in the spring when the boy was born. She is confined again and will have no one else, she says, and she is not to be argued with. Please come Tuesday to the rooms over the old dyer's. I will send the money from the Docks.","from":"E. Marr.",
-  "clues":[{"p":"caught the Marr baby","t":["w5"],"why":"the midwife"},{"p":"Weavers' Court","t":["w1","w2","w3","w4","w5"],"why":"the whole court"},{"p":"rooms over the old dyer's","t":["w2"],"why":"where the sister lives, not the midwife"},{"p":"Docks","t":[],"why":"E. Marr lodges at Pell's"}],
-  "answer":"w5",
-  "bounces":{"w2":"A very pregnant woman leans out of the upper window. 'That's for Mrs Okonkwo, love, not me. Number five. And tell my brother I said hurry.'"},
-  "reply":{"from":"R. Okonkwo, Midwife","style":"hand","body":"Clerk — I'll go Tuesday. Since you're the one who reads the letters, here is a thing I have never put in one.\n\nI have caught babies in this Court for thirty years. In June of 1871 I caught one in those same rooms over the dyer's, for a girl of seventeen who gave no name and was gone by morning with the child in a shawl. The music teacher at number three paid me, in gold, and asked me to forget. I have not.","facts":[{"who":"R. Okonkwo","f":"June 1871: a nameless girl of 17 gave birth above the dyer's and was gone by morning with the baby. Signor Abate paid the midwife in gold."}]}},
- {"id":"abate","style":"hand","tag":"Ink, a foreign hand, from Genoa","to":"Il Maestro,\nnear the church,\nOld Quarter.","body":"Maestro — My father Enzo died in Genoa in March. He asked for you at the end. He said: tell my teacher I kept the promise. I never wrote to the old man, and neither did she.\n\nI do not know who 'she' is. My mother will not say. Perhaps you will.","from":"L. Ferrand, Genoa.",
-  "requires":["midwife"],
-  "clues":[{"p":"Maestro","t":["w3"],"why":"the music teacher"},{"p":"church","t":["s2","s4"],"why":"St Cuthbert's is on the Steps. The Court is not near it."},{"p":"Ferrand","t":["m7"],"why":"a milliner of that name, Mercer Row"},{"p":"old man","t":[],"why":"which old man?"}],
-  "answer":"w3",
-  "bounces":{"m7":"Mme Ferrand reads the name on the envelope and her hands stop moving. 'Not for me,' she says at last. 'The Maestro. Number three, in the Court.' She does not give it back at once."},
-  "reply":{"from":"L. Abate, Weavers' Court","style":"hand","body":"Clerk — Enzo Ferrand was my best pupil and my worst decision. In June of 1871 I put him and a girl and a baby three days old on the night coach, and I have taught scales to drapers' daughters ever since as a penance.\n\nThe girl's father had said he would sooner stop every clock in the world than see her married to a foreigner. I gather he made a start.","facts":[{"who":"L. Abate","f":"Enzo Ferrand eloped with Marguerite Vell and a three-day-old baby on the night coach, June 1871. Enzo died in Genoa this March."}]}},
- {"id":"bribe","style":"typed","tag":"Typed, heavy paper, something folded inside","to":"The clerk who reads,\nDead Letter Office,\nSaltmarsh.","body":"Haldane & Pryor are instructed to retain your discretion in the matter of certain correspondence. Five pounds is enclosed, with the same to follow each quarter day.\n\nShould you prefer a less comfortable arrangement, the Committee is in a position to provide one.","from":"per pro G. Haldane.",
-  "requires":["haldane"],
-  "clues":[{"p":"clerk who reads","t":[],"why":"you"},{"p":"Five pounds","t":[],"why":"more than two months' wages"},{"p":"Committee","t":[],"why":"up the coast"}],
-  "keep":[
-   {"label":"Put the five pounds in the poor box","reply":{"from":"Your own drawer","style":"caps","body":"You walk up Bell Steps after the lamps and push five pounds through the slot of a church door nobody has opened in twenty-five years. It makes a small sound going in. You keep the letter.","facts":[{"who":"You","f":"Haldane's five pounds went into St Cuthbert's poor box."}]}},
-   {"label":"Keep the five pounds","reply":{"from":"Your own drawer","style":"caps","body":"You put five pounds in the drawer with the pencil stubs and lock it. It is more than two months' wages. It does not feel like it.","facts":[{"who":"You","f":"You kept Haldane's five pounds. Quarter day is coming."}]}}
-  ]},
- {"id":"photograph","style":"typed","tag":"Typed, unsigned but for an initial","to":"The photographer who did\nthe Assembly Rooms ball,\nOld Quarter.","body":"Sir — Plate 14 from the ball. The gentleman at the edge of the frame, by the curtain, with the ⟦packet⟧. I will pay any price for the print and more for the negative.\n\nDo not display it. Do not print it again.","from":"H.",
-  "clues":[{"p":"photographer","t":["m5"],"why":"Lund, Mercer Row"},{"p":"Assembly Rooms","t":["k2"],"why":"where the ball was, not where the plates are"},{"p":"H.","t":["k3"],"why":"him again"},{"p":"packet","t":[],"why":"what was in it?"}],
-  "answer":"m5",
-  "bounces":{"k2":"The porter reads 'Plate 14' blankly. 'The photographer was Lund, off Mercer Row. We only hired him the room.'"},
-  "reply":{"from":"O. Lund, Photographer","style":"typed","body":"Clerk — 'H.' is Haldane; no one else in this town signs a single letter and expects to be obeyed. Plate 14 shows him by the curtain handing a packet to a man I know for a customs officer from up the coast, and it shows the officer's face.\n\nI have made three prints. One is in the poor box at St Cuthbert's, because nobody has opened it since 1871 and nobody will think to.","facts":[{"who":"O. Lund","f":"Has a photograph of Haldane paying a customs officer from up the coast. Hid a print in St Cuthbert's poor box."}]}},
- {"id":"granddaughter","style":"child","tag":"Ink, a schoolgirl's hand, from Genoa","to":"My grandfather,\nwho makes clocks,\nin the town where Mama was born.","body":"Dear Grandfather, I am Lucie. I am sixteen. I found Papa's letters after he died and now I know that you are real, and that Mama has passed your window every day for eleven years and never once gone in.\n\nI am not allowed to write this. I am writing it anyway. Please wind the clock.","from":"Lucie Ferrand.",
-  "requires":["abate"],
-  "clues":[{"p":"makes clocks","t":["k1"],"why":"the clockmaker"},{"p":"grandfather","t":[],"why":"whose?"},{"p":"Ferrand","t":["m7"],"why":"the milliner. See the census."},{"p":"eleven years","t":[],"why":"someone came to Mercer Row in 1885"},{"p":"window","t":[],"why":"a window on the square"}],
-  "answer":"k1",
-  "bounces":{"m7":"Mme Ferrand reads the first line and her face does a thing you will remember for a long time. She hands it back very carefully. 'It is not addressed to me.'"},
-  "reply":{"from":"A. Vell, Clockmaker","style":"hand","body":"Clerk — I have read it forty times. Eleven years. Which window? I have not looked out of one since 1871.\n\nThere is a milliner's a few doors along that I have never once been inside, because I do not buy hats. I am too old to walk that far and too proud, which is the same thing. Bring me paper.","facts":[{"who":"A. Vell","f":"Knows now that his daughter is a few doors from him. Mme Ferrand, milliner on Mercer Row since 1885, is Marguerite Vell."}]}},
- {"id":"vell","style":"hand","tag":"Ink, a shaking hand","to":"Marguerite.\nI do not know what name you use.","body":"Marguerite — The clock stopped because I stopped it. I told the town it stopped on its own, and I have told myself a great many things since.\n\nYour daughter writes a better letter than I do. If you are a few doors from me I will not make you walk them. Tell me which door and I will come out.","from":"Papa.",
-  "requires":["granddaughter"],
-  "clues":[{"p":"Marguerite","t":[],"why":"b. 1854, missing. See the census."},{"p":"name you use","t":[],"why":"a married name"},{"p":"which door","t":[],"why":"you know which"}],
-  "answer":"m7","deliverLabel":"Deliver to the milliner",
-  "bounces":{"k1":"You have brought the old man his own letter back. He will not take it. 'You know the door. You have known for a week.'","w3":"Abate reads 'Marguerite' and closes his eyes. 'Not here. Mercer Row. The hats. You knew that.'"},
-  "reply":{"from":"M. Ferrand, who was Vell","style":"hand","body":"Clerk — I have sold that man's neighbours their hats for eleven years and crossed the square rather than pass his glass.\n\nTell him: Sunday, at noon, when the clock would strike if it struck. I will stand under it. If he can walk a few doors he can walk to the middle of the square.","facts":[{"who":"Marguerite Ferrand","f":"Will stand under the stopped clock Sunday at noon and wait for her father to come out."}]}},
- {"id":"ledgers","style":"typed","tag":"Typed, a solicitor's clerk","to":"The manager,\nthe bank,\nClock Square.","body":"Rooke — The ledgers come to the vault tonight; H. brings them himself by the back stair after the lamps. Have the second key ready.\n\nThe Committee's man collects Sunday at noon, when the square is empty and the church is shut.","from":"J., for H.",
-  "requires":["photograph"],
-  "clues":[{"p":"manager","t":["k4"],"why":"Rooke, the bank"},{"p":"bank","t":["k4"],"why":"one on the square"},{"p":"vault","t":["k4"],"why":"a bank's"},{"p":"Sunday at noon","t":[],"why":"the square will not be empty"},{"p":"back stair","t":[],"why":"worth telling someone"}],
-  "answer":"k4",
-  "bounces":{"k3":"The pale clerk reads 'Rooke' and says nothing at all, and shuts the door."},
-  "reply":{"from":"E. Rooke, Savings Bank","style":"typed","body":"Clerk — I have no ledgers, officially. I have a vault with a great deal in it and a second key I mean to lose in the harbour tonight, unless someone gives me a better use for it.\n\nIf you know a customs man who is not bought, tell him Sunday at noon, and tell him the back stair.","facts":[{"who":"E. Rooke","f":"The ledgers are in the bank vault. The Committee collects Sunday at noon. Rooke will give the second key to an honest customs man."}]}},
- {"id":"sexton","style":"typed","tag":"Typed, Customs House paper","to":"The sexton,\nSt Cuthbert's,\nOld Quarter.","body":"Fell — There is a photograph in your poor box that I need before Sunday noon, and I would sooner not be seen taking it. Bring it to the Turk's Head on Saturday.\n\nLet no one from Haldane's office near the church, whatever they offer for the roof.","from":"H. Dace, Customs.",
-  "requires":["ledgers","vell"],
-  "clues":[{"p":"sexton","t":["s4"],"why":"lives beside the church"},{"p":"St Cuthbert's","t":["s2"],"why":"locked since 1871"},{"p":"poor box","t":[],"why":"Lund's print is in it"},{"p":"Turk's Head","t":["k5"],"why":"the meeting, not the address"},{"p":"Haldane's office","t":["k3"],"why":"not this letter's door"}],
-  "answer":"s4",
-  "bounces":{"k5":"Selim reads 'Fell' and points up the Steps with his coffee pot. 'The sexton. Next to the church. Saturday he'll be here. Not now.'"},
-  "reply":{"from":"A. Fell, Sexton","style":"hand","body":"Clerk — I got the photograph out. I also got out what was under it: twenty-five years of pennies, and a bundle of letters in a woman's hand, one a year, addressed to 'Papa', never stamped, pushed through the church slot every 9th of June.\n\nSomeone has been walking a good deal farther than a few doors, and telling nobody.","facts":[{"who":"A. Fell","f":"Marguerite has posted an unstamped letter to her father into the locked church every 9 June since 1871. Fell has them all."}]}},
- {"id":"finale","style":"hand","tag":"Ink, a woman's hand, a thick packet","to":"Vell, Clockmaker,\n1 Clock Square.","body":"Papa — The sexton has given me back twenty-five letters I never meant anyone to read. They are enclosed. Read them in order.\n\nI will be under the clock at noon on Sunday, for as long as it takes. When you come out, bring the key to the tower.","from":"M.",
-  "requires":["sexton"],
-  "clues":[{"p":"Vell","t":["k1"],"why":"in the directory"},{"p":"Clock Square","t":["k1","k2","k3","k4","k5"],"why":"the square"},{"p":"key to the tower","t":[],"why":"twenty-five years"}],
-  "answer":"k1",
-  "reply":{"from":"A. Vell, Clockmaker","style":"hand","body":"Clerk — It struck. Twelve times, at noon, on a Sunday, for the first time in twenty-five years, and the whole square stopped and looked up, which is why nobody was looking at the back stair of the bank when Dace's men went up it.\n\nMy daughter is in my shop. My granddaughter is winding everything she can reach. I read the letters in order. I am not going to tell you what was in them.","facts":[{"who":"A. Vell","f":"The clock struck noon. Marguerite and Lucie are in the shop."}],
-   "second":{"from":"H. Dace, Customs House","style":"typed","body":"Clerk — Haldane is in the cell beside Grady, and the ledgers are in mine. The Committee itself is up the coast, past the end of my writ.\n\nThere is a letter on your desk with no stamp that came while you were in the square. I did not open it. I would.","facts":[{"who":"Inspector Dace","f":"Haldane arrested with the ledgers. The Committee is up the coast, beyond his reach. An unstamped letter waits on your desk."}]}}}
-]
-}
+"hands":[
+ {"id":"caveat","name":"Your own hand","price":0,"font":"'Caveat', cursive","size":"21px","line":"28px","prev":"22px"},
+ {"id":"pencil","name":"Soft pencil","price":3,"font":"'Shadows Into Light', cursive","size":"19px","line":"28px","prev":"20px"},
+ {"id":"typed","name":"Typewriter","price":3,"font":"'Special Elite', monospace","size":"14px","line":"28px","prev":"15px"},
+ {"id":"flourish","name":"Flourished pen","price":3,"font":"'Dancing Script', cursive","size":"21px","line":"28px","prev":"22px"},
+ {"id":"copper","name":"Copperplate","price":4,"font":"'Homemade Apple', cursive","size":"15px","line":"28px","prev":"16px"},
+ {"id":"chalk","name":"Chalk scrawl","price":4,"font":"'Rock Salt', cursive","size":"13px","line":"28px","prev":"14px"}
 ]
 }
 </script>
@@ -421,272 +338,148 @@ nav.tabs button.pulse{color:var(--lamp);text-shadow:0 0 8px var(--lamp)}
 <script>
 (function(){
 const D = JSON.parse(document.getElementById('game-data').textContent);
-const DIST = Object.fromEntries(D.districts.map(d=>[d.id,d]));
-const B = {}, L = {}, LD = {};
-D.districts.forEach(d=>{ d.buildings.forEach(b=>{ b.d=d.id; B[b.id]=b; }); d.letters.forEach(l=>{ l.d=d.id; L[l.id]=l; }); });
-const KEY = 'deadletter.v2';
-const HINT_AFTER = 3;
+const C = Object.fromEntries(D.cases.map(c=>[c.id,c]));
+const KEY='deadletter.v3';
 
-const fresh = () => ({day:1, tab:'desk', district:'docks', open:null, tray:[], queue:{}, delivered:{}, post:[], pins:{}, wrong:{}, census:[], learned:[], intro:true, files:'dir', selB:null, notebook:'', tut:0, tut2:null, glass:false, tools:{}});
-let S = load();
-function load(){ try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s && s.day) return s; }catch(e){} return start(fresh(),'docks'); }
-function start(s, did){ const d=DIST[did]; s.district=did; s.queue[did]=s.queue[did]||0; d.census.filter(c=>c.start).forEach(c=>{ if(!s.census.includes(c.id)) s.census.push(c.id); }); s.tray=[]; s.open=null; s.intro=true; fillTray(s); return s; }
+const fresh=()=>({tab:'desk', money:0, solved:{}, asked:{}, caseId:D.cases[0].id, owned:[], hand:'caveat', notebook:'', intro:true, tut:0, music:false, track:0});
+let S=load();
+function load(){ try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s && s.caseId && C[s.caseId]) return s; }catch(e){} return fresh(); }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
-const cur = () => DIST[S.district];
-const replyOf = (l,d) => l.keep ? l.keep[d.choice].reply : l.reply;
-
-function repliesArrived(s,id){ const d=s.delivered[id]; return d && d.day < s.day; }
-function canEnter(s,l){ return (l.requires||[]).every(r=>repliesArrived(s,r)); }
-function fillTray(s){
-  const d=DIST[s.district]; const ids=d.letters.map(l=>l.id);
-  while(s.tray.length<2 && s.queue[d.id]<ids.length){
-    const l=L[ids[s.queue[d.id]]];
-    if(!canEnter(s,l)) break;
-    s.tray.push(l.id); s.queue[d.id]++;
-  }
-}
-function districtDone(d){ return d.letters.every(l=>S.delivered[l.id] && repliesArrived(S,l.id)) && S.post.filter(p=>L[p.id].d===d.id).every(p=>p.read); }
-function nextDistrict(){ const i=D.districts.findIndex(d=>d.id===S.district); return D.districts[i+1]||null; }
-function morning(){
-  S.day++;
-  for(const id in S.delivered){ const d=S.delivered[id]; if(d.day===S.day-1 && !d.posted){ d.posted=true; if(replyOf(L[id],d)) S.post.push({id, day:S.day, read:false}); } }
-  fillTray(S); S.open=null; S.selB=null; save(); render();
-  toast(S.post.some(p=>!p.read) ? 'Morning. The post has come.' : 'Morning. Nothing came.');
-}
+const $=s=>document.querySelector(s);
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+const cur=()=>C[S.caseId];
+const idx=id=>D.cases.findIndex(c=>c.id===id);
+function unlocked(id){ const i=idx(id); return i===0 || !!S.solved[D.cases[i-1].id]; }
+function askedFor(cid){ return S.asked[cid] || (S.asked[cid]={}); }
+function nAsked(cid){ return Object.values(askedFor(cid)).reduce((a,l)=>a+l.length,0); }
+function nextCase(){ const i=idx(S.caseId); return D.cases[i+1]||null; }
+function handOf(){ return D.hands.find(x=>x.id===S.hand)||D.hands[0]; }
 
 /* ---------- Tutorial ---------- */
-const TUT = [
- {t:"This is your tray. Two letters nobody could deliver. Tap the top one.", done:s=>s.open==='reyes'},
- {t:"Read it. The address is half the puzzle. Tap the word <b>Reyes</b> to pin him as a lead.", done:s=>(s.pins.reyes?.c||[]).length>0},
- {t:"A lead. Leads light doors on the map. Tap <b>Open the map</b>.", done:s=>s.tab==='map'||!!s.delivered.reyes},
- {t:"One door is lit: the harbourmaster on Quay Street. Tap it, then <b>Deliver here</b>. A wrong door bounces back with a hint, so guessing is allowed but the town remembers.", done:s=>!!s.delivered.reyes},
- {t:"Stamped. The reply comes in the morning. The second letter is yours to solve. When the tray is empty, end the shift.", done:s=>s.day>=2},
- {t:"The post came. Read the replies. What people tell you lands in <b>Notes</b>, and it is the real puzzle.", done:s=>s.post.some(p=>p.read)},
- {t:"Not every name is in the Directory. Widows, lodgers and children are on the Census cards under <b>Files</b>. Your own notebook is the pencil button, bottom right.", done:s=>!!s.tutAck, ack:true}
+const TUT=[
+ {t:"A case file. Read it twice. Note what the Gazette printed, and what it didn't. Then tap a suspect.", done:s=>!!s.tutOpened},
+ {t:"Three questions each. Ask them all; you're not charged by the word. Everything they say is copied into your <b>Notebook</b>.", done:s=>nAsked(s.caseId)>=3||!!s.solved[D.cases[0].id]},
+ {t:"Now compare what they say with what you know. One of them will say something they couldn't know, or couldn't have done.", done:s=>nAsked(s.caseId)>=8||!!s.solved[D.cases[0].id]},
+ {t:"When you're sure, accuse from the suspect's page. A wrong arrest closes the case with no pay, so be sure. A right one pays, and pay buys things in the <b>Shop</b>.", done:s=>!!s.solved[D.cases[0].id]},
+ {t:"That's the job. Cases pile up on the <b>Cases</b> board. Solve one in eight questions or fewer and the Inspector adds a pound for quick work.", done:s=>!!s.tutAck, ack:true}
 ];
-const TUT2 = [
- {t:"Some words on this letter are too faded to read. Open it and tap <b>Glass</b> above the paper to read them under the magnifying glass.", done:s=>s.glass===true},
- {t:"Faded words come clear under the glass and pin like any other. The glass stays in your drawer from now on.", done:s=>!!s.tut2Ack, ack:true}
-];
-function advanceTut(){
-  if(S.tut!==null && S.tut!==undefined){ while(S.tut<TUT.length && TUT[S.tut].done(S)) S.tut++; if(S.tut>=TUT.length) S.tut=null; }
-  if(S.tut2!==null && S.tut2!==undefined){ while(S.tut2<TUT2.length && TUT2[S.tut2].done(S)) S.tut2++; if(S.tut2>=TUT2.length) S.tut2=null; }
-}
-function coachHTML(){
-  if(S.intro) return '';
-  let step=null, which=null;
-  if(S.tut!==null && S.tut!==undefined && TUT[S.tut]){ step=TUT[S.tut]; which='tut'; }
-  else if(S.tut2!==null && S.tut2!==undefined && TUT2[S.tut2]){ step=TUT2[S.tut2]; which='tut2'; }
-  if(!step) return '';
-  return `<div class="coach"><small>The postmaster</small><p>${step.t}</p><div class="row">${step.ack?`<button class="ok" data-act="ack" data-which="${which}">Got it</button>`:''}<button data-act="skiptut" data-which="${which}">Skip the lesson</button></div></div>`;
-}
+function advanceTut(){ if(S.tut===null||S.tut===undefined) return; while(S.tut<TUT.length && TUT[S.tut].done(S)) S.tut++; if(S.tut>=TUT.length) S.tut=null; }
+function coachHTML(){ if(S.intro||S.tut===null||S.tut===undefined) return ''; const st=TUT[S.tut]; if(!st) return ''; return `<div class="coach"><small>The Inspector</small><p>${st.t}</p><div class="row">${st.ack?'<button class="ok" data-act="ack">Understood</button>':''}<button data-act="skiptut">Skip the lesson</button></div></div>`; }
 
-/* ---------- Text & clues ---------- */
-const clean = w => w.toLowerCase().replace(/[^a-z0-9'’]/g,'');
-function sections(l){ return [['to',l.to],['body',l.body],['from',l.from||'']]; }
-function tokens(text){ // [{t, ws, faded}]
-  let inFade=false;
-  return text.split(/(\s+)/).filter(t=>t.length).map(t=>{
-    if(/^\s+$/.test(t)) return {t, ws:true};
-    const opens=t.includes('⟦'), closes=t.includes('⟧');
-    const faded = inFade || opens;
-    if(opens) inFade=true; if(closes) inFade=false;
-    return {t:t.replace(/[⟦⟧]/g,''), faded};
-  });
-}
-function clueMap(l){
-  const m={};
-  sections(l).forEach(([sec,text])=>{
-    const toks=tokens(text); const idx=[]; const words=[];
-    toks.forEach((tk,i)=>{ if(!tk.ws){ idx.push(i); words.push(clean(tk.t)); } });
-    m[sec]={};
-    l.clues.forEach((c,ci)=>{
-      const pw=c.p.split(/\s+/).map(clean);
-      for(let i=0;i+pw.length<=words.length;i++){
-        let ok=true; for(let j=0;j<pw.length;j++){ if(words[i+j]!==pw[j]){ok=false;break;} }
-        if(ok){ for(let j=0;j<pw.length;j++) m[sec][idx[i+j]]=ci; }
-      }
-    });
-  });
-  return m;
-}
-function pinsFor(id){ return S.pins[id] || (S.pins[id]={c:[],w:[]}); }
-function renderText(l, sec, text, cm, readonly){
-  const p=pinsFor(l.id);
-  return tokens(text).map((tk,i)=>{
-    if(tk.ws) return tk.t;
-    const ci=cm[sec][i];
-    const pinned = ci!==undefined ? p.c.includes(ci) : p.w.includes(sec+':'+i);
-    if(readonly) return esc(tk.t);
-    const cls=['w', pinned?'pin':'', tk.faded?(S.glass?'clear':'faded'):''].join(' ');
-    return `<span class="${cls}" data-sec="${sec}" data-i="${i}" data-ci="${ci===undefined?'':ci}" data-faded="${tk.faded?1:''}">${esc(tk.t)}</span>`;
-  }).join('');
-}
-function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-function togglePin(id, sec, i, ci){
-  const p=pinsFor(id);
-  if(ci!==''){ const n=+ci; const k=p.c.indexOf(n); k>=0?p.c.splice(k,1):p.c.push(n); }
-  else { const key=sec+':'+i; const k=p.w.indexOf(key); k>=0?p.w.splice(k,1):p.w.push(key); }
-  save(); render();
-}
-function leadTargets(l){ const p=pinsFor(l.id); const sc={}; p.c.forEach(ci=>{ (l.clues[ci].t||[]).forEach(b=>{ sc[b]=(sc[b]||0)+1; }); }); return sc; }
-function hasFaded(l){ return /⟦/.test(l.to+l.body+(l.from||'')); }
+/* ---------- Decor art ---------- */
+const ART={
+ pipe:`<svg viewBox="0 0 64 40"><path d="M6 12 q26 -6 40 4" fill="none" stroke="#b8925a" stroke-width="3" stroke-linecap="round"/><path d="M42 12 h14 v14 q0 8 -8 8 h-4 q-8 0 -8 -8 z" fill="#3a2a1e" stroke="#b8925a" stroke-width="2"/></svg>`,
+ photo:`<svg viewBox="0 0 48 56"><rect x="4" y="4" width="40" height="48" fill="#b8925a"/><rect x="9" y="9" width="30" height="38" fill="#efe6d2"/><ellipse cx="24" cy="26" rx="8" ry="10" fill="#6f675a"/><path d="M8 47 q16 -14 32 0" fill="#4a5561"/></svg>`,
+ fern:`<svg viewBox="0 0 56 64"><path d="M14 40 h28 l-4 20 h-20 z" fill="#7a3b2a" stroke="#b8925a" stroke-width="1.5"/><path d="M28 40 q-2 -18 -18 -26 M28 40 q2 -20 18 -30 M28 40 q0 -22 0 -36 M28 40 q-8 -12 -20 -8 M28 40 q8 -14 22 -10" fill="none" stroke="#5f8a5a" stroke-width="3" stroke-linecap="round"/></svg>`,
+ lamp:`<svg viewBox="0 0 64 64"><ellipse cx="32" cy="58" rx="16" ry="4" fill="#b8925a"/><rect x="30" y="30" width="4" height="28" fill="#b8925a"/><path d="M8 30 q24 -18 48 0 z" fill="#3b6b3f" stroke="#b8925a" stroke-width="1.5"/><ellipse cx="32" cy="34" rx="18" ry="5" fill="#e8c15a" opacity=".8"/></svg>`,
+ decanter:`<svg viewBox="0 0 64 64"><path d="M22 60 h20 q6 0 6 -6 v-14 q0 -10 -10 -14 v-14 h-12 v14 q-10 4 -10 14 v14 q0 6 6 6z" fill="#efe6d2" opacity=".9" stroke="#b8925a" stroke-width="1.5"/><rect x="26" y="8" width="12" height="6" fill="#b8925a"/><path d="M20 44 q12 4 24 0 v10 q0 6 -6 6 h-12 q-6 0 -6 -6z" fill="#8a3a2a" opacity=".8"/><path d="M52 60 h10 v-14 h-10z" fill="#efe6d2" opacity=".9" stroke="#b8925a" stroke-width="1.2"/><path d="M53 52 h8 v8 h-8z" fill="#8a3a2a" opacity=".8"/></svg>`,
+ ship:`<svg viewBox="0 0 80 40"><path d="M6 12 h50 q18 0 18 8 t-18 8 h-50 z" fill="#efe6d2" opacity=".85" stroke="#b8925a" stroke-width="1.5"/><rect x="0" y="14" width="8" height="12" fill="#b8925a"/><path d="M22 27 h26 l-3 4 h-20z" fill="#3a2a1e"/><path d="M35 27 v-14 l10 12 z" fill="#efe6d2" stroke="#3a2a1e" stroke-width="1"/><path d="M34 27 v-14 l-9 12 z" fill="#efe6d2" stroke="#3a2a1e" stroke-width="1"/></svg>`,
+ cat:`<svg viewBox="0 0 72 48"><ellipse cx="40" cy="36" rx="28" ry="12" fill="#2a2320"/><circle cx="18" cy="26" r="12" fill="#2a2320"/><path d="M8 20 l2 -12 l8 8z M28 20 l-2 -12 l-8 8z" fill="#2a2320"/><circle cx="14" cy="26" r="1.6" fill="#e8c15a"/><circle cx="22" cy="26" r="1.6" fill="#e8c15a"/><path d="M66 36 q8 -14 -2 -20" fill="none" stroke="#2a2320" stroke-width="5" stroke-linecap="round"/></svg>`,
+ typewriter:`<svg viewBox="0 0 80 56"><rect x="24" y="2" width="32" height="20" fill="#efe6d2" stroke="#b8925a" stroke-width="1"/><rect x="8" y="22" width="64" height="26" rx="4" fill="#2a2320" stroke="#b8925a" stroke-width="1.5"/><rect x="4" y="46" width="72" height="8" rx="2" fill="#3a2a1e" stroke="#b8925a" stroke-width="1"/>${[0,1,2,3,4,5,6].map(i=>`<circle cx="${18+i*7.5}" cy="32" r="2" fill="#b8925a"/><circle cx="${22+i*7.5}" cy="39" r="2" fill="#b8925a"/>`).join('')}</svg>`
+};
 
-/* ---------- Rendering ---------- */
-const $=s=>document.querySelector(s);
+/* ---------- Render ---------- */
 function render(){
   advanceTut();
-  $('#hDay').textContent=S.day; $('#hStamps').textContent=Object.keys(S.delivered).length;
-  $('#hWrong').textContent=Object.values(S.wrong).reduce((a,b)=>a+b,0); $('#hDistrict').textContent=cur().tagline;
-  document.querySelectorAll('nav.tabs button').forEach(b=>{ b.classList.toggle('on', b.dataset.tab===S.tab); b.querySelector('.dot')?.remove(); if(b.dataset.tab==='desk' && S.post.some(p=>!p.read)) b.insertAdjacentHTML('beforeend','<span class="dot"></span>');
-    b.classList.toggle('pulse', (S.tut===2 && b.dataset.tab==='map') || (S.tut===5 && b.dataset.tab==='desk' && S.tab!=='desk')); });
+  $('#hMoney').textContent='£'+S.money; $('#hSolved').textContent=Object.values(S.solved).filter(v=>v.correct).length;
+  document.querySelectorAll('nav.tabs button').forEach(b=>{ b.classList.toggle('on', b.dataset.tab===S.tab); b.classList.toggle('pulse', S.tut===4 && b.dataset.tab==='cases' && S.tab!=='cases'); });
   document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on', p.id==='p-'+S.tab));
-  $('#fab').classList.toggle('pulse', S.tut===6);
-  $('#fab').hidden = !!S.intro;
-  renderDesk(); renderMap(); renderFiles(); renderNotes(); save();
+  const h=handOf(); const r=document.documentElement.style; r.setProperty('--nbfont',h.font); r.setProperty('--nbsize',h.size); r.setProperty('--nbline',h.line);
+  renderDesk(); renderCases(); renderNotebook(); renderShop(); save();
 }
-function letterPaper(l, {readonly=false, stamp=null, meta=null}={}){
-  const cm=clueMap(l);
-  return `<article class="paper ${l.style}">
-    ${meta?`<div class="meta">${esc(meta)}</div>`:''}
-    <p class="addr">${renderText(l,'to',l.to,cm,readonly)}</p>
-    <p class="body">${renderText(l,'body',l.body,cm,readonly)}</p>
-    ${l.from?`<p class="sign">${renderText(l,'from',l.from,cm,readonly)}</p>`:''}
-    ${stamp?`<div class="stamp">${stamp}</div>`:''}
-  </article>`;
+function shelfHTML(){
+  const items=D.decor.filter(d=>S.owned.includes(d.id));
+  return `<div class="shelf" aria-label="Your desk">${items.length?`<div class="items">${items.map(d=>`<span title="${esc(d.name)}">${ART[d.id]}</span>`).join('')}</div>`:`<div class="hint">A bare desk. Pay buys furniture.</div>`}</div>`;
 }
-function replyPaper(r, meta){ return `<article class="paper ${r.style||'hand'}"><div class="meta">${esc(meta||'')}</div><p class="body">${esc(r.body)}</p><p class="sign">${esc(r.from)}</p></article>`; }
-function stampText(d){ return d.b==='self' ? 'Kept' : 'Delivered<br>'+B[d.b].num+' '+DIST[B[d.b].d].streets[B[d.b].st]; }
+function fileHTML(c, v){
+  const b=c.brief;
+  return `<article class="paper file">${v?`<div class="stamp${v.correct?'':' cold'}">${v.correct?'Closed<br>Arrest':'Cold<br>Case'}</div>`:''}
+   <div class="no">Case No. ${idx(c.id)+1} · Saltmarsh Constabulary</div><h2>${esc(c.title)}</h2>
+   <dl><dt>Victim</dt><dd>${esc(b.victim)}</dd><dt>Weapon</dt><dd>${esc(b.weapon)}</dd><dt>When</dt><dd>${esc(b.time)}</dd><dt>Where</dt><dd>${esc(b.place)}</dd></dl>
+   <div class="sec">What the Gazette printed</div><p class="gaz">${esc(b.public)}</p>
+   <div class="sec">Known to the police only</div><ul>${b.facts.map(f=>`<li>${esc(f)}</li>`).join('')}</ul></article>`;
+}
+function initials(n){ return n.split(' ').map(w=>w[0]).filter(ch=>/[A-Z]/.test(ch)).slice(0,2).join(''); }
 function renderDesk(){
-  const el=$('#p-desk'); const d=cur(); let h='';
-  if(S.intro){
-    h+=`<div class="card-note"><h2>${esc(d.intro.title)}</h2>${d.intro.text.split('\n\n').map(p=>`<p>${esc(p)}</p>`).join('')}<div class="row"><button class="btn" data-act="intro">${esc(d.intro.button)}</button></div></div>`;
-    el.innerHTML=h; return;
-  }
-  h+=coachHTML();
-  if(S.open){
-    const l=L[S.open]; const done=S.delivered[l.id]; const p=pinsFor(l.id);
-    h+=`<div class="toolbar"><button class="btn ghost" data-act="back">← Tray</button>${S.tools.glass && !done ? `<button class="btn ghost${S.glass?' on':''}" data-act="glass">Glass ${S.glass?'on':'off'}</button>`:''}</div>`;
-    h+=letterPaper(l,{readonly:!!done, stamp: done?stampText(done):null, meta:l.tag});
-    if(!done){
-      const leads=p.c.map(ci=>l.clues[ci]);
-      if(leads.length) h+=`<div class="eyebrow">Leads</div><div class="leads">`+leads.map(c=>`<span class="lead">${esc(c.p)}<small>${c.t.length?(c.t.length===1?'one place':c.t.length+' places'):'—'} · ${esc(c.why)}</small></span>`).join('')+`</div>`;
-      else if(!S.tut && !S.tut2) h+=`<p class="hintline">Tap words that could tell you where this belongs.</p>`;
-      const w=S.wrong[l.id]||0;
-      if(w>=HINT_AFTER && l.answer) h+=`<p class="hintline">The postmaster has circled ${d.streets[B[l.answer].st]} on the map in pencil.</p>`;
-      if(l.keep) h+=`<div class="eyebrow">This one is yours</div><div class="row">`+l.keep.map((k,i)=>`<button class="btn${i?' ghost':''}" data-act="keep" data-i="${i}">${esc(k.label)}</button>`).join('')+`</div>`;
-      else h+=`<div class="row"><button class="btn" data-act="tomap">Open the map</button></div>`;
-    } else {
-      const rep=S.post.find(x=>x.id===l.id); const r=replyOf(l,done);
-      if(rep){ h+=`<div class="eyebrow">Reply</div>`+replyPaper(r,'Arrived night '+rep.day); if(r.second) h+=replyPaper(r.second,'Same morning'); }
-      else h+=`<p class="hintline">${done.b==='self'?'Kept.':'Stamped.'} A reply, if any, comes with the morning.</p>`;
-    }
-    el.innerHTML=h; return;
-  }
-  const unread=S.post.filter(p=>!p.read);
-  if(unread.length){
-    h+=`<div class="eyebrow">Morning post</div><div class="tray">`+unread.map(p=>{ const r=replyOf(L[p.id],S.delivered[p.id]); return `<button class="env reply unread" data-act="read" data-id="${p.id}"><span class="to">${esc(r.from)}<i>Reply · re: ${esc(L[p.id].to.split('\n')[0])}</i></span><span class="stampbox">1d</span></button>`; }).join('')+`</div>`;
-  }
-  h+=`<div class="eyebrow">In the tray</div>`;
-  const done = districtDone(d); const nd = nextDistrict();
-  if(S.tray.length){
-    h+=`<div class="tray">`+S.tray.map((id,i)=>{ const l=L[id]; const w=S.wrong[id]||0; return `<button class="env${S.tut===0&&i===0?' pulse':''}" data-act="open" data-id="${id}"><span class="to">${esc(l.to.split('\n')[0])}<i>${esc(l.tag)}${w?' · bounced '+w+'×':''}</i></span><span class="stampbox">?</span></button>`; }).join('')+`</div>`;
-  } else if(done){
-    h+=`<div class="card-note"><h2>${esc(d.ending.title)}</h2><p>${esc(d.ending.text)}</p><p>Nights worked: ${S.day}. Bounced: ${Object.values(S.wrong).reduce((a,b)=>a+b,0)}.</p>${nd?`<div class="row"><button class="btn" data-act="nextdistrict">${esc(d.ending.button)}</button></div>`:''}</div>`;
+  const el=$('#p-desk'); let h='';
+  if(S.intro){ h+=`<div class="card-note"><h2>Same desk, worse post</h2><p>After the Kittiwake business the town made its dead-letter clerk a detective. The cases come in a folder now.</p><p>Read the file. Question the suspects. Name the one who did it. A right arrest pays, and pay buys a better desk.</p><div class="row"><button class="btn" data-act="intro">Open the first file</button></div></div>`; el.innerHTML=h; return; }
+  const c=cur(); const v=S.solved[c.id]; const asked=askedFor(c.id);
+  h+=shelfHTML()+coachHTML();
+  h+=fileHTML(c,v);
+  h+=`<div class="eyebrow">${v?'The suspects, as they were':'Suspects'}</div><div class="suspects">`+c.suspects.map(s=>{
+    const n=(asked[s.id]||[]).length; const cls=['sus', v&&v.guess===s.id&&!v.correct?'guessed':'', v&&s.id===c.culprit?'culprit':''].join(' ');
+    return `<button class="${cls}" data-act="suspect" data-id="${s.id}"><span class="asked">${v?(s.id===c.culprit?'GUILTY':(v.guess===s.id?'RELEASED':'')):(n?n+'/3':'')}</span><span class="med" style="background:${s.color}">${esc(initials(s.name))}</span><b>${esc(s.name)}</b><i>${s.age} · ${esc(s.job)}</i><p><em>${esc(s.look)}</em></p><p>${esc(s.note)}</p></button>`; }).join('')+`</div>`;
+  if(v){
+    const g=c.suspects.find(s=>s.id===c.culprit); const gs=c.suspects.find(s=>s.id===v.guess);
+    h+=`<div class="card-note"><h2>${v.correct?'Arrested: '+esc(g.name):'Released: '+esc(gs.name)}</h2><p>${esc(c.solution)}</p><p><em>${esc(c.arrest)}</em></p>${v.correct?`<p>Paid £${v.pay}${v.bonus?', including £1 for quick work':''}.</p>`:'<p>No pay. The file goes in the cold drawer.</p>'}<div class="row">${nextCase()?`<button class="btn" data-act="opencase" data-id="${nextCase().id}">Next case</button>`:''}<button class="btn ghost" data-act="tab" data-tab="cases">The case board</button></div></div>`;
   } else {
-    h+=`<p class="empty">${unread.length?'Read the post first.':'Nothing more tonight. Sleep, and see what the morning brings.'}</p>`;
+    h+=`<p class="hintline">Tap a suspect to question them. Accuse from their page when you're sure. Questions asked so far: ${nAsked(c.id)}.</p>`;
   }
-  if(!done) h+=`<div class="row" style="margin-top:8px"><button class="btn" data-act="sleep">End the shift → morning</button></div>`;
   h+=musicBar();
-  h+=`<p class="foot">Replies arrive the next morning. In the full game a night is a real night. <button data-act="reset">Start over</button></p>`;
+  h+=`<p class="foot">Six cases so far. <button data-act="reset">Start over</button></p>`;
   el.innerHTML=h; updateMusicUI();
 }
-
-/* Map geometry */
-const BH=58, GAP=8;
-function rows(d){ const out={}; Object.keys(d.streets).forEach((st,i)=>{ const list=d.buildings.filter(b=>b.st===st); const n=list.length; const w=Math.min(56,Math.floor((336-(n-1)*GAP)/n)); const total=n*w+(n-1)*GAP; const x0=Math.round((360-total)/2); out[st]={y:48+i*110,w,xs:list.map((_,k)=>x0+k*(w+GAP)),ids:list.map(b=>b.id)}; }); return out; }
-function renderMap(){
-  const el=$('#p-map'); const d=cur(); const R=rows(d);
-  const l=S.open && !S.delivered[S.open] && !L[S.open].keep ? L[S.open] : null;
-  const sc=l?leadTargets(l):{}; const max=Math.max(0,...Object.values(sc));
-  const hintSt = l && (S.wrong[l.id]||0)>=HINT_AFTER ? B[l.answer].st : null;
-  let svg=`<svg class="map" viewBox="0 0 360 560" role="img" aria-label="Map of ${esc(d.name)}"><rect x="0" y="0" width="360" height="560" fill="#e9dfc6"/>${d.extras||''}`;
-  for(const st in d.streets){
-    const r=R[st]; const y=r.y-14;
-    svg+=`<line x1="10" y1="${r.y+BH+6}" x2="350" y2="${r.y+BH+6}" stroke="#a89f88" stroke-width="1"/>`;
-    svg+=`<text class="street${hintSt===st?' circled':''}" x="12" y="${y}">${esc(d.streets[st])}</text>`;
-    if(hintSt===st) svg+=`<ellipse class="hintring" cx="${12+d.streets[st].length*3.4}" cy="${y-3}" rx="${d.streets[st].length*4.2}" ry="9"/>`;
-  }
-  d.buildings.forEach(b=>{
-    const r=R[b.st]; const k=r.ids.indexOf(b.id); const x=r.xs[k], y=r.y, w=r.w;
-    const s=sc[b.id]||0; const deliveredHere=Object.values(S.delivered).some(dd=>dd.b===b.id);
-    const cls=['bld', s>0?(s===max?'hot':'lit'):'', (!s&&deliveredHere)?'done':'', S.selB===b.id?'sel':''].join(' ');
-    const words=b.sign.split(' '); const lines=[]; let c='';
-    words.forEach(wd=>{ if((c+' '+wd).trim().length>11 && c){ lines.push(c); c=wd; } else c=(c+' '+wd).trim(); }); if(c) lines.push(c);
-    svg+=`<g class="${cls}" data-b="${b.id}" tabindex="0" role="button" aria-label="${esc(b.num+' '+d.streets[b.st]+', '+b.sign)}"><rect x="${x}" y="${y}" width="${w}" height="${BH}" rx="1"/><text class="num" x="${x+4}" y="${y+10}">${b.num}</text>${lines.slice(0,3).map((t,i)=>`<text x="${x+w/2}" y="${y+26+i*10}" text-anchor="middle">${esc(t)}</text>`).join('')}</g>`;
+function openSuspect(sid){
+  const c=cur(); const s=c.suspects.find(x=>x.id===sid); if(!s) return; const v=S.solved[c.id]; const asked=askedFor(c.id); asked[s.id]=asked[s.id]||[];
+  S.tutOpened=true;
+  let h=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>${esc(s.name)}</h3><p class="sub">${s.age} · ${esc(s.job)}</p><p><em>${esc(s.look)}</em> ${esc(s.note)}</p><div class="qs">`;
+  c.questions.forEach((q,i)=>{
+    const done=asked[s.id].includes(i);
+    if(done||v) h+=`<div class="q"><small>You asked</small>${esc(q)}</div><p class="a">${esc(s.answers[i])}</p>`;
+    else h+=`<button class="q" data-act="ask" data-id="${s.id}" data-q="${i}"><small>Ask</small>${esc(q)}</button>`;
   });
-  svg+='</svg>';
-  let h=coachHTML()+`<div class="mapwrap">${svg}</div>`;
-  h+=`<div class="mapkey"><span>${l?'<i></i>Lit by your leads · '+esc(l.to.split('\n')[0]):'Open a letter to light the map.'}</span></div>`;
-  h+=`<p class="hintline" style="margin-top:10px">Tap a door to read the sign${l?' and deliver':''}.</p>`;
+  h+=`</div>`;
+  if(!v) h+=`<div class="row"><button class="btn danger" data-act="accuse" data-id="${s.id}">Accuse ${esc(s.name.split(' ').slice(-1)[0])}</button><button class="btn ghost" data-act="closesheet">Back to the desk</button></div>`;
+  else h+=`<div class="row"><button class="btn ghost" data-act="closesheet">Back to the desk</button></div>`;
+  const sh=$('#sheet'); const top=sh.scrollTop; sh.innerHTML=h; sh.classList.add('open'); $('#scrim').classList.add('on'); sh.scrollTop=top; save(); render();
+}
+function confirmAccuse(sid){
+  const c=cur(); const s=c.suspects.find(x=>x.id===sid);
+  $('#sheet').innerHTML=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>Arrest ${esc(s.name)}?</h3><p class="sub">for the murder of ${esc(c.brief.victim.split(',')[0])}</p><p>The Inspector will sign the warrant on your word. If the magistrate lets them go, the case goes cold and you are not paid.</p><div class="row"><button class="btn danger" data-act="arrest" data-id="${sid}">Sign the warrant</button><button class="btn ghost" data-act="suspect" data-id="${sid}">Not yet</button></div>`;
+  $('#sheet').scrollTop=0;
+}
+function arrest(sid){
+  const c=cur(); if(S.solved[c.id]) return; const s=c.suspects.find(x=>x.id===sid); const correct=sid===c.culprit; const n=nAsked(c.id); const bonus=correct && n<=8;
+  const pay=correct?c.reward+(bonus?1:0):0; S.money+=pay;
+  S.solved[c.id]={guess:sid, correct, pay, bonus, asked:n};
+  const g=c.suspects.find(x=>x.id===c.culprit);
+  $('#sheet').innerHTML=`<button class="close" data-act="closesheet" aria-label="Close">×</button>
+   <p class="verdict${correct?'':' cold'}">${correct?'Arrested.':'Released.'}</p>
+   ${correct?`<p class="pay">+ £${pay}${bonus?' <small style="font-size:14px;color:#6f675a">incl. £1 for quick work</small>':''}</p>`:`<p class="sub">The magistrate finds nothing to hold ${esc(s.name)} on. ${esc(g.name)} leaves on the morning coach.</p>`}
+   <p>${esc(c.solution)}</p><p><em>${esc(c.arrest)}</em></p>
+   <div class="row">${nextCase()?`<button class="btn" data-act="opencase" data-id="${nextCase().id}">Next case</button>`:''}<button class="btn ghost" data-act="closesheet">Back to the desk</button></div>`;
+  $('#sheet').scrollTop=0;
+  toast(correct?'Arrested. £'+pay+' to the purse.':'Released. No pay.'); render();
+}
+function closeSheet(){ $('#sheet').classList.remove('open'); $('#scrim').classList.remove('on'); }
+function renderCases(){
+  const el=$('#p-cases');
+  let h=coachHTML()+`<div class="eyebrow">The case board</div><div class="caselist">`+D.cases.map((c,i)=>{
+    const v=S.solved[c.id]; const un=unlocked(c.id);
+    const st=v?(v.correct?`<span class="st ok">Solved · £${v.pay}</span>`:'<span class="st cold">Cold</span>'):(un?'<span class="st open">Open</span>':'<span class="st cold">Locked</span>');
+    return `<button class="casebtn${un?'':' locked'}${c.id===S.caseId?' cur':''}" data-act="opencase" data-id="${c.id}" ${un?'':'disabled'}><span class="n">${String(i+1).padStart(2,'0')}</span><span><b>${esc(c.title)}</b><i>${esc(c.brief.place)}</i></span>${st}</button>`; }).join('')+`</div>`;
+  const earned=Object.values(S.solved).reduce((a,v)=>a+(v.pay||0),0);
+  h+=`<p class="hintline" style="margin-top:14px">Earned so far: £${earned}. Cases open in order. A cold case stays cold.</p>`;
   el.innerHTML=h;
 }
-function openSheet(bid){
-  S.selB=bid; const b=B[bid]; const d=DIST[b.d]; const l=S.open && !S.delivered[S.open] && !L[S.open].keep ? L[S.open] : null;
-  const known = b.who || S.learned.find(x=>x.b===bid)?.who || 'Occupant not in the directory';
-  const past = Object.entries(S.delivered).filter(([id,dd])=>dd.b===bid).map(([id])=>L[id].to.split('\n')[0]);
-  let h=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>${esc(b.num)} ${esc(d.streets[b.st])}</h3><p class="sub">${esc(b.sign)}</p><p>${esc(known)}</p>`;
-  if(past.length) h+=`<p style="color:var(--pencil);font-size:14px">Delivered here: ${past.map(esc).join(' · ')}</p>`;
-  if(l) h+=`<div class="row"><button class="btn" data-act="deliver" data-b="${bid}">${esc(l.deliverLabel||'Deliver here')}</button><button class="btn ghost" data-act="closesheet">Not this one</button></div>`;
-  $('#sheet').innerHTML=h; $('#sheet').classList.add('open'); $('#scrim').classList.add('on'); renderMap();
-}
-function closeSheet(){ S.selB=null; $('#sheet').classList.remove('open'); $('#scrim').classList.remove('on'); renderMap(); }
-function openNotebook(){
-  $('#sheet').innerHTML=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>Your notebook</h3><p class="sub">Pencil. Nobody else reads it.</p><textarea class="nb" id="nb" placeholder="Who lodges at Pell's? Which door is three streets from the blue one?">${esc(S.notebook)}</textarea><div class="row" style="margin-top:10px"><button class="btn ghost" data-act="closesheet">Put it away</button></div>`;
-  $('#sheet').classList.add('open'); $('#scrim').classList.add('on'); setTimeout(()=>$('#nb')?.focus(),250);
-}
-function finishLetter(l, rec){
-  S.delivered[l.id]=rec; S.tray=S.tray.filter(x=>x!==l.id);
-  if(rec.b!=='self'){ const b=B[rec.b]; if(!b.who && b.learn && !S.learned.some(x=>x.b===rec.b)) S.learned.push({b:rec.b,who:b.learn}); }
-  fillTray(S); save();
-}
-function deliver(bid){
-  const l=L[S.open]; const b=B[bid]; const d=DIST[b.d];
-  if(bid===l.answer){
-    finishLetter(l,{b:bid, day:S.day});
-    $('#sheet').innerHTML=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>Stamped.</h3><p class="sub">${esc(b.num)} ${esc(d.streets[b.st])}</p><p>${l.id==='warning'?'You keep it. Nobody else will read it.':'The door closes on the letter. A reply, if any, comes with the morning.'}</p><div class="row"><button class="btn" data-act="backdesk">Back to the desk</button></div>`;
-    toast('Delivered.'); render();
-  } else {
-    S.wrong[l.id]=(S.wrong[l.id]||0)+1; save();
-    const msg=(l.bounces&&l.bounces[bid])||b.bounce;
-    let extra='';
-    if(S.wrong[l.id]===HINT_AFTER) extra=`<p>Back at the desk the postmaster looks over your shoulder, sighs, and circles <b>${esc(d.streets[B[l.answer].st])}</b> on the map in pencil.</p>`;
-    $('#sheet').innerHTML=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>Returned to sender</h3><p class="sub">${esc(b.num)} ${esc(d.streets[b.st])}</p><p class="bounce">${esc(msg)}</p>${extra}<div class="row"><button class="btn ghost" data-act="closesheet">Try another door</button></div>`;
-    render();
-  }
-}
-function renderFiles(){
-  const el=$('#p-files'); const d=cur();
-  let h=coachHTML()+`<div class="subtabs">${[['dir','Directory'],['census','Census'],['arch','Archive']].map(([k,n])=>`<button data-files="${k}" class="${S.files===k?'on':''}">${n}</button>`).join('')}</div>`;
-  if(S.files==='dir'){
-    const learned=S.learned.filter(x=>B[x.b].d===d.id).map(x=>[x.who, B[x.b].num+' '+d.streets[B[x.b].st]]);
-    h+=`<div class="dir"><h4>${esc(d.name)} · Residents & Trades</h4>`+d.directory.map(([n,a])=>`<div class="e"><span>${esc(n)}</span><span>${esc(a)}</span></div>`).join('')+learned.map(([n,a])=>`<div class="e pencil"><span>${esc(n)}</span><span>${esc(a)}</span></div>`).join('')+`</div><p class="hintline" style="margin-top:12px">The directory lists householders and trades. Lodgers, widows and children are not in it. Try the census.</p>`;
-  } else if(S.files==='census'){
-    const cards=D.districts.flatMap(dd=>dd.census.filter(c=>S.census.includes(c.id)).map(c=>({...c,dn:dd.name})));
-    h+=`<div class="census">`+cards.map(c=>`<div class="ccard"><b>Census card · ${esc(c.dn)}</b>${esc(c.text)}</div>`).join('')+`</div><p class="hintline" style="margin-top:12px">More cards turn up as the town gets to know you.</p>`;
-  } else {
-    const done=Object.entries(S.delivered).sort((a,b)=>a[1].day-b[1].day);
-    h+= done.length ? `<div class="arch">`+done.map(([id,dd])=>`<button class="env" data-act="open" data-id="${id}"><span class="to">${esc(L[id].to.split('\n')[0])}<i>Night ${dd.day} · ${dd.b==='self'?'kept':esc(B[dd.b].num+' '+DIST[B[dd.b].d].streets[B[dd.b].st])}${repliesArrived(S,id)?' · reply on file':''}</i></span><span class="stampbox">✓</span></button>`).join('')+`</div>` : `<p class="empty">Nothing delivered yet.</p>`;
-  }
+function renderNotebook(){
+  const el=$('#p-notebook'); const c=cur(); const asked=askedFor(c.id);
+  let h=coachHTML()+`<div class="eyebrow">Your notebook <span style="color:var(--brass-dim)">· ${esc(handOf().name)}</span></div>`;
+  h+=`<textarea class="nb" id="nb" placeholder="Who was where. Who said what they shouldn't know.">${esc(S.notebook)}</textarea>`;
+  const rows=c.suspects.filter(s=>(asked[s.id]||[]).length);
+  h+=`<div class="eyebrow" style="margin-top:22px">Statements · ${esc(c.title)}</div>`;
+  h+= rows.length ? rows.map(s=>`<div class="stm"><b>${esc(s.name)}</b>${(asked[s.id]||[]).slice().sort().map(i=>`<div><span>${esc(c.questions[i])}</span><br>${esc(s.answers[i])}</div>`).join('')}</div>`).join('') : `<p class="hintline">Nothing yet. Every answer you hear is copied here.</p>`;
   el.innerHTML=h;
 }
-function renderNotes(){
-  const el=$('#p-notes');
-  const facts=[]; S.post.filter(p=>p.read).forEach(p=>{ const r=replyOf(L[p.id],S.delivered[p.id]); (r.facts||[]).forEach(f=>facts.push({...f,day:p.day})); if(r.second) (r.second.facts||[]).forEach(f=>facts.push({...f,day:p.day})); });
-  let h=coachHTML()+`<div class="eyebrow">Your notebook</div>`;
-  h+=`<div class="nbview${S.notebook.trim()?'':' empty-nb'}" >${S.notebook.trim()?esc(S.notebook):'Nothing written yet. Tap the pencil to jot names, doors, and hunches.'}</div><div class="row" style="margin-bottom:22px"><button class="btn ghost" data-act="notebook">Write in it</button></div>`;
-  h+=`<div class="eyebrow">What the town has told you</div>`;
-  h+= facts.length ? `<div class="board">`+facts.slice().reverse().map((f,i)=>`<div class="fact${i%3===1?' who':''}"><small>${esc(f.who)} · night ${f.day}</small>${esc(f.f)}</div>`).join('')+`</div>` : `<p class="empty">Nothing yet. Replies fill this board.</p>`;
+function renderShop(){
+  const el=$('#p-shop');
+  let h=coachHTML()+`<p class="money">£${S.money}<small>in the purse</small></p>`;
+  h+=`<div class="eyebrow">For the desk</div><div class="goods">`+D.decor.map(d=>{ const own=S.owned.includes(d.id); const can=S.money>=d.price;
+    return `<div class="good">${ART[d.id]}<b>${esc(d.name)}</b><i>${esc(d.desc)}</i>${own?'<button class="buy owned" disabled>On the desk</button>':`<button class="buy" data-act="buy" data-id="${d.id}" ${can?'':'disabled'}>Buy · £${d.price}</button>`}</div>`; }).join('')+`</div>`;
+  h+=`<div class="eyebrow">Hands for your notebook</div><div class="hands">`+D.hands.map(x=>{ const own=x.price===0||S.owned.includes('hand:'+x.id); const inuse=S.hand===x.id; const can=S.money>=x.price;
+    const btn = inuse?'<button class="buy inuse" disabled>In use</button>':own?`<button class="buy use" data-act="usehand" data-id="${x.id}">Use</button>`:`<button class="buy" data-act="buyhand" data-id="${x.id}" ${can?'':'disabled'}>£${x.price}</button>`;
+    return `<div class="handrow"><div class="prev" style="font-family:${x.font};font-size:${x.prev}">Rooney knew about the mallet.<small>${esc(x.name)}</small></div>${btn}</div>`; }).join('')+`</div>`;
+  h+=`<p class="hintline" style="margin-top:14px">Decor sits on the shelf above your desk. A hand changes how your notebook is written.</p>`;
   el.innerHTML=h;
 }
 let tt; function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('on'); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('on'),1800); }
@@ -694,53 +487,43 @@ let tt; function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add
 /* ---------- Music ---------- */
 const TRACKS=[['Theme I','audio/theme-1.m4a'],['Theme II','audio/theme-2.m4a'],['Theme III','audio/theme-3.m4a'],['Theme IV','audio/theme-4.m4a'],['Theme V','audio/theme-5.m4a']];
 const audio=new Audio(); audio.volume=.8; audio.preload='none';
-let musicWanted = S.music===true; // off until the player turns it on; then it resumes on the next tap after a reload
+let musicWanted = S.music===true;
 function updateMusicUI(){
   const playing=!audio.paused && !audio.ended && audio.src;
   const b=$('#musicBtn'); b.classList.toggle('on', !!playing); b.title = playing ? 'Music: '+TRACKS[S.track||0][0]+' (tap to pause)' : 'Music off (tap to play)';
   document.querySelectorAll('.musicbar b').forEach(x=>x.textContent = playing ? TRACKS[S.track||0][0] : 'off');
   document.querySelectorAll('.musicbar [data-act="music"]').forEach(x=>x.textContent = playing ? 'Pause' : 'Play');
 }
-function playTrack(i){
-  S.track=((i%TRACKS.length)+TRACKS.length)%TRACKS.length; audio.src=TRACKS[S.track][1];
-  audio.play().then(()=>{ S.music=true; musicWanted=true; save(); updateMusicUI(); }).catch(()=>{ updateMusicUI(); });
-}
-audio.addEventListener('ended',()=>playTrack((S.track||0)+1));
-audio.addEventListener('pause',updateMusicUI); audio.addEventListener('play',updateMusicUI);
+function playTrack(i){ S.track=((i%TRACKS.length)+TRACKS.length)%TRACKS.length; audio.src=TRACKS[S.track][1]; audio.play().then(()=>{ S.music=true; musicWanted=true; save(); updateMusicUI(); }).catch(()=>updateMusicUI()); }
+audio.addEventListener('ended',()=>playTrack((S.track||0)+1)); audio.addEventListener('pause',updateMusicUI); audio.addEventListener('play',updateMusicUI);
 function toggleMusic(){ if(!audio.paused && audio.src){ audio.pause(); S.music=false; musicWanted=false; save(); } else playTrack(S.track||0); }
 function musicBar(){ return `<div class="musicbar"><span>Music · <b>off</b></span><div class="row"><button data-act="music">Play</button><button data-act="nexttrack">Next track</button></div></div>`; }
 
 /* ---------- Events ---------- */
 document.addEventListener('click',e=>{
   if(musicWanted && !S.intro && !audio.src && !e.target.closest('[data-act="music"]')) playTrack(S.track||0);
-  const w=e.target.closest('.w'); if(w && S.open && !S.delivered[S.open]){ if(w.dataset.faded && !S.glass){ toast('Too faded to read. Use the glass.'); return; } togglePin(S.open,w.dataset.sec,+w.dataset.i,w.dataset.ci); return; }
-  const tab=e.target.closest('nav.tabs button'); if(tab){ S.tab=tab.dataset.tab; render(); return; }
-  const ft=e.target.closest('[data-files]'); if(ft){ S.files=ft.dataset.files; save(); renderFiles(); return; }
-  const bld=e.target.closest('.bld'); if(bld){ openSheet(bld.dataset.b); return; }
+  const tab=e.target.closest('nav.tabs button'); if(tab){ S.tab=tab.dataset.tab; render(); window.scrollTo(0,0); return; }
   if(e.target.id==='scrim'){ closeSheet(); return; }
-  const a=e.target.closest('[data-act]'); if(!a) return;
-  const act=a.dataset.act;
-  if(act==='intro'){ S.intro=false; render(); if(musicWanted && audio.paused) playTrack(S.track||0); }
+  const a=e.target.closest('[data-act]'); if(!a) return; const act=a.dataset.act;
+  if(act==='intro'){ S.intro=false; render(); }
+  else if(act==='tab'){ S.tab=a.dataset.tab; render(); window.scrollTo(0,0); }
+  else if(act==='suspect'){ openSuspect(a.dataset.id); }
+  else if(act==='ask'){ const l=askedFor(S.caseId); l[a.dataset.id]=l[a.dataset.id]||[]; if(!l[a.dataset.id].includes(+a.dataset.q)) l[a.dataset.id].push(+a.dataset.q); openSuspect(a.dataset.id); }
+  else if(act==='accuse'){ confirmAccuse(a.dataset.id); }
+  else if(act==='arrest'){ arrest(a.dataset.id); }
+  else if(act==='closesheet'){ closeSheet(); }
+  else if(act==='opencase'){ if(unlocked(a.dataset.id)){ S.caseId=a.dataset.id; S.tab='desk'; closeSheet(); render(); window.scrollTo(0,0); } }
+  else if(act==='buy'){ const d=D.decor.find(x=>x.id===a.dataset.id); if(d && S.money>=d.price && !S.owned.includes(d.id)){ S.money-=d.price; S.owned.push(d.id); toast(d.name+' bought.'); render(); } }
+  else if(act==='buyhand'){ const x=D.hands.find(y=>y.id===a.dataset.id); if(x && S.money>=x.price && !S.owned.includes('hand:'+x.id)){ S.money-=x.price; S.owned.push('hand:'+x.id); S.hand=x.id; toast(x.name+' bought and in use.'); render(); } }
+  else if(act==='usehand'){ S.hand=a.dataset.id; render(); }
   else if(act==='music'){ toggleMusic(); }
   else if(act==='nexttrack'){ playTrack((S.track||0)+1); }
-  else if(act==='open'){ S.open=a.dataset.id; S.tab='desk'; render(); window.scrollTo(0,0); }
-  else if(act==='read'){ const p=S.post.find(x=>x.id===a.dataset.id); p.read=true; (replyOf(L[p.id],S.delivered[p.id]).unlockCensus||[]).forEach(c=>{ if(!S.census.includes(c)) S.census.push(c); }); S.open=p.id; S.tab='desk'; render(); window.scrollTo(0,0); }
-  else if(act==='back'){ S.open=null; render(); }
-  else if(act==='tomap'){ S.tab='map'; render(); window.scrollTo(0,0); }
-  else if(act==='glass'){ S.glass=!S.glass; render(); }
-  else if(act==='deliver'){ deliver(a.dataset.b); }
-  else if(act==='keep'){ const l=L[S.open]; finishLetter(l,{b:'self', day:S.day, choice:+a.dataset.i}); S.open=null; toast('Kept.'); render(); }
-  else if(act==='closesheet'){ closeSheet(); }
-  else if(act==='backdesk'){ closeSheet(); S.open=null; S.tab='desk'; render(); window.scrollTo(0,0); }
-  else if(act==='sleep'){ morning(); window.scrollTo(0,0); }
-  else if(act==='notebook'){ openNotebook(); }
-  else if(act==='ack'){ if(a.dataset.which==='tut') S.tutAck=true; else S.tut2Ack=true; render(); }
-  else if(act==='skiptut'){ if(a.dataset.which==='tut') S.tut=null; else S.tut2=null; render(); }
-  else if(act==='nextdistrict'){ const nd=nextDistrict(); if(nd){ start(S, nd.id); S.tut=null; if(nd.id==='old'){ S.tools.glass=true; S.tut2=0; S.glass=false; } S.tab='desk'; render(); window.scrollTo(0,0); } }
-  else if(act==='reset'){ if(confirm('Start over from night one? Your notebook goes too.')){ S=start(fresh(),'docks'); render(); } }
+  else if(act==='ack'){ S.tutAck=true; render(); }
+  else if(act==='skiptut'){ S.tut=null; render(); }
+  else if(act==='reset'){ if(confirm('Start over from the first case? Purse, desk and notebook go too.')){ S=fresh(); render(); } }
 });
 document.addEventListener('input',e=>{ if(e.target.id==='nb'){ S.notebook=e.target.value; save(); } });
-document.addEventListener('keydown',e=>{ if(e.key==='Enter' && e.target.classList.contains('bld')) openSheet(e.target.dataset.b); if(e.key==='Escape') closeSheet(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeSheet(); });
 render();
 })();
 </script>

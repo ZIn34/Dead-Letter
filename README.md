@@ -1,26 +1,30 @@
 # Dead Letter
 
-A one-thumb mobile mystery. You are the night clerk at a harbour town's Dead Letter Office.
-Letters nobody could deliver land on your desk: read them, tap the words that are clues,
-find the right door on the map. Deliver it right and a reply comes with the morning.
-Deliver it wrong and it bounces back, and the town talks.
+A one-thumb detective game set at a lamplit desk in the harbour town of Saltmarsh, 1896.
 
-Two districts are written:
+Each case opens as a file: the victim, the weapon, the hour, the place, what the Gazette
+printed, and what only the police know. Four suspects sit on one page with a description
+and a note on each. Ask each of them three questions. One of them will say something they
+could not know, or could not have done. Accuse from their page. A right arrest pays; a wrong
+one sends the case to the cold drawer with no pay.
 
-- **The Docks** — twelve letters, a drowned boat that isn't, a man three streets from his widow.
-- **The Old Quarter** — twelve letters, a clock stopped since 1871, a solicitor's ledgers,
-  and a magnifying glass for rain-faded ink.
+Pay buys things for the desk (a briar pipe, a brass lamp, an office cat) and new hands for
+your notebook (typewriter, copperplate, chalk). The notebook itself is yours to type in and
+collects every statement you hear.
+
+Six cases are written. Each has a different kind of tell: a detail the killer could not
+have known, an alibi that contradicts the file, a register entry, a physical description.
 
 ## Play
 
-Open `index.html` from any static web server (it needs `audio/` beside it for the music).
-Locally:
+Open `index.html` from any static web server (it needs `audio/` and `icons/` beside it):
 
 ```
 python -m http.server 8766
 ```
 
-then visit <http://localhost:8766/>. Progress and your notebook are saved in the browser.
+then visit <http://localhost:8766/>. Progress, purse and notebook are saved in the browser.
+On a phone, "Add to Home Screen" installs it with the detective icon.
 
 ## Single-file build
 
@@ -33,12 +37,11 @@ block external media.
 
 ## Structure
 
-Everything lives in `index.html`. Game content (districts, streets, buildings, directory,
-census cards, letters, replies) is a JSON block at the top of the file, so new letters and
-districts are data, not code. Faded words are marked `⟦like this⟧` and need the glass.
-Letters with a `keep` array are addressed to the clerk and offer a choice instead of a door.
+Everything lives in `index.html`. Cases, suspects, answers, decor and notebook hands are a
+JSON block at the top of the file, so new cases are data, not code. `make_icons.py` redraws
+the icon set in `icons/`; `manifest.json` makes it installable.
 
 ## Music
 
-`audio/theme-1..5.m4a` are the theme tracks (64 kbps AAC). The player cycles through them;
-the ♪ button in the header and the bar at the bottom of the desk control it.
+`audio/theme-1..5.m4a` are the theme tracks, loudness-normalised AAC. Music is off until the
+♪ button in the header or the bar at the bottom of the desk turns it on.

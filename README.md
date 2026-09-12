@@ -1,4 +1,4 @@
-# Dead Letter
+# The Detective
 
 A one-thumb detective game set at a lamplit desk in the harbour town of Saltmarsh, 1896.
 

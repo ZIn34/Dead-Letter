@@ -1,6 +1,6 @@
 {
-  "name": "Dead Letter",
-  "short_name": "Dead Letter",
+  "name": "The Detective",
+  "short_name": "The Detective",
   "description": "A lamplit detective's desk. Read the file, question the suspects, name the killer.",
   "start_url": "./index.html",
   "scope": "./",

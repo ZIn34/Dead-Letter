@@ -941,6 +941,17 @@ function openSound(){
   h+=`<div class="row" style="margin-top:14px"><button class="btn ghost" data-act="closesheet">Back to the desk</button></div>`;
   $('#sheet').innerHTML=h; $('#sheet').classList.add('open'); $('#scrim').classList.add('on');
 }
+function askSheet({title, sub, body, input, area, value, placeholder, okLabel, danger, onOk}){
+  let h=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>${title}</h3>${sub?`<p class="sub">${sub}</p>`:''}${body?`<p>${body}</p>`:''}`;
+  if(input) h+=`<label class="fld">${area?`<textarea id="ask_in" rows="4" placeholder="${esc(placeholder||'')}">${esc(value||'')}</textarea>`:`<input id="ask_in" value="${esc(value||'')}" placeholder="${esc(placeholder||'')}" autocapitalize="none">`}</label>`;
+  h+=`<p class="hintline" id="ask_msg" style="min-height:1.2em"></p><div class="row"><button class="btn${danger?' danger':''}" data-act="askok">${okLabel||'OK'}</button><button class="btn ghost" data-act="closesheet">Cancel</button></div>`;
+  $('#sheet').innerHTML=h; $('#sheet').classList.add('open'); $('#scrim').classList.add('on'); $('#sheet').scrollTop=0;
+  askSheet.onOk=onOk; if(input) setTimeout(()=>{ const el=$('#ask_in'); if(el){ el.focus(); if(!area) el.select(); } },250);
+}
+function showCode(code){
+  $('#sheet').innerHTML=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>Case code</h3><p class="sub">Copy all of this</p><p>Tap Copy. If that doesn't work on your phone, press and hold inside the box, choose Select all, then Copy.</p><label class="fld"><textarea id="code_out" rows="5" readonly>${esc(code)}</textarea></label><p class="hintline" id="code_msg" style="min-height:1.2em"></p><div class="row"><button class="btn" data-act="copyout">Copy</button><button class="btn ghost" data-act="closesheet">Done</button></div>`;
+  $('#sheet').classList.add('open'); $('#scrim').classList.add('on'); $('#sheet').scrollTop=0; setTimeout(()=>{ const el=$('#code_out'); if(el){ el.focus(); el.select(); } },250);
+}
 function openCoopMenu(){
   let h=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>Co-op room</h3><p class="sub">Work a case together</p>`;
   if(!ONLINE) h+=`<p>Co-op needs the game opened through its claude.ai link, so the room can be shared.</p>`;
@@ -975,20 +986,22 @@ document.addEventListener('click',e=>{
   else if(act==='coopcreate'){ closeSheet(); createCoop(); }
   else if(act==='coopjoin'){ const v=$('#joincode')&&$('#joincode').value; closeSheet(); joinCoop(v,false); }
   else if(act==='coopleave'){ leaveCoop(false); }
-  else if(act==='rename'){ const n=prompt('Your name on the board and in rooms:', S.name||''); if(n!==null){ S.name=n.trim().slice(0,24); save(); pushPlayer(); pushPresence(); if(inCoop()&&COOP.members[S.pid]!==myName()){ const members={...COOP.members,[S.pid]:myName()}; coopRef(S.coop.code).update({members}).catch(()=>{}); } render(); } }
+  else if(act==='rename'){ askSheet({title:'Your name', sub:'Shown on the board and in rooms', input:true, value:S.name||'', placeholder:myName(), okLabel:'Save', onOk:(n)=>{ S.name=String(n||'').trim().slice(0,24); save(); pushPlayer(); pushPresence(); if(inCoop()&&COOP.members[S.pid]!==myName()){ const members={...COOP.members,[S.pid]:myName()}; coopRef(S.coop.code).update({members}).catch(()=>{}); } closeSheet(); render(); }}); }
   else if(act==='account'){ openAccount(); }
   else if(act==='login'){ accountAction('login'); }
   else if(act==='register'){ accountAction('register'); }
-  else if(act==='signout'){ if(confirm('Sign out? This device goes back to a fresh guest; your progress stays with the account.')){ closeSheet(); signOut(); } }
+  else if(act==='signout'){ askSheet({title:'Sign out?', body:'This device goes back to a fresh guest. Your purse and cases stay with the account and come back when you sign in.', okLabel:'Sign out', danger:true, onOk:()=>{ closeSheet(); signOut(); }}); }
   else if(act==='closesheet'){ closeSheet(); }
   else if(act==='opencase'){ if(inCoop()){ toast('Leave the co-op room first.'); return; } if(unlocked(a.dataset.id) && getCase(a.dataset.id)){ SFX.play('paper'); S.caseId=a.dataset.id; S.tab='desk'; closeSheet(); render(); window.scrollTo(0,0); } }
   else if(act==='take'){ takeCase(a.dataset.id); }
   else if(act==='newdraft'){ const c=blankCase(); const mid='m'+rid(6); S.made[mid]={c, stake:0, published:null, createdAt:Date.now()}; S.editing=mid; save(); render(); }
   else if(act==='edit'){ S.editing=a.dataset.id; S.casesTab='make'; render(); window.scrollTo(0,0); }
-  else if(act==='deldraft'){ if(confirm('Delete this draft?')){ delete S.made[a.dataset.id]; if(S.editing===a.dataset.id) S.editing=null; save(); render(); } }
+  else if(act==='deldraft'){ const id=a.dataset.id; askSheet({title:'Delete this case?', body:'It goes for good. Copy its case code first if you might want it back.', okLabel:'Delete', danger:true, onOk:()=>{ delete S.made[id]; if(S.editing===id) S.editing=null; save(); closeSheet(); render(); }}); }
   else if(act==='goto'){ const path=a.dataset.path; const el=document.querySelector(`.editor [data-path="${path}"]`); if(el){ el.scrollIntoView({behavior:'smooth', block:'center'}); const box=el.closest('.fld')||el.closest('.eyebrow')||el; box.classList.add('flash'); setTimeout(()=>box.classList.remove('flash'),1600); setTimeout(()=>{ try{ el.focus({preventScroll:true}); }catch(e){} },350); } }
-  else if(act==='copycode'){ const m=S.made[a.dataset.id]; if(!m) return; copyText(caseCode(m.c)).then(ok=>toast(ok?'Case code copied. Paste it in the online version.':'Could not copy. Long-press the code to copy it.')); if(!navigator.clipboard){ prompt('Copy this case code:', caseCode(m.c)); } }
-  else if(act==='pastecode'){ const t=prompt('Paste the case code here:'); if(t===null) return; const c=parseCaseCode(t); if(!c){ toast('That is not a case code.'); return; } const mid='m'+rid(6); S.made[mid]={c, stake:0, published:null, createdAt:Date.now()}; S.editing=mid; save(); SFX.play('paper'); toast('Case loaded. Check it over and post it.'); render(); window.scrollTo(0,0); }
+  else if(act==='copycode'){ const m=S.made[a.dataset.id]; if(!m) return; showCode(caseCode(m.c)); }
+  else if(act==='copyout'){ const el=$('#code_out'); el.focus(); el.select(); copyText(el.value).then(ok=>{ const msg=$('#code_msg'); if(msg) msg.textContent= ok?'Copied. Now paste it in the online version under Cases → Make.':'Copying was blocked. Press and hold in the box, Select all, then Copy.'; }); }
+  else if(act==='pastecode'){ askSheet({title:'Paste a case code', sub:'From the offline copy or a friend', input:true, area:true, placeholder:'DETECTIVE1.…', okLabel:'Load the case', onOk:(t)=>{ const c=parseCaseCode(t); if(!c){ return 'That is not a case code. It starts with DETECTIVE1.'; } const mid='m'+rid(6); S.made[mid]={c, stake:0, published:null, createdAt:Date.now()}; S.editing=mid; S.casesTab='make'; save(); SFX.play('paper'); toast('Case loaded. Check it over and post it.'); closeSheet(); render(); window.scrollTo(0,0); }}); }
+  else if(act==='askok'){ const el=$('#ask_in'); const v=el?el.value:''; const err=askSheet.onOk && askSheet.onOk(v); if(err){ const msg=$('#ask_msg'); if(msg) msg.textContent=err; } }
   else if(act==='closeeditor'){ S.editing=null; S.casesTab='mine'; save(); render(); }
   else if(act==='publish'){ publishCase(a.dataset.id, $('#stake')&&$('#stake').value); }
   else if(act==='withdraw'){ withdrawCase(a.dataset.id); }
@@ -999,7 +1012,7 @@ document.addEventListener('click',e=>{
   else if(act==='nexttrack'){ playTrack((S.track||0)+1); }
   else if(act==='ack'){ S.tutAck=true; render(); }
   else if(act==='skiptut'){ S.tut=null; render(); }
-  else if(act==='reset'){ if(confirm('Start over from the first case? Purse, desk and notebook go too. Your name and board identity stay.')){ const keep={pid:S.pid,name:S.name}; S=Object.assign(fresh(),keep); save(); pushPlayer(); render(); } }
+  else if(act==='reset'){ askSheet({title:'Start over?', body:'Back to the first case. Purse, desk and notebook go too. Your name and account stay.', okLabel:'Start over', danger:true, onOk:()=>{ const keep={pid:S.pid,name:S.name,account:S.account,sfx:S.sfx,amb:S.amb}; S=Object.assign(fresh(),keep); save(); pushPlayer(); closeSheet(); render(); }}); }
 });
 document.addEventListener('input',e=>{
   if(e.target.id==='nb'){ S.notebook=e.target.value; save(); return; }

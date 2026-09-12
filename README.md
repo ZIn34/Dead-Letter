@@ -17,7 +17,7 @@ have known, an alibi that contradicts the file, a register entry, a physical des
 
 ## Play
 
-Open `index.html` from any static web server (it needs `audio/` and `icons/` beside it):
+Open `index.html` from any static web server (it needs `icons/` beside it):
 
 ```
 python -m http.server 8766
@@ -32,7 +32,7 @@ On a phone, "Add to Home Screen" installs it with the detective icon.
 python build.py
 ```
 
-writes `dist/index.html` with the five music tracks inlined as data URIs, for hosts that
+writes `dist/index.html` with any `audio/` tracks inlined as data URIs, for hosts that
 block external media.
 
 ## Structure
@@ -43,5 +43,5 @@ the icon set in `icons/`; `manifest.json` makes it installable.
 
 ## Music
 
-`audio/theme-1..5.m4a` are the theme tracks, loudness-normalised AAC. Music is off until the
-♪ button in the header or the bar at the bottom of the desk turns it on.
+No tracks ship yet. Drop files in `audio/` and list them in the `TRACKS` array in
+`index.html`; the ♪ button and desk music bar appear automatically, off by default.

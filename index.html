@@ -485,16 +485,17 @@ function renderShop(){
 let tt; function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('on'); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('on'),1800); }
 
 /* ---------- Music ---------- */
-const TRACKS=[['Theme I','audio/theme-1.m4a'],['Theme II','audio/theme-2.m4a'],['Theme III','audio/theme-3.m4a'],['Theme IV','audio/theme-4.m4a'],['Theme V','audio/theme-5.m4a']];
+const TRACKS=[]; // add tracks as ['Name','audio/file.m4a']; the player hides itself while this is empty
 const audio=new Audio(); audio.volume=.8; audio.preload='none';
 let musicWanted = S.music===true;
 function updateMusicUI(){
+  if(!TRACKS.length){ $('#musicBtn').hidden=true; document.querySelectorAll('.musicbar').forEach(x=>x.hidden=true); return; }
   const playing=!audio.paused && !audio.ended && audio.src;
   const b=$('#musicBtn'); b.classList.toggle('on', !!playing); b.title = playing ? 'Music: '+TRACKS[S.track||0][0]+' (tap to pause)' : 'Music off (tap to play)';
   document.querySelectorAll('.musicbar b').forEach(x=>x.textContent = playing ? TRACKS[S.track||0][0] : 'off');
   document.querySelectorAll('.musicbar [data-act="music"]').forEach(x=>x.textContent = playing ? 'Pause' : 'Play');
 }
-function playTrack(i){ S.track=((i%TRACKS.length)+TRACKS.length)%TRACKS.length; audio.src=TRACKS[S.track][1]; audio.play().then(()=>{ S.music=true; musicWanted=true; save(); updateMusicUI(); }).catch(()=>updateMusicUI()); }
+function playTrack(i){ if(!TRACKS.length) return; S.track=((i%TRACKS.length)+TRACKS.length)%TRACKS.length; audio.src=TRACKS[S.track][1]; audio.play().then(()=>{ S.music=true; musicWanted=true; save(); updateMusicUI(); }).catch(()=>updateMusicUI()); }
 audio.addEventListener('ended',()=>playTrack((S.track||0)+1)); audio.addEventListener('pause',updateMusicUI); audio.addEventListener('play',updateMusicUI);
 function toggleMusic(){ if(!audio.paused && audio.src){ audio.pause(); S.music=false; musicWanted=false; save(); } else playTrack(S.track||0); }
 function musicBar(){ return `<div class="musicbar"><span>Music · <b>off</b></span><div class="row"><button data-act="music">Play</button><button data-act="nexttrack">Next track</button></div></div>`; }

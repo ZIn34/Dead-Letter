@@ -213,6 +213,10 @@ textarea.nb{width:100%;min-height:260px;resize:vertical;border:0;border-top:1px 
 .card-note.gate{border-color:var(--lamp)}
 .card-note.gate .fld span{color:var(--brass)}
 .card-note.gate .fld input{background:#f6efdc}
+.pwrow{display:flex;gap:6px;align-items:stretch}
+.pwrow input{flex:1;min-width:0}
+.showpw{flex:none;font:400 13px var(--fell);letter-spacing:.1em;text-transform:uppercase;padding:0 12px;border:1px solid var(--brass-dim);color:var(--brass);background:transparent}
+#sheet .showpw{color:var(--ink);border-color:var(--pencil)}
 .card-note.coop .code{font:400 22px var(--fell);letter-spacing:.3em;color:var(--lamp);margin-left:6px}
 
 /* Tabs */
@@ -407,7 +411,7 @@ function gated(){ return ONLINE && !S.account; }
 function gateHTML(){
   return `<div class="card-note gate"><h2>Who's on the desk?</h2><p>Make a detective with a username and a password. Your purse, cases and notebook will be kept under that name, on any device.</p>
     <label class="fld"><span>Username</span><input id="acc_u" autocapitalize="none" autocomplete="username" placeholder="lowercase letters, numbers, _  (3 to 16)"></label>
-    <label class="fld"><span>Password</span><input id="acc_p" type="password" autocomplete="current-password" placeholder="at least 4 characters"></label>
+    <label class="fld"><span>Password</span><span class="pwrow"><input id="acc_p" type="password" autocomplete="current-password" placeholder="at least 4 characters"><button type="button" class="showpw" data-act="showpw">Show</button></span></label>
     <p class="hintline" id="acc_msg" style="min-height:1.2em"></p>
     <div class="row"><button class="btn" data-act="register">Create my detective</button><button class="btn ghost" data-act="login">I already have one</button></div>
     <p class="hintline" style="margin-top:12px;font-size:13px">A friends' game, not a bank: don't reuse a password you care about.</p></div>`;
@@ -418,7 +422,7 @@ function openAccount(){
   else if(S.account) h+=`<p class="sub">Signed in as ${esc(S.account)}</p><p>Your purse, cases and notebook follow this account to any device. Displayed as <b>${esc(myName())}</b>.</p><div class="row"><button class="btn ghost" data-act="rename">Change display name</button><button class="btn ghost" data-act="signout">Sign out</button></div>`;
   else h+=`<p class="sub">Guest on this device</p><p>Make an account to keep your purse and progress across devices, and to put a name on the board. Your guest progress comes with you.</p>
     <label class="fld"><span>Username</span><input id="acc_u" autocapitalize="none" autocomplete="username" placeholder="lowercase, 3 to 16"></label>
-    <label class="fld"><span>Password</span><input id="acc_p" type="password" autocomplete="current-password"></label>
+    <label class="fld"><span>Password</span><span class="pwrow"><input id="acc_p" type="password" autocomplete="current-password"><button type="button" class="showpw" data-act="showpw">Show</button></span></label>
     <p class="hintline" id="acc_msg" style="min-height:1.2em"></p>
     <div class="row"><button class="btn" data-act="login">Sign in</button><button class="btn ghost" data-act="register">Create account</button></div>
     <p class="hintline" style="margin-top:12px;font-size:13px">This is a friends' game, not a bank: passwords are checked in the page and the shared database is open to everyone who has the link. Don't reuse a password you care about.</p>`;
@@ -865,6 +869,7 @@ document.addEventListener('click',e=>{
   else if(act==='coopleave'){ leaveCoop(false); }
   else if(act==='rename'){ askSheet({title:'Your name', sub:'Shown on the board and in rooms', input:true, value:S.name||'', placeholder:myName(), okLabel:'Save', onOk:(n)=>{ S.name=String(n||'').trim().slice(0,24); save(); pushPlayer(); pushPresence(); if(inCoop()&&COOP.members[S.pid]!==myName()){ const members={...COOP.members,[S.pid]:myName()}; coopRef(S.coop.code).update({members}).catch(()=>{}); } closeSheet(); render(); }}); }
   else if(act==='account'){ openAccount(); }
+  else if(act==='showpw'){ const i=$('#acc_p'); if(i){ const show=i.type==='password'; i.type=show?'text':'password'; a.textContent=show?'Hide':'Show'; i.focus(); } }
   else if(act==='login'){ accountAction('login'); }
   else if(act==='register'){ accountAction('register'); }
   else if(act==='signout'){ askSheet({title:'Sign out?', body:'This device goes back to a fresh guest. Your purse and cases stay with the account and come back when you sign in.', okLabel:'Sign out', danger:true, onOk:()=>{ closeSheet(); signOut(); }}); }

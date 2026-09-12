@@ -208,6 +208,9 @@ textarea.nb{width:100%;min-height:260px;resize:vertical;border:0;border-top:1px 
 .code-in{width:110px;border:1px solid var(--brass-dim);background:rgba(0,0,0,.25);color:var(--lamp);font:400 22px var(--fell);letter-spacing:.3em;text-align:center;padding:8px 6px;text-transform:uppercase}
 #sheet .code-in{background:#fff;color:var(--ink)}
 .card-note.coop{border-color:var(--lamp)}
+.card-note.gate{border-color:var(--lamp)}
+.card-note.gate .fld span{color:var(--brass)}
+.card-note.gate .fld input{background:#f6efdc}
 .card-note.coop .code{font:400 22px var(--fell);letter-spacing:.3em;color:var(--lamp);margin-left:6px}
 
 /* Tabs */
@@ -557,6 +560,15 @@ let unsubPlayer=null;
 const claimed={};
 function watchPlayer(){ if(!ONLINE) return; if(unsubPlayer) unsubPlayer(); unsubPlayer=db.collection('credits').where('to','==',S.pid).onSnapshot(snap=>{ snap.docs.forEach(d=>{ const c=d.data(); if(!c||c.to!==S.pid||claimed[d.id]) return; claimed[d.id]=true; db.doc('credits/'+d.id).delete().then(()=>{ addMoney(+c.amount||0); SFX.play('coin'); toast((c.from||'Someone')+' paid you £'+c.amount+(c.reason?' · '+c.reason:'')+'.'); render(); }).catch(()=>{ claimed[d.id]=false; }); }); }, e=>{}); }
 function credit(to, amount, reason){ if(!ONLINE||!amount) return Promise.resolve(); return db.collection('credits').add({to, amount, from:myName(), fromPid:S.pid, reason, at:Date.now()}).catch(()=>{}); }
+function gated(){ return ONLINE && !S.account; }
+function gateHTML(){
+  return `<div class="card-note gate"><h2>Who's on the desk?</h2><p>Make a detective with a username and a password. Your purse, cases and notebook will be kept under that name, on any device.</p>
+    <label class="fld"><span>Username</span><input id="acc_u" autocapitalize="none" autocomplete="username" placeholder="lowercase letters, numbers, _  (3 to 16)"></label>
+    <label class="fld"><span>Password</span><input id="acc_p" type="password" autocomplete="current-password" placeholder="at least 4 characters"></label>
+    <p class="hintline" id="acc_msg" style="min-height:1.2em"></p>
+    <div class="row"><button class="btn" data-act="register">Create my detective</button><button class="btn ghost" data-act="login">I already have one</button></div>
+    <p class="hintline" style="margin-top:12px;font-size:13px">A friends' game, not a bank: don't reuse a password you care about.</p></div>`;
+}
 function openAccount(){
   let h=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>Account</h3>`;
   if(!ONLINE) h+=`<p class="sub">Offline</p><p>Accounts need the game opened through its claude.ai link. On this copy you are a guest; your progress is saved in this browser only.</p><div class="row"><button class="btn ghost" data-act="rename">Change name</button></div>`;
@@ -572,7 +584,7 @@ function openAccount(){
 }
 async function accountAction(kind){
   const u=$('#acc_u')&&$('#acc_u').value, p=$('#acc_p')&&$('#acc_p').value; const msg=$('#acc_msg'); if(msg) msg.textContent='One moment…';
-  try{ const err = kind==='login' ? await login(u,p) : await register(u,p); if(err){ if(msg) msg.textContent=err; return; } closeSheet(); SFX.play('stamp'); toast(kind==='login'?'Signed in as '+S.account+'.':'Account made. Welcome, '+S.account+'.'); render(); }
+  try{ const err = kind==='login' ? await login(u,p) : await register(u,p); if(err){ if(msg) msg.textContent=err; return; } closeSheet(); SFX.unlock(); SFX.play('stamp'); toast(kind==='login'?'Signed in as '+S.account+'.':'Account made. Welcome, '+S.account+'.'); render(); window.scrollTo(0,0); }
   catch(e){ if(msg) msg.textContent='Could not reach the database ('+(e.code||e.message)+').'; }
 }
 
@@ -707,7 +719,8 @@ function coopBanner(){
 function renderCoopPeers(){ if(inCoop()) renderDesk(); }
 function renderDesk(){
   const el=$('#p-desk'); let h='';
-  if(S.intro){ h+=`<div class="card-note"><h2>Same desk, worse post</h2><p>After the Kittiwake business the town made its dead-letter clerk a detective. The cases come in a folder now.</p><p>Read the file. Question the suspects, but not all of them about everything: you haven't the time. Press the ones whose story doesn't square. Name the one who did it.</p><div class="row"><button class="btn" data-act="intro">Open the first file</button></div></div>`; el.innerHTML=h; return; }
+  if(S.intro && !gated()){ h+=`<div class="card-note"><h2>Same desk, worse post</h2><p>After the Kittiwake business the town made its dead-letter clerk a detective. The cases come in a folder now.</p><p>Read the file. Question the suspects, but not all of them about everything: you haven't the time. Press the ones whose story doesn't square. Name the one who did it.</p><div class="row"><button class="btn" data-act="intro">Open the first file</button></div></div>`; el.innerHTML=h; return; }
+  if(gated()){ el.innerHTML=shelfHTML()+gateHTML(); return; }
   const c=cur(); const v=S.solved[c.id] && (!inCoop() || COOP.result) ? S.solved[c.id] : null; const I=inv(c.id);
   h+=shelfHTML()+coachHTML()+coopBanner();
   h+=fileHTML(c,v);
@@ -805,7 +818,7 @@ function closeSheet(){ $('#sheet').classList.remove('open'); $('#scrim').classLi
 
 /* ----- Cases tab ----- */
 function renderCases(){
-  const el=$('#p-cases'); const tabs=[['files','Files'],['board','Board'],['mine','Mine'],['make','Make']];
+  const el=$('#p-cases'); if(gated()){ el.innerHTML=gateHTML(); return; } const tabs=[['files','Files'],['board','Board'],['mine','Mine'],['make','Make']];
   let h=coachHTML()+`<div class="subtabs">${tabs.map(([k,n])=>`<button data-ctab="${k}" class="${S.casesTab===k?'on':''}">${n}</button>`).join('')}</div>`;
   if(S.casesTab==='files'){
     h+=`<div class="caselist">`+D.cases.map((c,i)=>{ const v=S.solved[c.id]; const un=unlocked(c.id);
@@ -877,7 +890,7 @@ function setPath(obj, path, val){ const parts=path.split('.'); let o=obj; for(le
 
 /* ----- Notebook / Shop ----- */
 function renderNotebook(){
-  const el=$('#p-notebook'); const c=cur(); const page=S.notePage==='general'?'general':c.id;
+  const el=$('#p-notebook'); if(gated()){ el.innerHTML=gateHTML(); return; } const c=cur(); const page=S.notePage==='general'?'general':c.id;
   let h=coachHTML()+`<div class="eyebrow">Your notebook <span style="color:var(--brass-dim)">· ${esc(handOf().name)}</span></div>`;
   h+=`<div class="subtabs"><button data-act="notepage" data-p="case" class="${page!=='general'?'on':''}">${esc(c.title)}</button><button data-act="notepage" data-p="general" class="${page==='general'?'on':''}">Loose pages</button></div>`;
   h+=`<textarea class="nb" data-note="${esc(page)}" placeholder="${page==='general'?'Anything. Names that keep coming up. Grudges.':'Who was where. Who said what. What doesn\'t add up.'}">${esc(S.notes[page]||'')}</textarea>`;
@@ -887,7 +900,7 @@ function renderNotebook(){
   el.innerHTML=h;
 }
 function renderShop(){
-  const el=$('#p-shop');
+  const el=$('#p-shop'); if(gated()){ el.innerHTML=gateHTML(); return; }
   let h=coachHTML()+`<p class="money">£${S.money}<small>in the purse</small></p>`;
   h+=`<div class="eyebrow">For the desk</div><div class="goods">`+D.decor.map(d=>{ const own=S.owned.includes(d.id); const can=S.money>=d.price;
     return `<div class="good">${ART[d.id]}<b>${esc(d.name)}</b><i>${esc(d.desc)}</i>${own?'<button class="buy owned" disabled>On the desk</button>':`<button class="buy" data-act="buy" data-id="${d.id}" ${can?'':'disabled'}>Buy · £${d.price}</button>`}</div>`; }).join('')+`</div>`;

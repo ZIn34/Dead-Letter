@@ -28,7 +28,11 @@ kept your notes.
 ## Online: accounts, the board, wagers, co-op
 
 Opened through its claude.ai artifact link, the game shares one database between everyone who
-has the link (the Pages copy plays offline: story cases, desk and notebook only).
+has the link. The GitHub Pages copy plays offline unless you give it a Firestore database:
+create a Firebase project, make a Firestore database with open rules, register a web app, and
+put its config in `firebase-config.js` (see `firebase-config.example.js`). With that file present
+the Pages copy runs the same online features through Firestore. Leases for first-to-close live
+in a `leases/` collection; live presence in co-op rooms is only available on the claude.ai copy.
 
 - **Accounts.** A username and password. Your purse, cases and notebook follow the account to
   any device. Passwords are hashed in the page (PBKDF2) and checked in the page; the database is

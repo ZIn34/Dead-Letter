@@ -282,8 +282,8 @@ function rulesOf(c){ return Object.assign({}, R, c && c.rules ? c.rules : {}); }
 const KEY='deadletter.v5';
 const rid=(n=10)=>Array.from(crypto.getRandomValues(new Uint8Array(n))).map(b=>'abcdefghijkmnpqrstuvwxyz23456789'[b%32]).join('');
 
-const fresh=()=>({tab:'desk', money:0, solved:{}, inv:{}, caseId:D.cases[0].id, owned:[], hand:'caveat', notebook:'', intro:true, tut:0, music:false, track:0,
-  pid:'p'+rid(10), name:'', made:{}, taken:{}, coop:null, coopApplied:{}, casesTab:'files', editing:null, notes:{}, easy:false, practice:null, daily:null, dailyPaid:{}, testing:null, hints:{}});
+const fresh=()=>({tab:'desk', money:0, solved:{}, inv:{}, caseId:D.cases[0].id, owned:[], hand:'caveat', notebook:'', intro:true, tut:0, music:true, sfx:true, amb:true, easy:true, track:0,
+  pid:'p'+rid(10), name:'', made:{}, taken:{}, coop:null, coopApplied:{}, casesTab:'files', editing:null, notes:{}, practice:null, daily:null, dailyPaid:{}, testing:null, hints:{}});
 let S=load();
 let db=null, room=null, ONLINE=false, BOARD=[], COOP=null, unsubCoop=null, PEERS=[], netNote='', DAILY=null;
 function load(){ try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s && s.caseId){ if(!s.pid) s.pid='p'+rid(10); s.made=s.made||{}; s.taken=s.taken||{}; s.coopApplied=s.coopApplied||{}; s.notes=s.notes||{}; if(s.notebook && !s.notes.general){ s.notes.general=s.notebook; } s.dailyPaid=s.dailyPaid||{}; s.hints=s.hints||{}; s.practice=null; s.daily=null; s.testing=null; return s; } }catch(e){} return fresh(); }
@@ -838,7 +838,7 @@ let tt; function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add
 /* ---------- Music ---------- */
 const TRACKS=[['Theme I','audio/theme-1.m4a'],['Theme II','audio/theme-2.m4a']];
 const audio=new Audio(); audio.volume=.8; audio.preload='none';
-let musicWanted = S.music===true;
+let musicWanted = S.music!==false; // on by default; starts at the first tap, since phones need one
 function updateMusicUI(){
   if(!TRACKS.length){ $('#musicBtn').hidden=true; document.querySelectorAll('.musicbar').forEach(x=>x.hidden=true); return; }
   const playing=!audio.paused && !audio.ended && audio.src;
@@ -917,8 +917,8 @@ function openCoopMenu(){
 /* ---------- Events ---------- */
 let ambStarted=false;
 document.addEventListener('click',e=>{
-  if(!ambStarted && S.amb && !S.intro){ ambStarted=true; SFX.ambience(true); }
-  if(musicWanted && !S.intro && !audio.src && !e.target.closest('[data-act="music"]')) playTrack(S.track||0);
+  if(!ambStarted && S.amb){ ambStarted=true; SFX.unlock(); SFX.ambience(true); }
+  if(musicWanted && !audio.src && !e.target.closest('[data-act="music"]')) playTrack(S.track||0);
   const tab=e.target.closest('nav.tabs button'); if(tab){ S.tab=tab.dataset.tab; render(); window.scrollTo(0,0); return; }
   const ct=e.target.closest('[data-ctab]'); if(ct && !e.target.closest('[data-act]')){ S.casesTab=ct.dataset.ctab; render(); return; }
   if(e.target.id==='scrim'){ closeSheet(); return; }

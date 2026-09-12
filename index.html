@@ -189,6 +189,7 @@ textarea.nb{width:100%;min-height:260px;resize:vertical;border:0;border-top:1px 
 .editor{background:var(--paper);color:var(--ink);padding:16px 14px 18px;box-shadow:0 10px 24px rgba(0,0,0,.35)}
 .editor .eyebrow{color:var(--pencil);display:flex;justify-content:space-between;align-items:center}
 .editor .hintline{color:#7a3b2a}
+.editor .tip{font-size:14px;color:var(--pencil);margin:-2px 0 10px;line-height:1.35}
 .fld{display:block;margin:0 0 10px}
 .fld span{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--pencil);margin-bottom:3px}
 .fld input,.fld textarea,.fld select{width:100%;border:1px solid var(--paper-shadow);background:#f6efdc;color:var(--ink);font:400 16px var(--sans);padding:8px 10px;border-radius:0}
@@ -570,11 +571,11 @@ function blankCase(){
 }
 function validateCase(c){
   const errs=[]; const need=(v,l)=>{ if(!String(v||'').trim()) errs.push(l); };
-  need(c.title,'a title'); need(c.brief.victim,'the victim'); need(c.brief.weapon,'the weapon'); need(c.brief.time,'the time'); need(c.brief.place,'the place'); need(c.brief.public,'what the Gazette printed');
-  if(!c.brief.facts.some(f=>f.trim())) errs.push('at least one police fact');
+  need(c.title,'a name for the case'); need(c.brief.victim,'who died'); need(c.brief.weapon,'what killed them'); need(c.brief.time,'when it happened'); need(c.brief.place,'where it happened'); need(c.brief.public,'what the newspaper said');
+  if(!c.brief.facts.some(f=>f.trim())) errs.push('at least one secret clue');
   c.questions.forEach((q,i)=>need(q,'question '+(i+1)));
-  c.suspects.forEach((s,i)=>{ need(s.name,'suspect '+(i+1)+"'s name"); s.answers.forEach((a,j)=>need(a,(s.name||'suspect '+(i+1))+"'s answer "+(j+1))); if(s.press.keys.length) need(s.press.answer,(s.name||'suspect '+(i+1))+"'s line when the press lands"); });
-  if(!c.suspects.some(s=>s.id===c.culprit)) errs.push('which suspect did it');
+  c.suspects.forEach((s,i)=>{ need(s.name,'suspect '+(i+1)+"'s name"); s.answers.forEach((a,j)=>need(a,(s.name||'suspect '+(i+1))+"'s answer to question "+(j+1))); if(s.press.keys.length) need(s.press.answer,(s.name||'suspect '+(i+1))+(s.id===c.culprit?"'s confession":"'s secret")); });
+  if(!c.suspects.some(s=>s.id===c.culprit)) errs.push('ticking who the killer is');
   return errs;
 }
 function cleanCase(c){ // trim empty facts, default texts
@@ -815,27 +816,31 @@ function offlineNote(){ return `<div class="card-note"><h2>Not connected</h2><p>
 function field(path, label, val, opts={}){ const id='f_'+path.replace(/\W/g,'_'); return `<label class="fld"><span>${esc(label)}</span>${opts.area?`<textarea data-path="${path}" rows="${opts.rows||2}" placeholder="${esc(opts.ph||'')}">${esc(val)}</textarea>`:`<input data-path="${path}" value="${esc(val)}" placeholder="${esc(opts.ph||'')}" ${opts.type?'type="'+opts.type+'"':''}>`}</label>`; }
 function editorHTML(){
   const mid=S.editing; const m=mid&&S.made[mid];
-  if(!m){ return `<div class="card-note"><h2>Make a case</h2><p>Write a file, four suspects with three answers each, and decide who did it. Give the killer a tell: a statement or a police fact that breaks them when pressed. Give one innocent a lie of their own if you like. Then post it to the board, with money on it or free.</p><p>Right answers pay the detective your stake. Wrong answers pay you theirs. You need the stake in your purse to post; they need it to take the case on.</p><div class="row"><button class="btn" data-act="newdraft">New case</button>${Object.keys(S.made).length?'<button class="btn ghost" data-act="ctab" data-ctab="mine">My drafts</button>':''}</div></div>`; }
+  if(!m){ return `<div class="card-note"><h2>Make your own mystery</h2><p>You decide who died, how, and who did it. You write four suspects and what each one says. Then other detectives try to solve it.</p><p><b>How to make a good one:</b></p><p>1. Pick the killer first.<br>2. Give the killer one slip-up: they mention something only the police know, or they say something a clue proves is a lie.<br>3. Give one innocent person a small secret too, so it isn't too easy.</p><p>You can put money on your case. If a detective gets it right, they win that much from you. If they get it wrong, you win that much from them. Or make it free.</p><div class="row"><button class="btn" data-act="newdraft">Start a new case</button>${Object.keys(S.made).length?'<button class="btn ghost" data-act="ctab" data-ctab="mine">My saved cases</button>':''}</div></div>`; }
   const c=m.c; const errs=validateCase(c);
-  const evOpts=(forSid)=>{ const o=[['','— nothing breaks them —']]; c.brief.facts.forEach((f,i)=>{ if(f.trim()) o.push(['f'+i,'Fact '+(i+1)+': '+f.slice(0,40)]); }); c.suspects.forEach(s=>{ if(s.id===forSid) return; s.answers.forEach((a,j)=>{ if(a.trim()) o.push([s.id+':'+j,(s.name||'suspect')+' answer '+(j+1)+': '+a.slice(0,36)]); }); if(s.press.keys.length&&s.press.answer) o.push([s.id+':press',(s.name||'suspect')+', after a press: '+s.press.answer.slice(0,30)]); }); return o; };
-  let h=`<div class="editor"><div class="eyebrow">The file</div>`;
-  h+=field('title','Case title',c.title,{ph:'The Body in the Bell-Tower'});
-  h+=field('brief.victim','Victim',c.brief.victim,{ph:'Name, age, what they did'})+field('brief.weapon','Weapon',c.brief.weapon)+field('brief.time','When',c.brief.time,{ph:'Between nine and ten, Friday'})+field('brief.place','Where',c.brief.place);
-  h+=field('brief.public','What the Gazette printed',c.brief.public,{area:true,ph:'What the public knows. Keep something back.'});
-  c.brief.facts.forEach((f,i)=>{ h+=field('brief.facts.'+i,'Police fact '+(i+1)+(i?' (optional)':''),f,{area:true}); });
-  h+=`<div class="eyebrow" style="margin-top:14px">The three questions</div>`;
+  const evOpts=(forSid)=>{ const o=[['','— nothing, they never crack —']]; c.brief.facts.forEach((f,i)=>{ if(f.trim()) o.push(['f'+i,'Secret clue '+(i+1)+': '+f.slice(0,40)]); }); c.suspects.forEach(s=>{ if(s.id===forSid) return; s.answers.forEach((a,j)=>{ if(a.trim()) o.push([s.id+':'+j,'What '+(s.name||'a suspect')+' said to Q'+(j+1)+': '+a.slice(0,36)]); }); if(s.press.keys.length&&s.press.answer) o.push([s.id+':press','What '+(s.name||'a suspect')+' admitted: '+s.press.answer.slice(0,30)]); }); return o; };
+  let h=`<div class="editor"><div class="eyebrow">1 · The crime</div>`;
+  h+=field('title','Name of the case',c.title,{ph:'The Body in the Bell Tower'});
+  h+=field('brief.victim','Who died? (name, age, what they did)',c.brief.victim,{ph:'Mr Fry, 50, the baker'})+field('brief.weapon','What killed them?',c.brief.weapon,{ph:'A rolling pin'})+field('brief.time','When did it happen?',c.brief.time,{ph:'Between nine and ten on Friday night'})+field('brief.place','Where did it happen?',c.brief.place,{ph:'The bakery kitchen'});
+  h+=field('brief.public','What the newspaper told everyone',c.brief.public,{area:true,ph:'"The baker was found dead in his kitchen." Leave the weapon out: only the police and the killer know it.'});
+  h+=`<p class="tip">Secret clues are things only the police know. If a suspect mentions one, or says something a clue proves wrong, the detective can catch them.</p>`;
+  c.brief.facts.forEach((f,i)=>{ h+=field('brief.facts.'+i,'Secret clue '+(i+1)+(i?' (you can leave this empty)':''),f,{area:true,ph:i?'':'He was hit from behind with a rolling pin. The back door was locked from inside.'}); });
+  h+=`<div class="eyebrow" style="margin-top:14px">2 · Three questions</div><p class="tip">The detective can ask every suspect these same three questions.</p>`;
   c.questions.forEach((q,i)=>{ h+=field('questions.'+i,'Question '+(i+1),q); });
   c.suspects.forEach((s,i)=>{
-    h+=`<div class="eyebrow" style="margin-top:14px">Suspect ${i+1} <label class="cul"><input type="radio" name="culprit" data-path="culprit" value="${s.id}" ${c.culprit===s.id?'checked':''}> did it</label></div>`;
-    h+=field('suspects.'+i+'.name','Name',s.name)+field('suspects.'+i+'.age','Age',s.age)+field('suspects.'+i+'.job','Occupation or relation',s.job)+field('suspects.'+i+'.look','How they look',s.look,{ph:'Tall, nervous, a burned hand'})+field('suspects.'+i+'.note','What the file says about them',s.note,{area:true});
-    s.answers.forEach((a,j)=>{ h+=field('suspects.'+i+'.answers.'+j,'Answer to question '+(j+1),a,{area:true}); });
-    h+=`<label class="fld"><span>Breaks (or comes clean) when pressed with</span><select data-path="suspects.${i}.press.keys">${evOpts(s.id).map(([v,l])=>`<option value="${esc(v)}" ${s.press.keys[0]===v?'selected':''}>${esc(l)}</option>`).join('')}</select></label>`;
-    h+=field('suspects.'+i+'.press.answer','What they say when it lands',s.press.answer,{area:true,ph:s.id===c.culprit?'The confession.':'The secret they were hiding instead.'})+field('suspects.'+i+'.press.miss','What they say to a bad press',s.press.miss,{ph:'A shrug, in their voice.'});
+    const killer=c.culprit===s.id;
+    h+=`<div class="eyebrow" style="margin-top:14px">${i===0?'3 · ':''}Suspect ${i+1} <label class="cul"><input type="radio" name="culprit" data-path="culprit" value="${s.id}" ${killer?'checked':''}> this is the killer</label></div>`;
+    if(i===0) h+=`<p class="tip">Four suspects. Tick the one who really did it. Only one can be the killer.</p>`;
+    h+=field('suspects.'+i+'.name','Name',s.name,{ph:'Mrs Crumb'})+field('suspects.'+i+'.age','Age',s.age,{ph:'40'})+field('suspects.'+i+'.job','Their job, or how they knew the victim',s.job,{ph:'His wife / the shop boy / a customer'})+field('suspects.'+i+'.look','What they look like',s.look,{ph:'Tall, nervous, flour on her sleeves'})+field('suspects.'+i+'.note','What the police already know about them',s.note,{area:true,ph:'Owed him money. Was seen nearby that night.'});
+    s.answers.forEach((a,j)=>{ h+=field('suspects.'+i+'.answers.'+j,'Their answer to question '+(j+1)+(c.questions[j]?': "'+c.questions[j].slice(0,40)+'"':''),a,{area:true,ph:j===0?'I was at home in bed.':''}); });
+    h+=`<label class="fld"><span>${killer?'What catches the killer out?':'What proves this person is hiding something? (leave it if they are just honest)'}</span><select data-path="suspects.${i}.press.keys">${evOpts(s.id).map(([v,l])=>`<option value="${esc(v)}" ${s.press.keys[0]===v?'selected':''}>${esc(l)}</option>`).join('')}</select></label>`;
+    h+=`<p class="tip">${killer?'Pick the secret clue or the other statement that shows this person lied. When the detective shows it to them, they confess.':'If you pick something here, the detective can make this person admit a small secret that is NOT the murder. It makes the case trickier.'}</p>`;
+    h+=field('suspects.'+i+'.press.answer',killer?'The confession (what they say when they are caught)':'The secret they admit instead (not murder!)',s.press.answer,{area:true,ph:killer?'All right! He laughed at me, so I hit him.':'Fine. I was stealing buns, not killing anyone.'})+field('suspects.'+i+'.press.miss','What they say if the detective shows them the wrong clue',s.press.miss,{ph:'That has nothing to do with me.'});
   });
-  h+=`<div class="eyebrow" style="margin-top:14px">Afterwards</div>`+field('solution','How it was done (shown after the arrest)',c.solution,{area:true,rows:3})+field('arrest','A last line (optional)',c.arrest);
-  h+=`<div class="eyebrow" style="margin-top:14px">Post it</div><label class="fld"><span>Stake (£0 for free) · you have £${S.money}</span><input id="stake" type="number" min="0" max="${S.money}" value="${m.stake||0}"></label>`;
-  h+= errs.length? `<p class="hintline">Still missing: ${esc(errs.slice(0,4).join(', '))}${errs.length>4?'…':''}</p>` : `<p class="hintline">Complete. Post it when you're happy.</p>`;
-  h+=`<div class="row" style="margin-top:8px"><button class="btn" data-act="publish" data-id="${mid}" ${errs.length||!ONLINE?'disabled':''}>Post to the board</button><button class="btn ghost" data-act="closeeditor">Done for now</button></div>${ONLINE?'':'<p class="hintline">Drafts save here. Posting needs the online version.</p>'}</div>`;
+  h+=`<div class="eyebrow" style="margin-top:14px">4 · The ending</div>`+field('solution','Explain how a clever detective could have worked it out (shown after the arrest)',c.solution,{area:true,rows:3,ph:'Mrs Crumb said she never went in the kitchen, but she knew about the rolling pin, and the newspaper never mentioned it.'})+field('arrest','One last sentence for the ending (you can skip this)',c.arrest,{ph:'She cried all the way to the cells.'});
+  h+=`<div class="eyebrow" style="margin-top:14px">5 · Post your case</div><label class="fld"><span>Money on it? Type 0 for free · you have £${S.money}</span><input id="stake" type="number" min="0" max="${S.money}" value="${m.stake||0}"></label><p class="tip">If a detective gets it right, they win this much from you. If they get it wrong, you win this much from them. The money comes out of your purse when you post, and comes back if you take the case down.</p>`;
+  h+= errs.length? `<p class="hintline">Still to fill in: ${esc(errs.slice(0,4).join(', '))}${errs.length>4?'…':''}</p>` : `<p class="hintline">All done. Post it when you're happy with it.</p>`;
+  h+=`<div class="row" style="margin-top:8px"><button class="btn" data-act="publish" data-id="${mid}" ${errs.length||!ONLINE?'disabled':''}>Post to the board</button><button class="btn ghost" data-act="closeeditor">Save and close</button></div>${ONLINE?'':'<p class="hintline">Your case is saved on this device. Posting needs the online version.</p>'}<p class="hintline" style="margin-top:8px">Everything saves as you type.</p></div>`;
   return h;
 }
 function setPath(obj, path, val){ const parts=path.split('.'); let o=obj; for(let i=0;i<parts.length-1;i++){ o=o[parts[i]]; } o[parts[parts.length-1]]=val; }

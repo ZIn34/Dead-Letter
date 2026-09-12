@@ -389,7 +389,7 @@ function checkLost(){ let changed=false; for(const cid in S.taken){ const b=boar
 const hex=b=>Array.from(b).map(x=>x.toString(16).padStart(2,'0')).join('');
 const unhex=h=>new Uint8Array(h.match(/../g).map(x=>parseInt(x,16)));
 async function pbkdf(pw, saltHex){ const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveBits']); const bits=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:unhex(saltHex),iterations:120000},key,256); return hex(new Uint8Array(bits)); }
-const SAVE_KEYS=['money','solved','inv','owned','hand','notebook','notes','easy','taken','made','coopApplied','tut','tutAck','tutOpened','intro','sfx','amb','music','dailyPaid','hints'];
+const SAVE_KEYS=['money','solved','inv','owned','hand','notebook','notes','easy','taken','made','coopApplied','tut','tutAck','tutOpened','intro','sfx','amb','music','dailyPaid','hints','hintTokens'];
 function saveBlob(){ const o={}; SAVE_KEYS.forEach(k=>{ if(S[k]!==undefined) o[k]=S[k]; }); return o; }
 let cloudT; function pushSave(){ if(!ONLINE||!S.account) return; clearTimeout(cloudT); cloudT=setTimeout(()=>{ db.doc('players/'+S.pid).update({save:saveBlob(), money:S.money, name:myName(), savedAt:Date.now()}).catch(()=>{}); },900); }
 function adoptSave(blob){ if(!blob) return; SAVE_KEYS.forEach(k=>{ if(blob[k]!==undefined) S[k]=blob[k]; }); S.intro=false; S.caseId=D.cases[0].id; S.coop=null; save(); }
@@ -577,7 +577,7 @@ function fileHTML(c, v){
    ${(c.imports&&c.imports.length)?`<div class="sec">Carried from earlier cases</div>${carried(c).length?`<ul>${carried(c).map(e=>`<li class="carry">${esc(e.text)}</li>`).join('')}</ul>`:''}<p class="gaz" style="font-size:14px">${carried(c).length?'These can be used to press people here. Your old notebook pages say what they were.':'Nothing yet. Things people told you in earlier cases would count here; you did not hear the ones that matter.'} ${c.imports.length-carried(c).length>0?(c.imports.length-carried(c).length)+' more could have been carried.':''}</p>`:''}</article>`;
 }
 function initials(n){ return String(n||'?').split(' ').map(w=>w[0]).filter(ch=>/[A-Za-z]/.test(ch)).slice(0,2).join('').toUpperCase()||'?'; }
-function budgetHTML(c){ const q=qLeft(c.id), p=pLeft(c.id); const rr=rulesOf(c); return `<div class="budget"><span class="chip${q?'':' zero'}"><b>${q}</b> of ${rr.questions} questions left</span><span class="chip${p?'':' zero'}"><b>${p}</b> of ${rr.presses} presses left</span>${inv(c.id).broken?'<span class="chip"><b>Broken</b> confession in hand</span>':''}${!inCoop()&&mode(c.id)!=='test'?`<button class="chip hintbtn" data-act="hints">Ask the Inspector${hintsUsed(c)?' · '+hintsUsed(c)+' used':''}</button>`:''}</div>`; }
+function budgetHTML(c){ const q=qLeft(c.id), p=pLeft(c.id); const rr=rulesOf(c); return `<div class="budget"><span class="chip${q?'':' zero'}"><b>${q}</b> of ${rr.questions} questions left</span><span class="chip${p?'':' zero'}"><b>${p}</b> of ${rr.presses} presses left</span>${inv(c.id).broken?'<span class="chip"><b>Broken</b> confession in hand</span>':''}${!inCoop()&&mode(c.id)!=='test'?`<button class="chip hintbtn" data-act="hints">Ask the Inspector${(S.hintTokens||0)?' · '+S.hintTokens+' hint'+(S.hintTokens===1?'':'s')+' left':''}</button>`:''}</div>`; }
 function hintsFor(c){
   const cul=sus(c,c.culprit); const keys=cul.press.keys||[]; const list=[];
   list.push({cost:1, text:"Compare what each person said with the case file, and with each other. One of them says something they couldn't know, or something a clue proves wrong. Innocent people lie too, but about smaller things."});
@@ -590,10 +590,14 @@ function hintsFor(c){
 function hintsUsed(c){ return S.hints[invKey(c.id)]||0; }
 function openHints(){
   const c=cur(); const list=hintsFor(c); const used=hintsUsed(c); const next=list[used];
-  let h=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>Ask the Inspector</h3><p class="sub">Hints cost money. Three per case.</p>`;
+  const tok=S.hintTokens||0;
+  let h=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>Ask the Inspector</h3><p class="sub">A hint pack is £1 for two hints. Three hints per case.</p>`;
   list.slice(0,used).forEach((x,i)=>{ h+=`<div class="q ev"><small>Hint ${i+1}</small>${esc(x.text)}</div>`; });
-  if(next) h+=`<p>Hint ${used+1} costs <b>£${next.cost}</b>. You have £${S.money}.</p><div class="row"><button class="btn" data-act="buyhint" ${S.money>=next.cost?'':'disabled'}>Pay £${next.cost} for hint ${used+1}</button><button class="btn ghost" data-act="closesheet">No thanks</button></div>`;
-  else h+=`<p>That's all the Inspector will say.</p><div class="row"><button class="btn ghost" data-act="closesheet">Back</button></div>`;
+  if(next){ h+=`<p>You have <b>${tok}</b> hint${tok===1?'':'s'} left${tok?'':' and £'+S.money}.</p><div class="row">`;
+    if(tok>0) h+=`<button class="btn" data-act="usehint">Use a hint (hint ${used+1})</button>`;
+    else h+=`<button class="btn" data-act="buyhintpack" ${S.money>=1?'':'disabled'}>Buy a hint pack · £1 for 2</button>`;
+    h+=`<button class="btn ghost" data-act="closesheet">No thanks</button></div>`; }
+  else h+=`<p>That's all the Inspector will say on this one.${tok?' You still have '+tok+' hint'+(tok===1?'':'s')+' for another case.':''}</p><div class="row"><button class="btn ghost" data-act="closesheet">Back</button></div>`;
   $('#sheet').innerHTML=h; $('#sheet').classList.add('open'); $('#scrim').classList.add('on'); $('#sheet').scrollTop=0;
 }
 function clipping(c, correct, guess){
@@ -959,7 +963,8 @@ document.addEventListener('click',e=>{
   else if(act==='playdaily'){ const date=todayKey(); const cid=dailyCaseId(date); S.daily={cid,date}; delete S.inv[cid+'#daily'+date]; S.caseId=cid; S.tab='desk'; save(); render(); window.scrollTo(0,0); }
   else if(act==='enddaily'){ const d=S.daily; S.daily=null; if(d) delete S.inv[d.cid+'#daily'+d.date]; save(); render(); }
   else if(act==='hints'){ openHints(); }
-  else if(act==='buyhint'){ const c=cur(); const list=hintsFor(c); const used=hintsUsed(c); const next=list[used]; if(!next||S.money<next.cost) return; addMoney(-next.cost); S.hints[invKey(c.id)]=used+1; SFX.play('coin'); save(); openHints(); render(); }
+  else if(act==='buyhintpack'){ if(S.money<1) return; addMoney(-1); S.hintTokens=(S.hintTokens||0)+2; SFX.play('coin'); save(); openHints(); render(); }
+  else if(act==='usehint'){ const c=cur(); const list=hintsFor(c); const used=hintsUsed(c); if(!list[used]||(S.hintTokens||0)<1) return; S.hintTokens-=1; S.hints[invKey(c.id)]=used+1; SFX.play('page'); save(); openHints(); render(); }
   else if(act==='rate'){ const cid=a.dataset.id; if(!ONLINE||S.rated&&S.rated[cid]) return; S.rated=S.rated||{}; S.rated[cid]=true; save(); const f=a.dataset.v; db.doc('cases/'+cid).get().then(sn=>{ if(!sn.exists) return; const d=sn.data(); const u={}; u[f]=(d[f]||0)+1; return db.doc('cases/'+cid).update(u); }).then(()=>toast('Thanks. The maker will see it.')).catch(()=>{}); a.parentElement.innerHTML='<span class="chip">Thanks</span>'; }
   else if(act==='dismissoffline'){ S.offlineNoteSeen=true; save(); render(); }
   else if(act==='edit'){ S.editing=a.dataset.id; S.casesTab='make'; render(); window.scrollTo(0,0); }

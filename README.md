@@ -42,6 +42,11 @@ has the link (the Pages copy plays offline: story cases, desk and notebook only)
   budget of questions and presses, every move visible to all, and the warrant needs everyone's
   agreement. Story cases pay each member; free board cases work; wagers don't.
 
+Also: hints from the Inspector for £1, £2 and £3; practice replays of solved cases; a daily
+case everyone plays with a fewest-questions board (`daily/<date>`); case-maker templates and a
+mandatory test play before posting; fair/not-fair votes on board cases; a £999 purse cap; co-op
+rooms expire after twelve hours or when the last member leaves.
+
 Payouts between players are written as `credits/` records that the recipient's game claims, so a
 player only ever writes their own purse.
 

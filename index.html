@@ -38,7 +38,7 @@ header h1 small{display:block;font-size:11px;letter-spacing:.18em;text-transform
 .ledger span{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass-dim)}
 .music{width:34px;height:34px;border-radius:50%;border:1px solid var(--brass-dim);color:var(--brass-dim);font:400 18px/32px var(--fell);text-align:center;align-self:center}
 .music.on{color:#1b1b17;background:var(--brass);border-color:#d8b478}
-.music.snd{display:grid;place-items:center}
+.music.snd{display:flex;align-items:center;gap:5px;width:auto;padding:0 10px;border-radius:17px;font:400 12px var(--fell);letter-spacing:.08em;text-transform:uppercase}
 .music.snd.off .w1,.music.snd.off .w2{display:none}
 main{flex:1;min-height:0;position:relative}
 .panel{display:none;padding:16px 16px 110px;animation:fade .25s ease}
@@ -84,6 +84,14 @@ main{flex:1;min-height:0;position:relative}
 .chip{background:rgba(0,0,0,.22);border:1px solid var(--brass-dim);color:var(--paper);font-size:14px;padding:5px 10px;font-variant-numeric:tabular-nums}
 .chip b{font:400 16px var(--fell);color:var(--lamp)}
 .chip.zero b{color:var(--red)}
+.chip.hintbtn{border-color:var(--brass);color:var(--lamp);cursor:pointer}
+.confess{background:var(--red-soft);border:1px solid var(--red);padding:10px 12px;margin:8px 0 12px;font-family:var(--hand);font-size:20px;line-height:1.25;color:#2f2a22;position:relative}
+.confess small{display:block;font:400 11px var(--fell);letter-spacing:.2em;text-transform:uppercase;color:var(--red);margin-bottom:4px}
+.clip{background:#f6efdc;border:1px solid var(--paper-shadow);padding:10px 12px;margin:8px 0 0;font-family:var(--typed);font-size:12.5px;line-height:1.5;color:var(--ink);transform:rotate(-.6deg);box-shadow:1px 2px 0 rgba(0,0,0,.2)}
+.clip small{display:block;font:400 10px var(--fell);letter-spacing:.24em;text-transform:uppercase;color:var(--pencil);margin-bottom:4px;border-bottom:1px solid var(--paper-shadow);padding-bottom:3px}
+.card-note .clip{color:var(--ink)}
+details.oldpage{background:var(--paper);color:var(--ink);padding:8px 12px;margin-bottom:8px;box-shadow:1px 2px 0 rgba(0,0,0,.25);border-left:3px solid var(--brass)}
+details.oldpage summary{font:400 16px var(--fell);cursor:pointer}
 
 .suspects{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
 .sus{background:var(--paper-deep);color:var(--ink);padding:12px 12px 10px;text-align:left;border:1px solid var(--paper-shadow);box-shadow:2px 3px 0 rgba(0,0,0,.25);display:flex;flex-direction:column;gap:6px;position:relative}
@@ -241,7 +249,7 @@ nav.tabs button.pulse{color:var(--lamp);text-shadow:0 0 8px var(--lamp)}
       <div><b id="hMoney">£0</b><span>Purse</span></div>
       <div><b id="hSolved">0</b><span>Solved</span></div>
       <button class="music" id="musicBtn" data-act="music" aria-label="Music on or off" title="Music">♪</button>
-      <button class="music snd" id="sndBtn" data-act="sound" aria-label="Sound settings" title="Sound"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path class="w1" d="M16 9.5a3.5 3.5 0 0 1 0 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path class="w2" d="M18.5 7a7 7 0 0 1 0 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+      <button class="music snd" id="sndBtn" data-act="sound" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path class="w1" d="M16 9.5a3.5 3.5 0 0 1 0 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path class="w2" d="M18.5 7a7 7 0 0 1 0 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Settings</span></button>
     </div>
   </header>
   <main>
@@ -275,24 +283,28 @@ const KEY='deadletter.v5';
 const rid=(n=10)=>Array.from(crypto.getRandomValues(new Uint8Array(n))).map(b=>'abcdefghijkmnpqrstuvwxyz23456789'[b%32]).join('');
 
 const fresh=()=>({tab:'desk', money:0, solved:{}, inv:{}, caseId:D.cases[0].id, owned:[], hand:'caveat', notebook:'', intro:true, tut:0, music:false, track:0,
-  pid:'p'+rid(10), name:'', made:{}, taken:{}, coop:null, coopApplied:{}, casesTab:'files', editing:null, notes:{}, easy:false});
+  pid:'p'+rid(10), name:'', made:{}, taken:{}, coop:null, coopApplied:{}, casesTab:'files', editing:null, notes:{}, easy:false, practice:null, daily:null, dailyPaid:{}, testing:null, hints:{}});
 let S=load();
-let db=null, room=null, ONLINE=false, BOARD=[], COOP=null, unsubCoop=null, PEERS=[], netNote='';
-function load(){ try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s && s.caseId){ if(!s.pid) s.pid='p'+rid(10); s.made=s.made||{}; s.taken=s.taken||{}; s.coopApplied=s.coopApplied||{}; s.notes=s.notes||{}; if(s.notebook && !s.notes.general){ s.notes.general=s.notebook; } return s; } }catch(e){} return fresh(); }
+let db=null, room=null, ONLINE=false, BOARD=[], COOP=null, unsubCoop=null, PEERS=[], netNote='', DAILY=null;
+function load(){ try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s && s.caseId){ if(!s.pid) s.pid='p'+rid(10); s.made=s.made||{}; s.taken=s.taken||{}; s.coopApplied=s.coopApplied||{}; s.notes=s.notes||{}; if(s.notebook && !s.notes.general){ s.notes.general=s.notebook; } s.dailyPaid=s.dailyPaid||{}; s.hints=s.hints||{}; s.practice=null; s.daily=null; s.testing=null; return s; } }catch(e){} return fresh(); }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} try{ pushSave(); }catch(e){} }
 const $=s=>document.querySelector(s);
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 const idx=id=>D.cases.findIndex(c=>c.id===id);
 const isStory=id=>!!C[id];
-function getCase(id){ if(C[id]) return C[id]; if(COOP && COOP.caseId===id && COOP.caseData) return COOP.caseData; if(S.taken[id]) return S.taken[id].c; return null; }
+function draftById(id){ for(const k in S.made){ if(S.made[k].c.id===id) return S.made[k]; } return null; }
+function getCase(id){ if(C[id]) return C[id]; if(COOP && COOP.caseId===id && COOP.caseData) return COOP.caseData; if(S.taken[id]) return S.taken[id].c; const d=draftById(id); if(d) return cleanCase(d.c); return null; }
+function mode(cid){ if(S.testing && S.testing.cid===cid) return 'test'; if(S.daily && S.daily.cid===cid) return 'daily'; if(S.practice===cid) return 'practice'; return null; }
+function invKey(cid){ const m=mode(cid); return m ? cid+'#'+m+(m==='daily'?S.daily.date:'') : cid; }
+function solvedView(cid){ return mode(cid) ? null : (S.solved[cid]||null); }
 function cur(){ if(COOP && COOP.caseData) return COOP.caseData; return getCase(S.caseId) || (S.caseId=D.cases[0].id, C[S.caseId]); }
 function unlocked(id){ if(!isStory(id)) return true; const i=idx(id); return i===0 || !!S.solved[D.cases[i-1].id]; }
-function localInv(cid){ return S.inv[cid] || (S.inv[cid]={asked:{}, presses:[], revealed:{}, broken:false}); }
+function localInv(cid){ const k=invKey(cid); return S.inv[k] || (S.inv[k]={asked:{}, presses:[], revealed:{}, broken:false}); }
 function inv(cid){ if(COOP && COOP.caseId===cid) return COOP.inv || {asked:{},presses:[],revealed:{},broken:false}; return localInv(cid); }
 function nAsked(cid){ return Object.values(inv(cid).asked||{}).reduce((a,l)=>a+l.length,0); }
 function qLeft(cid){ return Math.max(0, rulesOf(getCase(cid)||cur()).questions - nAsked(cid)); }
 function pLeft(cid){ return Math.max(0, rulesOf(getCase(cid)||cur()).presses - (inv(cid).presses||[]).length); }
-function nextCase(){ if(!isStory(S.caseId)) return null; const i=idx(S.caseId); return D.cases[i+1]||null; }
+function nextCase(){ if(!isStory(S.caseId) || mode(S.caseId)) return null; const i=idx(S.caseId); return D.cases[i+1]||null; }
 function handOf(){ return D.hands.find(x=>x.id===S.hand)||D.hands[0]; }
 function sus(c,sid){ return c.suspects.find(x=>x.id===sid); }
 function myName(){ return S.name || 'Detective '+S.pid.slice(1,5).toUpperCase(); }
@@ -319,7 +331,8 @@ function evLabel(c,e){ if(e.kind==='fact') return e.who+': '+e.text; if(e.kind==
 function evText(c,id){ const e=evidence(c).find(x=>x.id===id); return e? evLabel(c,e) : id; }
 
 /* ---------- Money ---------- */
-function addMoney(d){ S.money=Math.max(0, S.money+d); save(); pushPlayer(); }
+const PURSE_CAP=999;
+function addMoney(d){ S.money=Math.min(PURSE_CAP, Math.max(0, S.money+d)); save(); pushPlayer(); }
 
 /* ---------- Tutorial ---------- */
 const first=D.cases[0].id;
@@ -355,6 +368,7 @@ async function initNet(){
     await syncPlayer();
     db.collection('cases').orderBy('createdAt','desc').limit(60).onSnapshot(snap=>{ BOARD=snap.docs.map(d=>d.data()).filter(Boolean); checkLost(); render(); }, e=>{ netNote='board '+e.code; render(); });
     watchPlayer();
+    db.doc('daily/'+todayKey()).onSnapshot(snap=>{ DAILY=snap.exists?snap.data():null; render(); }, e=>{});
     if(S.coop) joinCoop(S.coop.code, true);
     room=await window.claude.use('room');
     if(room){ room.onPeers(ch=>{ PEERS=ch.peers.slice(); renderCoopPeers(); }); pushPresence(); }
@@ -375,7 +389,7 @@ function checkLost(){ let changed=false; for(const cid in S.taken){ const b=boar
 const hex=b=>Array.from(b).map(x=>x.toString(16).padStart(2,'0')).join('');
 const unhex=h=>new Uint8Array(h.match(/../g).map(x=>parseInt(x,16)));
 async function pbkdf(pw, saltHex){ const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveBits']); const bits=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:unhex(saltHex),iterations:120000},key,256); return hex(new Uint8Array(bits)); }
-const SAVE_KEYS=['money','solved','inv','owned','hand','notebook','notes','easy','taken','made','coopApplied','tut','tutAck','tutOpened','intro','sfx','amb','music'];
+const SAVE_KEYS=['money','solved','inv','owned','hand','notebook','notes','easy','taken','made','coopApplied','tut','tutAck','tutOpened','intro','sfx','amb','music','dailyPaid','hints'];
 function saveBlob(){ const o={}; SAVE_KEYS.forEach(k=>{ if(S[k]!==undefined) o[k]=S[k]; }); return o; }
 let cloudT; function pushSave(){ if(!ONLINE||!S.account) return; clearTimeout(cloudT); cloudT=setTimeout(()=>{ db.doc('players/'+S.pid).update({save:saveBlob(), money:S.money, name:myName(), savedAt:Date.now()}).catch(()=>{}); },900); }
 function adoptSave(blob){ if(!blob) return; SAVE_KEYS.forEach(k=>{ if(blob[k]!==undefined) S[k]=blob[k]; }); S.intro=false; S.caseId=D.cases[0].id; S.coop=null; save(); }
@@ -436,11 +450,18 @@ async function accountAction(kind){
 }
 
 /* ----- player cases: publish / take / resolve ----- */
-function blankCase(){
-  const sid=()=>'s'+rid(4);
-  return {id:'pc_'+rid(8), title:'', reward:0, brief:{victim:'', weapon:'', time:'', place:'', public:'', facts:['','','']}, questions:['Where were you when it happened?','How did you know the victim?','What do you make of how they died?'],
+const TEMPLATES={
+ poison:{weapon:'Poison in something only the victim ate or drank', publicPh:'"Died suddenly at the table." Leave out the poison.', facts:['Only the victim took the [milk / sugar / soup]; everyone else at the table is fine.','The [cup / jug / bottle] has gone missing since.',''], questions:['Where were you that afternoon?','What did you eat or drink with them?','Who brought the food to the table?']},
+ fall:{weapon:'A fall from somewhere high. Or a push.', publicPh:'"Fell from the tower while sightseeing." The police know the door up there was hooked open.', facts:['The door onto the ledge was hooked open from the inside. The victim hated a draught.','The victim never went up there alone; someone was with them.',''], questions:['Where were you when it happened?','Why would they have gone up there?','Who else knew they were going?']},
+ stab:{weapon:'A kitchen knife, once', publicPh:'"Found dead in the back room." Leave out the knife.', facts:['The knife came from the house\'s own kitchen and was washed and put back.','The room was locked from inside; only two people had keys.',''], questions:['Where were you between midnight and one?','How did you know the victim?','Who has a key to that room?']}
+};
+function blankCase(t){
+  const sid=()=>'s'+rid(4); const T=TEMPLATES[t];
+  const base={id:'pc_'+rid(8), title:'', reward:0, brief:{victim:'', weapon:'', time:'', place:'', public:'', facts:['','','']}, questions:['Where were you when it happened?','How did you know the victim?','What do you make of how they died?'],
     suspects:[0,1,2,3].map(i=>({id:sid(), name:'', age:'', job:'', color:['#6b4a3a','#3f5560','#7a6a2e','#5a3f5e'][i], look:'', note:'', answers:['','',''], press:{keys:[], answer:'', miss:''}})),
     culprit:'', solution:'', arrest:''};
+  if(T){ base.brief.weapon=T.weapon; base.brief.facts=T.facts.slice(); base.questions=T.questions.slice(); base.brief.public=''; base._ph=T.publicPh; }
+  return base;
 }
 const ONLINE_URL='https://claude.ai/code/artifact/8675c176-5bc2-43a6-a2c0-0e0dbb18062c';
 function caseCode(c){ return 'DETECTIVE1.'+btoa(unescape(encodeURIComponent(JSON.stringify(c)))).replace(/=+$/,''); }
@@ -457,7 +478,7 @@ function validateCase(c){
   return errs;
 }
 function cleanCase(c){ // trim empty facts, default texts, drop an unused 4th suspect
-  const x=JSON.parse(JSON.stringify(c)); x.brief.facts=x.brief.facts.filter(f=>f.trim()); x.rules={questions:6,presses:2};
+  const x=JSON.parse(JSON.stringify(c)); delete x._ph; x.brief.facts=x.brief.facts.filter(f=>f.trim()); x.rules={questions:6,presses:2};
   if(blank4(x)){ const gone=x.suspects[3].id; x.suspects=x.suspects.slice(0,3); x.suspects.forEach(s=>{ s.press.keys=s.press.keys.filter(k=>!k.startsWith(gone+':')); if(!s.press.keys.length) s.press.answer=''; }); } x.suspects.forEach(s=>{ s.age=String(s.age||'?'); if(!s.press.miss) s.press.miss='Nothing to say to that.'; if(!s.look) s.look='No description given.'; if(!s.note) s.note=''; if(s.press.keys.length && s.id!==x.culprit) s.press.secret=true; }); if(!x.solution) x.solution='The maker left no explanation. Draw your own.'; if(!x.arrest) x.arrest=''; return x; }
 async function publishCase(mid, stake){
   const m=S.made[mid]; if(!m||m.published) return; const errs=validateCase(m.c); if(errs.length){ toast('Missing: '+errs.slice(0,3).map(e=>e.label).join(', ')+(errs.length>3?'…':'')); return; }
@@ -506,6 +527,7 @@ async function joinCoop(code, resume){
   if(!ONLINE) return toast('Co-op needs the online version.'); code=String(code||'').trim().toUpperCase(); if(!code) return;
   const ref=coopRef(code); const snap=await ref.get(); if(!snap.exists){ toast('No room '+code+'.'); if(resume){ S.coop=null; save(); } return; }
   const d=snap.data(); if(d.result && !resume){ toast('That room has already made its arrest.'); return; }
+  if(Date.now()-(d.createdAt||0) > 12*3600*1000){ toast('That room has gone cold.'); if(resume){ S.coop=null; save(); } return; }
   if(!d.members[S.pid]){ const members={...d.members,[S.pid]:myName()}; await ref.update({members}); }
   S.coop={code}; save(); if(unsubCoop) unsubCoop();
   unsubCoop=ref.onSnapshot(s=>{ if(!s.exists){ leaveCoop(true); return; } COOP=s.data(); onCoopUpdate(); render(); }, e=>{ toast('Room lost: '+e.code); leaveCoop(true); });
@@ -513,7 +535,7 @@ async function joinCoop(code, resume){
 }
 async function leaveCoop(silent){
   const code=S.coop&&S.coop.code; if(unsubCoop){ unsubCoop(); unsubCoop=null; }
-  if(code && ONLINE && COOP && COOP.members && COOP.members[S.pid] && !COOP.result){ try{ const members={...COOP.members}; delete members[S.pid]; await coopRef(code).update({members}); }catch(e){} }
+  if(code && ONLINE && COOP && COOP.members && COOP.members[S.pid]){ try{ const members={...COOP.members}; delete members[S.pid]; if(Object.keys(members).length) await coopRef(code).update({members}); else await coopRef(code).delete(); }catch(e){} }
   S.coop=null; COOP=null; save(); pushPresence(); if(!silent) toast('Left the room.'); render();
 }
 async function coopUpdateInv(mut){ if(!COOP) return; const I=JSON.parse(JSON.stringify(COOP.inv||{asked:{},presses:[],revealed:{},broken:false})); mut(I); COOP.inv=I; try{ await coopRef(S.coop.code).update({inv:I}); }catch(e){ toast('Could not sync: '+(e.code||e.message)); } }
@@ -555,7 +577,38 @@ function fileHTML(c, v){
    ${(c.imports&&c.imports.length)?`<div class="sec">Carried from earlier cases</div>${carried(c).length?`<ul>${carried(c).map(e=>`<li class="carry">${esc(e.text)}</li>`).join('')}</ul>`:''}<p class="gaz" style="font-size:14px">${carried(c).length?'These can be used to press people here. Your old notebook pages say what they were.':'Nothing yet. Things people told you in earlier cases would count here; you did not hear the ones that matter.'} ${c.imports.length-carried(c).length>0?(c.imports.length-carried(c).length)+' more could have been carried.':''}</p>`:''}</article>`;
 }
 function initials(n){ return String(n||'?').split(' ').map(w=>w[0]).filter(ch=>/[A-Za-z]/.test(ch)).slice(0,2).join('').toUpperCase()||'?'; }
-function budgetHTML(c){ const q=qLeft(c.id), p=pLeft(c.id); const rr=rulesOf(c); return `<div class="budget"><span class="chip${q?'':' zero'}"><b>${q}</b> of ${rr.questions} questions left</span><span class="chip${p?'':' zero'}"><b>${p}</b> of ${rr.presses} presses left</span>${inv(c.id).broken?'<span class="chip"><b>Broken</b> confession in hand</span>':''}</div>`; }
+function budgetHTML(c){ const q=qLeft(c.id), p=pLeft(c.id); const rr=rulesOf(c); return `<div class="budget"><span class="chip${q?'':' zero'}"><b>${q}</b> of ${rr.questions} questions left</span><span class="chip${p?'':' zero'}"><b>${p}</b> of ${rr.presses} presses left</span>${inv(c.id).broken?'<span class="chip"><b>Broken</b> confession in hand</span>':''}${!inCoop()&&mode(c.id)!=='test'?`<button class="chip hintbtn" data-act="hints">Ask the Inspector${hintsUsed(c)?' · '+hintsUsed(c)+' used':''}</button>`:''}</div>`; }
+function hintsFor(c){
+  const cul=sus(c,c.culprit); const keys=cul.press.keys||[]; const list=[];
+  list.push({cost:1, text:"Compare what each person said with the case file, and with each other. One of them says something they couldn't know, or something a clue proves wrong. Innocent people lie too, but about smaller things."});
+  const k=keys.find(x=>!x.startsWith('imp:'))||keys[0]; let t2='Ask around more, and write it all down.';
+  if(k){ if(k.startsWith('imp:')) t2='Something you were told in an earlier case matters here. Read your old notebook pages.'; else if(/^f\d+$/.test(k)) t2='Read police fact '+(+k.slice(1)+1)+' again. Somebody contradicts it.'; else { const [sid,q]=k.split(':'); const x=sus(c,sid); if(x) t2 = q==='press' ? 'Press '+x.name+' first. What they admit will matter.' : 'What '+x.name+' says to question '+(+q+1)+' matters. Ask it if you haven\'t, and write it down.'; } }
+  list.push({cost:2, text:t2});
+  const inn=c.suspects.filter(x=>x.id!==c.culprit && !x.press.secret); const pick=inn[inn.length-1]||c.suspects.find(x=>x.id!==c.culprit); list.push({cost:3, text:'It was not '+pick.name+'.'});
+  return list;
+}
+function hintsUsed(c){ return S.hints[invKey(c.id)]||0; }
+function openHints(){
+  const c=cur(); const list=hintsFor(c); const used=hintsUsed(c); const next=list[used];
+  let h=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>Ask the Inspector</h3><p class="sub">Hints cost money. Three per case.</p>`;
+  list.slice(0,used).forEach((x,i)=>{ h+=`<div class="q ev"><small>Hint ${i+1}</small>${esc(x.text)}</div>`; });
+  if(next) h+=`<p>Hint ${used+1} costs <b>£${next.cost}</b>. You have £${S.money}.</p><div class="row"><button class="btn" data-act="buyhint" ${S.money>=next.cost?'':'disabled'}>Pay £${next.cost} for hint ${used+1}</button><button class="btn ghost" data-act="closesheet">No thanks</button></div>`;
+  else h+=`<p>That's all the Inspector will say.</p><div class="row"><button class="btn ghost" data-act="closesheet">Back</button></div>`;
+  $('#sheet').innerHTML=h; $('#sheet').classList.add('open'); $('#scrim').classList.add('on'); $('#sheet').scrollTop=0;
+}
+function clipping(c, correct, guess){
+  const g=sus(c,c.culprit), gs=sus(c,guess); const who=myName();
+  const T=c.title.replace(/^the\s+/i,''); return correct ? `ARREST IN THE ${T.toUpperCase()} MATTER. ${g.name} was taken into custody last night on the word of ${who} of the Saltmarsh Constabulary. The magistrate is understood to be satisfied. The Gazette regrets its earlier report.`
+                 : `${gs.name.toUpperCase()} RELEASED. The magistrate found nothing to hold ${gs.name} on in the ${T} matter, and ${who} of the Constabulary declined to comment. ${g.name} is believed to have left the district.`;
+}
+function modeBanner(c){
+  const m=mode(c.id); if(!m) return '';
+  if(m==='practice') return `<div class="card-note"><h2>Practice</h2><p>You've already closed this file. Play it again for the practice; no pay this time.</p><div class="row"><button class="btn ghost" data-act="endpractice">Stop practising</button></div></div>`;
+  if(m==='daily') return `<div class="card-note"><h2>Today's case · ${esc(S.daily.date)}</h2><p>Everyone plays this one today. Fewest questions wins the board. A right arrest pays £2, once a day.</p><div class="row"><button class="btn ghost" data-act="enddaily">Leave today's case</button></div></div>`;
+  if(m==='test') return `<div class="card-note"><h2>Testing your case</h2><p>Play it the way a detective would. Make the arrest to finish the test; then you can post it.</p><div class="row"><button class="btn ghost" data-act="endtest">Back to the editor</button></div></div>`;
+  return '';
+}
+function offlineNote(){ if(ONLINE || S.offlineNoteSeen || S.intro) return ''; return `<div class="card-note"><h2>Offline demo</h2><p>This copy plays the story cases, but accounts, the board, wagers and co-op live at the online version.</p><div class="row"><a class="btn" href="${ONLINE_URL}" target="_blank" rel="noopener">Open the online version</a><button class="btn ghost" data-act="dismissoffline">Got it</button></div></div>`; }
 function coopBanner(){
   if(!inCoop()) return `<div class="row" style="margin:0 0 14px"><button class="btn ghost" data-act="coopmenu">Co-op room</button><button class="btn ghost" data-act="account">${S.account?esc(S.account):'Account · '+esc(myName())}</button></div>`;
   const d=COOP; const names=Object.values(d.members||{}); const here=PEERS.filter(p=>p.presence&&p.presence.coop===d.code).map(p=>p.presence.name);
@@ -569,8 +622,8 @@ function renderDesk(){
   const el=$('#p-desk'); let h='';
   if(S.intro && !gated()){ h+=`<div class="card-note"><h2>Same desk, worse post</h2><p>After the Kittiwake business the town made its dead-letter clerk a detective. The cases come in a folder now.</p><p>Read the file. Question the suspects, but not all of them about everything: you haven't the time. Press the ones whose story doesn't square. Name the one who did it.</p><div class="row"><button class="btn" data-act="intro">Open the first file</button></div></div>`; el.innerHTML=h; return; }
   if(gated()){ el.innerHTML=shelfHTML()+gateHTML(); return; }
-  const c=cur(); const v=S.solved[c.id] && (!inCoop() || COOP.result) ? S.solved[c.id] : null; const I=inv(c.id);
-  h+=shelfHTML()+coachHTML()+coopBanner();
+  const c=cur(); const v=solvedView(c.id) && (!inCoop() || COOP.result) ? S.solved[c.id] : null; const I=inv(c.id);
+  h+=shelfHTML()+offlineNote()+coachHTML()+coopBanner()+modeBanner(c);
   h+=fileHTML(c,v);
   if(!v) h+=budgetHTML(c);
   h+=`<div class="eyebrow">${v?'The suspects, as they were':'Suspects'}</div><div class="suspects">`+c.suspects.map(s=>{
@@ -580,7 +633,7 @@ function renderDesk(){
     return `<button class="${cls}" data-act="suspect" data-id="${s.id}"><span class="asked${rev?' hot':''}">${tag}</span><span class="med" style="background:${esc(s.color)}">${esc(initials(s.name))}</span><b>${esc(s.name)}</b><i>${esc(s.age)} · ${esc(s.job)}</i><p><em>${esc(s.look)}</em></p><p>${esc(s.note)}</p></button>`; }).join('')+`</div>`;
   if(v){
     const g=sus(c,c.culprit); const gs=sus(c,v.guess);
-    h+=`<div class="card-note"><h2>${v.correct?'Arrested: '+esc(g.name):'Released: '+esc(gs.name)}</h2><p>${esc(c.solution)}</p>${c.arrest?`<p><em>${esc(c.arrest)}</em></p>`:''}${v.correct?`<p>Paid £${v.pay}${v.broken&&!v.player?', including £'+R.breakBonus+' for the confession':''}.</p>`:`<p>No pay. ${esc(g.name)} walked.${v.wager?' £'+v.wager+' went to the maker.':''}</p>`}<div class="row">${nextCase()?`<button class="btn" data-act="opencase" data-id="${nextCase().id}">Next case</button>`:''}<button class="btn ghost" data-act="tab" data-tab="cases">The case board</button></div></div>`;
+    h+=`<div class="card-note"><h2>${v.correct?'Arrested: '+esc(g.name):'Released: '+esc(gs.name)}</h2><p>${esc(c.solution)}</p>${c.arrest?`<p><em>${esc(c.arrest)}</em></p>`:''}${v.correct?`<p>Paid £${v.pay}${v.broken&&!v.player?', including £'+R.breakBonus+' for the confession':''}.</p>`:`<p>No pay. ${esc(g.name)} walked.${v.wager?' £'+v.wager+' went to the maker.':''}</p>`}<div class="clip"><small>The Saltmarsh Gazette</small>${esc(clipping(c,v.correct,v.guess))}</div><div class="row">${nextCase()?`<button class="btn" data-act="opencase" data-id="${nextCase().id}">Next case</button>`:''}${isStory(c.id)?`<button class="btn ghost" data-act="practice" data-id="${c.id}">Replay for practice</button>`:''}<button class="btn ghost" data-act="tab" data-tab="cases">The case board</button></div></div>`;
   } else {
     h+=`<p class="hintline">Tap a suspect to question or press them. Accuse from their page when you're sure.${S.taken[c.id]&&S.taken[c.id].stake?' £'+S.taken[c.id].stake+' rides on it, and another detective may close it first.':''}</p>`;
   }
@@ -589,7 +642,7 @@ function renderDesk(){
   el.innerHTML=h; updateMusicUI();
 }
 function openSuspect(sid, keepScroll){
-  const c=cur(); const s=sus(c,sid); if(!s) return; const v=S.solved[c.id] && (!inCoop()||COOP.result) ? S.solved[c.id] : null; const I=inv(c.id); const askedMe=(I.asked||{})[s.id]||[];
+  const c=cur(); const s=sus(c,sid); if(!s) return; const v=solvedView(c.id) && (!inCoop()||COOP.result) ? S.solved[c.id] : null; const I=inv(c.id); const askedMe=(I.asked||{})[s.id]||[];
   if(SESSION.sid!==sid){ SESSION={sid, seen:[], press:false}; }
   const show=(qi)=> !!v || easy() || SESSION.seen.includes(qi);
   S.tutOpened=true;
@@ -624,13 +677,13 @@ function pressMenu(sid){
 function applyAsk(I, sid, qi){ I.asked[sid]=I.asked[sid]||[]; if(!I.asked[sid].includes(qi)) I.asked[sid].push(qi); }
 function applyPress(I, c, sid, evId){ const s=sus(c,sid); const hit=s.press.keys.includes(evId); I.presses.push({sid, ev:evId, hit, by:myName()}); if(hit){ I.revealed[sid]=true; if(sid===c.culprit) I.broken=true; } return hit; }
 async function doAsk(sid, qi){
-  const c=cur(); if(S.solved[c.id]&&!inCoop()) return; if(qLeft(c.id)<=0) return;
+  const c=cur(); if(solvedView(c.id)&&!inCoop()) return; if(qLeft(c.id)<=0) return;
   if(SESSION.sid!==sid) SESSION={sid, seen:[], press:false}; if(!SESSION.seen.includes(qi)) SESSION.seen.push(qi);
   if(inCoop()){ if(((COOP.inv.asked||{})[sid]||[]).includes(qi)) return; SFX.play('scratch'); await coopUpdateInv(I=>applyAsk(I,sid,qi)); openSuspect(sid,true); return; }
   const I=localInv(c.id); const before=(I.asked[sid]||[]).length; applyAsk(I,sid,qi); if((I.asked[sid]||[]).length>before) SFX.play('scratch'); openSuspect(sid,true);
 }
 async function doPress(sid, evId){
-  const c=cur(); const s=sus(c,sid); if((S.solved[c.id]&&!inCoop()) || pLeft(c.id)<=0 || (inv(c.id).revealed||{})[sid]) return;
+  const c=cur(); const s=sus(c,sid); if((solvedView(c.id)&&!inCoop()) || pLeft(c.id)<=0 || (inv(c.id).revealed||{})[sid]) return;
   let hit;
   if(inCoop()){ await coopUpdateInv(I=>{ hit=applyPress(I,c,sid,evId); }); }
   else { hit=applyPress(localInv(c.id),c,sid,evId); }
@@ -651,12 +704,26 @@ function showVerdict(c, sid, correct, pay, broken, extra){
   $('#sheet').innerHTML=`<button class="close" data-act="closesheet" aria-label="Close">×</button>
    <p class="verdict${correct?'':' cold'}">${correct?'Arrested.':'Released.'}</p>
    ${correct?`<p class="pay">${pay?'+ £'+pay:'No pay'}${broken&&pay?' <small style="font-size:14px;color:#6f675a">incl. £'+R.breakBonus+' for the confession</small>':''}</p>`:`<p class="sub">The magistrate finds nothing to hold ${esc(s.name)} on. ${esc(g.name)} walks.</p>`}
-   ${extra?`<p>${extra}</p>`:''}<p>${esc(c.solution)}</p>${c.arrest?`<p><em>${esc(c.arrest)}</em></p>`:''}
-   <div class="row">${nextCase()?`<button class="btn" data-act="opencase" data-id="${nextCase().id}">Next case</button>`:''}<button class="btn ghost" data-act="closesheet">Back to the desk</button></div>`;
+   ${extra?`<p>${extra}</p>`:''}${broken?`<div class="confess"><small>Confession · ${esc(g.name)}</small>${esc(g.press.answer)}</div>`:''}<p>${esc(c.solution)}</p>${c.arrest?`<p><em>${esc(c.arrest)}</em></p>`:''}
+   <div class="clip"><small>The Saltmarsh Gazette</small>${esc(clipping(c,correct,sid))}</div>
+   ${(!isStory(c.id) && S.taken[c.id] && ONLINE && !mode(c.id))?`<p class="sub" style="margin-top:12px">Was this case fair?</p><div class="row"><button class="btn ghost" data-act="rate" data-id="${c.id}" data-v="fair">Fair</button><button class="btn ghost" data-act="rate" data-id="${c.id}" data-v="unfair">Not fair</button></div>`:''}
+   <div class="row" style="margin-top:12px">${nextCase()?`<button class="btn" data-act="opencase" data-id="${nextCase().id}">Next case</button>`:''}<button class="btn ghost" data-act="closesheet">Back to the desk</button></div>`;
   $('#sheet').classList.add('open'); $('#scrim').classList.add('on'); $('#sheet').scrollTop=0; toast(correct?'Arrested.'+(pay?' £'+pay+' to the purse.':''):'Released. No pay.'); render();
 }
+async function submitDaily(c, correct, n){
+  if(!ONLINE) return; const date=S.daily.date; const ref=db.doc('daily/'+date);
+  try{ const snap=await ref.get(); const d=snap.exists?snap.data():{date, caseId:c.id, entries:{}}; if(!d.entries[S.pid]){ d.entries[S.pid]={name:myName(), correct, questions:n, at:Date.now()}; if(snap.exists) await ref.update({entries:d.entries}); else await ref.set(d); } }catch(e){}
+}
+function dailyCaseId(date){ const n=Number(date.replace(/-/g,''))%D.cases.length; return D.cases[n].id; }
+function todayKey(){ const d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function arrest(sid){
-  const c=cur(); if(S.solved[c.id]) return; if(!isStory(c.id)){ resolvePlayerCase(c, sid); return; }
+  const c=cur(); const m=mode(c.id);
+  if(m){ const I=localInv(c.id); const correct=sid===c.culprit; const broken=correct && I.broken; const n=nAsked(c.id); const key=invKey(c.id);
+    if(m==='practice'){ S.practice=null; delete S.inv[key]; save(); showVerdict(c, sid, correct, 0, broken, 'Practice. No pay, nothing recorded.'); return; }
+    if(m==='test'){ const mid=S.testing.mid; if(S.made[mid]) S.made[mid].tested=true; S.testing=null; delete S.inv[key]; S.caseId=D.cases[0].id; S.tab='cases'; S.casesTab='make'; S.editing=mid; save(); showVerdict(c, sid, correct, 0, broken, correct?'Your case works. You can post it now.':'You arrested the wrong person in your own case. Check the clues make sense, then post it if you\'re sure.'); return; }
+    if(m==='daily'){ const date=S.daily.date; let pay=0; if(correct && !S.dailyPaid[date]){ pay=2; S.dailyPaid[date]=true; addMoney(2); } submitDaily(c, correct, n); S.daily=null; delete S.inv[key]; save(); showVerdict(c, sid, correct, pay, broken, correct?'Today\'s case, done in '+n+' question'+(n===1?'':'s')+'. See the Daily board for the standings.':'Today\'s case is done. The board will show it.'); return; }
+  }
+  if(S.solved[c.id]) return; if(!isStory(c.id)){ resolvePlayerCase(c, sid); return; }
   const I=localInv(c.id); const correct=sid===c.culprit; const broken=correct && I.broken;
   const pay=correct?c.reward+(broken?R.breakBonus:0):0; if(pay) addMoney(pay);
   S.solved[c.id]={guess:sid, correct, pay, broken, asked:nAsked(c.id)}; save();
@@ -666,7 +733,7 @@ function closeSheet(){ $('#sheet').classList.remove('open'); $('#scrim').classLi
 
 /* ----- Cases tab ----- */
 function renderCases(){
-  const el=$('#p-cases'); if(gated()){ el.innerHTML=gateHTML(); return; } const tabs=[['files','Files'],['board','Board'],['mine','Mine'],['make','Make']];
+  const el=$('#p-cases'); if(gated()){ el.innerHTML=gateHTML(); return; } const tabs=[['files','Files'],['board','Board'],['daily','Daily'],['mine','Mine'],['make','Make']];
   let h=coachHTML()+`<div class="subtabs">${tabs.map(([k,n])=>`<button data-ctab="${k}" class="${S.casesTab===k?'on':''}">${n}</button>`).join('')}</div>`;
   if(S.casesTab==='files'){
     h+=`<div class="caselist">`+D.cases.map((c,i)=>{ const v=S.solved[c.id]; const un=unlocked(c.id);
@@ -675,13 +742,13 @@ function renderCases(){
     const earned=Object.values(S.solved).reduce((a,v)=>a+(v.pay||0),0); const walked=Object.values(S.solved).filter(v=>!v.correct).length;
     h+=`<p class="hintline" style="margin-top:14px">Earned so far: £${earned}.${walked?' Killers who walked: '+walked+'.':''} Cases open in order. A cold case stays cold.</p>`;
   } else if(S.casesTab==='board'){
-    if(!ONLINE) h+=offlineNote();
+    if(!ONLINE) h+=offlineNoteCard();
     else {
       const open=BOARD.filter(b=>b.status==='open'); const closed=BOARD.filter(b=>b.status==='solved').slice(0,10);
       h+=`<div class="eyebrow">Open on the board</div>`;
       h+= open.length? `<div class="caselist">`+open.map(b=>{ const mine=b.maker===S.pid; const taken=!!S.taken[b.id]; const can=b.stake<=S.money;
         return `<div class="casebtn"><span><b>${esc(b.title)}</b><i>by ${esc(b.makerName)} · ${b.stake?'£'+b.stake+' stake':'no stake'}</i></span><span class="st">${mine?'<span class="chip">Yours</span>':taken?`<button class="btn ghost" data-act="opencase" data-id="${b.id}">Open</button>`:`<button class="btn${can?'':' ghost'}" data-act="take" data-id="${b.id}" ${can?'':'disabled'}>${can?'Take on':'Need £'+b.stake}</button>`}</span></div>`; }).join('')+`</div>` : `<p class="empty">Nothing posted yet. Make one.</p>`;
-      if(closed.length) h+=`<div class="eyebrow" style="margin-top:18px">Recently closed</div><div class="caselist">`+closed.map(b=>`<div class="casebtn"><span><b>${esc(b.title)}</b><i>by ${esc(b.makerName)} · ${b.correct?'solved':'botched'} by ${esc(b.solvedByName||'?')}${b.stake?' · £'+b.stake:''}</i></span></div>`).join('')+`</div>`;
+      if(closed.length) h+=`<div class="eyebrow" style="margin-top:18px">Recently closed</div><div class="caselist">`+closed.map(b=>`<div class="casebtn"><span><b>${esc(b.title)}</b><i>by ${esc(b.makerName)} · ${b.correct?'solved':'botched'} by ${esc(b.solvedByName||'?')}${b.stake?' · £'+b.stake:''}${(b.fair||b.unfair)?' · '+(b.fair||0)+' fair, '+(b.unfair||0)+' not':''}</i></span></div>`).join('')+`</div>`;
       h+=`<p class="hintline" style="margin-top:14px">Take a case on and it goes to Mine. Solve it first and the stake is yours; get it wrong and the maker takes yours. Another detective can close it before you.</p>`;
     }
   } else if(S.casesTab==='mine'){
@@ -691,19 +758,26 @@ function renderCases(){
         return `<button class="casebtn${cid===S.caseId?' cur':''}" data-act="opencase" data-id="${cid}"><span><b>${esc(t.title)}</b><i>by ${esc(t.makerName)} · ${t.stake?'£'+t.stake:'free'}</i></span>${st}</button>`; }).join('')+`</div>` : `<p class="empty">You haven't taken any board cases on.</p>`;
     h+=`<div class="eyebrow" style="margin-top:18px">Made by you</div>`;
     h+= made.length? `<div class="caselist">`+made.map(([mid,m])=>{ const b=m.published?boardCase(m.published):null; const st=m.published?(b?(b.status==='open'?'<span class="st open">On the board</span>':b.status==='solved'?`<span class="st ${b.correct?'cold':'ok'}">${b.correct?'Solved':'Botched'} by ${esc(b.solvedByName||'?')}</span>`:'<span class="st cold">Withdrawn</span>'):'<span class="st open">Posted</span>'):'<span class="st cold">Draft</span>';
-        return `<div class="casebtn"><span><b>${esc(m.c.title||'Untitled case')}</b><i>${m.published?(m.stake?'£'+m.stake+' stake':'no stake'):'draft'}</i></span><span class="st">${st}<br>${m.published?(b&&b.status==='open'?`<button class="btn ghost" data-act="withdraw" data-id="${mid}">Withdraw</button>`:''):`<button class="btn ghost" data-act="edit" data-id="${mid}">Edit</button> <button class="btn ghost" data-act="deldraft" data-id="${mid}">Delete</button>`}</span></div>`; }).join('')+`</div>` : `<p class="empty">No cases of your own yet.</p>`;
+        return `<div class="casebtn"><span><b>${esc(m.c.title||'Untitled case')}</b><i>${m.published?(m.stake?'£'+m.stake+' stake':'no stake'):'draft'}${b&&(b.fair||b.unfair)?' · '+(b.fair||0)+' fair, '+(b.unfair||0)+' not':''}</i></span><span class="st">${st}<br>${m.published?(b&&b.status==='open'?`<button class="btn ghost" data-act="withdraw" data-id="${mid}">Withdraw</button>`:''):`<button class="btn ghost" data-act="edit" data-id="${mid}">Edit</button> <button class="btn ghost" data-act="deldraft" data-id="${mid}">Delete</button>`}</span></div>`; }).join('')+`</div>` : `<p class="empty">No cases of your own yet.</p>`;
+  } else if(S.casesTab==='daily'){
+    if(!ONLINE) h+=offlineNoteCard();
+    else { const date=todayKey(); const cid=dailyCaseId(date); const c=getCase(cid); const played=!!S.dailyPaid[date] || (DAILY && DAILY.entries && DAILY.entries[S.pid]);
+      h+=`<div class="card-note"><h2>Today's case · ${esc(date)}</h2><p><b>${esc(c.title)}</b>. Everyone gets the same case today. Fewest questions to a right arrest wins the board. A right arrest pays £2, once a day.</p><div class="row">${played?'<span class="chip">Played today</span>':`<button class="btn" data-act="playdaily">Play today's case</button>`}</div></div>`;
+      const entries=DAILY&&DAILY.entries?Object.values(DAILY.entries):[]; entries.sort((a,b)=>(b.correct-a.correct)||(a.questions-b.questions)||(a.at-b.at));
+      h+=`<div class="eyebrow">Today's board</div>`+(entries.length?`<div class="caselist">`+entries.slice(0,10).map((e,i)=>`<div class="casebtn"><span class="n">${String(i+1).padStart(2,'0')}</span><span><b>${esc(e.name)}</b><i>${e.correct?'solved in '+e.questions+' question'+(e.questions===1?'':'s'):'got it wrong'}</i></span></div>`).join('')+`</div>`:`<p class="empty">Nobody yet today.</p>`);
+    }
   } else if(S.casesTab==='make'){
     h+=editorHTML();
   }
   el.innerHTML=h;
 }
-function offlineNote(){ return `<div class="card-note"><h2>Not connected</h2><p>The board, wagers and co-op rooms need the game opened through its claude.ai link, where other detectives share one database. This copy is playing offline; the story cases, your desk and your notebook all work.</p></div>`; }
+function offlineNoteCard(){ return `<div class="card-note"><h2>Not connected</h2><p>The board, wagers and co-op rooms need the game opened through its claude.ai link, where other detectives share one database. This copy is playing offline; the story cases, your desk and your notebook all work.</p></div>`; }
 
 /* ----- Case editor ----- */
 function field(path, label, val, opts={}){ const id='f_'+path.replace(/\W/g,'_'); return `<label class="fld"><span>${esc(label)}</span>${opts.area?`<textarea data-path="${path}" rows="${opts.rows||2}" placeholder="${esc(opts.ph||'')}">${esc(val)}</textarea>`:`<input data-path="${path}" value="${esc(val)}" placeholder="${esc(opts.ph||'')}" ${opts.type?'type="'+opts.type+'"':''}>`}</label>`; }
 function editorHTML(){
   const mid=S.editing; const m=mid&&S.made[mid];
-  if(!m){ return `<div class="card-note"><h2>Make your own mystery</h2><p>You decide who died, how, and who did it. You write four suspects and what each one says. Then other detectives try to solve it.</p><p><b>How to make a good one:</b></p><p>1. Pick the killer first.<br>2. Give the killer one slip-up: they mention something only the police know, or they say something a clue proves is a lie.<br>3. Give one innocent person a small secret too, so it isn't too easy.</p><p>You can put money on your case. If a detective gets it right, they win that much from you. If they get it wrong, you win that much from them. Or make it free.</p><div class="row"><button class="btn" data-act="newdraft">Start a new case</button><button class="btn ghost" data-act="pastecode">Paste a case code</button>${Object.keys(S.made).length?'<button class="btn ghost" data-act="ctab" data-ctab="mine">My saved cases</button>':''}</div>${ONLINE?'':`<p style="margin-top:10px">You're on the offline copy: you can write cases here, but posting them needs the <a href="${ONLINE_URL}" target="_blank" rel="noopener" style="color:var(--lamp)">online version</a>. Copy a case code from here and paste it there.</p>`}</div>`; }
+  if(!m){ return `<div class="card-note"><h2>Make your own mystery</h2><p>You decide who died, how, and who did it. You write four suspects and what each one says. Then other detectives try to solve it.</p><p><b>How to make a good one:</b></p><p>1. Pick the killer first.<br>2. Give the killer one slip-up: they mention something only the police know, or they say something a clue proves is a lie.<br>3. Give one innocent person a small secret too, so it isn't too easy.</p><p>You can put money on your case. If a detective gets it right, they win that much from you. If they get it wrong, you win that much from them. Or make it free.</p><p><b>Start from:</b></p><div class="row"><button class="btn" data-act="newdraft">A blank page</button><button class="btn ghost" data-act="newdraft" data-t="poison">A poisoning</button><button class="btn ghost" data-act="newdraft" data-t="fall">A fall</button><button class="btn ghost" data-act="newdraft" data-t="stab">A stabbing</button></div><div class="row" style="margin-top:8px"><button class="btn ghost" data-act="pastecode">Paste a case code</button>${Object.keys(S.made).length?'<button class="btn ghost" data-act="ctab" data-ctab="mine">My saved cases</button>':''}</div>${ONLINE?'':`<p style="margin-top:10px">You're on the offline copy: you can write cases here, but posting them needs the <a href="${ONLINE_URL}" target="_blank" rel="noopener" style="color:var(--lamp)">online version</a>. Copy a case code from here and paste it there.</p>`}</div>`; }
   const c=m.c; const errs=validateCase(c);
   const evOpts=(forSid)=>{ const o=[['','— nothing, they never crack —']]; c.brief.facts.forEach((f,i)=>{ if(f.trim()) o.push(['f'+i,'Secret clue '+(i+1)+': '+f.slice(0,40)]); }); c.suspects.forEach(s=>{ if(s.id===forSid) return; s.answers.forEach((a,j)=>{ if(a.trim()) o.push([s.id+':'+j,'What '+(s.name||'a suspect')+' said to Q'+(j+1)+': '+a.slice(0,36)]); }); if(s.press.keys.length&&s.press.answer) o.push([s.id+':press','What '+(s.name||'a suspect')+' admitted: '+s.press.answer.slice(0,30)]); }); return o; };
   let h=`<div class="editor">`;
@@ -711,7 +785,7 @@ function editorHTML(){
   h+=`<div class="eyebrow">1 · The crime</div>`;
   h+=field('title','Name of the case',c.title,{ph:'The Body in the Bell Tower'});
   h+=field('brief.victim','Who died? (name, age, what they did)',c.brief.victim,{ph:'Mr Fry, 50, the baker'})+field('brief.weapon','What killed them?',c.brief.weapon,{ph:'A rolling pin'})+field('brief.time','When did it happen?',c.brief.time,{ph:'Between nine and ten on Friday night'})+field('brief.place','Where did it happen?',c.brief.place,{ph:'The bakery kitchen'});
-  h+=field('brief.public','What the newspaper told everyone',c.brief.public,{area:true,ph:'"The baker was found dead in his kitchen." Leave the weapon out: only the police and the killer know it.'});
+  h+=field('brief.public','What the newspaper told everyone',c.brief.public,{area:true,ph:c._ph||'"The baker was found dead in his kitchen." Leave the weapon out: only the police and the killer know it.'});
   h+=`<p class="tip">Secret clues are things only the police know. If a suspect mentions one, or says something a clue proves wrong, the detective can catch them.</p>`;
   c.brief.facts.forEach((f,i)=>{ h+=field('brief.facts.'+i,'Secret clue '+(i+1)+' (you can leave this empty)',f,{area:true,ph:i?'':'He was hit from behind with a rolling pin. The back door was locked from inside. Leave all three empty for a case where the detective starts with nothing.'}); });
   h+=`<div class="eyebrow" style="margin-top:14px">2 · Three questions</div><p class="tip">The detective can ask every suspect these same three questions.</p>`;
@@ -731,7 +805,8 @@ function editorHTML(){
   h+=`<div class="eyebrow" style="margin-top:14px">5 · Post your case</div><label class="fld"><span>Money on it? Type 0 for free · you have £${S.money}</span><input id="stake" type="number" min="0" max="${S.money}" value="${m.stake||0}"></label><p class="tip">If a detective gets it right, they win this much from you. If they get it wrong, you win this much from them. The money comes out of your purse when you post, and comes back if you take the case down.</p>`;
   h+= errs.length? `<p class="hintline">Still to fill in (tap one to jump to it): ${errs.slice(0,6).map(e=>`<button class="goto" data-act="goto" data-path="${esc(e.path)}">${esc(e.label)}</button>`).join(', ')}${errs.length>6?', and '+(errs.length-6)+' more':''}</p>` : `<p class="hintline">All done. Post it when you're happy with it.</p>`;
   if(!ONLINE) h+=`<div class="card-note" style="margin:0 0 12px"><h2>This copy can't post</h2><p>You're on the offline version of the game, so there is no board to post to. Your case is saved on this device.</p><p>To post it: tap <b>Copy case code</b>, open the online version, go to Cases → Make → <b>Paste a case code</b>, and post it there.</p><div class="row"><button class="btn" data-act="copycode" data-id="${mid}">Copy case code</button><a class="btn ghost" href="${ONLINE_URL}" target="_blank" rel="noopener">Open the online version</a></div></div>`;
-  h+=`<div class="row" style="margin-top:8px">${ONLINE?`<button class="btn" data-act="publish" data-id="${mid}" ${errs.length?'disabled':''}>Post to the board</button>`:''}<button class="btn ghost" data-act="closeeditor">Save and close</button>${ONLINE?`<button class="btn ghost" data-act="copycode" data-id="${mid}">Copy case code</button>`:''}</div><p class="hintline" style="margin-top:8px">Everything saves as you type. A case code lets you move a case to another device or share it with a friend.</p></div>`;
+  if(!errs.length && !m.tested) h+=`<p class="tip">Before you post it, play it once yourself as the detective. That catches clues that don't line up.</p>`;
+  h+=`<div class="row" style="margin-top:8px"><button class="btn${m.tested?' ghost':''}" data-act="testcase" data-id="${mid}" ${errs.length?'disabled':''}>${m.tested?'Test it again':'Test it'}</button>${ONLINE?`<button class="btn" data-act="publish" data-id="${mid}" ${errs.length||!m.tested?'disabled':''}>Post to the board</button>`:''}<button class="btn ghost" data-act="closeeditor">Save and close</button>${ONLINE?`<button class="btn ghost" data-act="copycode" data-id="${mid}">Copy case code</button>`:''}</div>${ONLINE&&!errs.length&&!m.tested?'<p class="hintline">Posting unlocks after one test play.</p>':''}<p class="hintline" style="margin-top:8px">Everything saves as you type. A case code lets you move a case to another device or share it with a friend.</p></div>`;
   return h;
 }
 function setPath(obj, path, val){ const parts=path.split('.'); let o=obj; for(let i=0;i<parts.length-1;i++){ o=o[parts[i]]; } o[parts[parts.length-1]]=val; }
@@ -744,7 +819,7 @@ function renderNotebook(){
   h+=`<textarea class="nb" data-note="${esc(page)}" placeholder="${page==='general'?'Anything. Names that keep coming up. Grudges.':'Who was where. Who said what. What doesn\'t add up.'}">${esc(S.notes[page]||'')}</textarea>`;
   h+=`<p class="hintline" style="margin-top:12px">Nothing is written here for you. Answers are shown once, on the suspect's page, and then they're gone.${easy()?' (Easier mode is on: answers stay.)':''}</p>`;
   const done=Object.keys(S.notes).filter(k=>k!=='general'&&k!==c.id&&S.notes[k]&&S.notes[k].trim());
-  if(done.length) h+=`<div class="eyebrow" style="margin-top:18px">Old pages</div>`+done.map(k=>{ const cc=getCase(k); return `<div class="stm"><b>${esc(cc?cc.title:k)}</b><div style="font-family:var(--nbfont);font-size:16px;white-space:pre-wrap">${esc(S.notes[k])}</div></div>`; }).join('');
+  if(done.length) h+=`<div class="eyebrow" style="margin-top:18px">Old pages</div>`+done.map(k=>{ const cc=getCase(k); return `<details class="oldpage"><summary>${esc(cc?cc.title:k)}</summary><div style="font-family:var(--nbfont);font-size:16px;white-space:pre-wrap;padding:6px 0 4px">${esc(S.notes[k])}</div></details>`; }).join('');
   el.innerHTML=h;
 }
 function renderShop(){
@@ -876,7 +951,17 @@ document.addEventListener('click',e=>{
   else if(act==='closesheet'){ closeSheet(); }
   else if(act==='opencase'){ if(inCoop()){ toast('Leave the co-op room first.'); return; } if(unlocked(a.dataset.id) && getCase(a.dataset.id)){ SFX.play('paper'); S.caseId=a.dataset.id; S.tab='desk'; closeSheet(); render(); window.scrollTo(0,0); } }
   else if(act==='take'){ takeCase(a.dataset.id); }
-  else if(act==='newdraft'){ const c=blankCase(); const mid='m'+rid(6); S.made[mid]={c, stake:0, published:null, createdAt:Date.now()}; S.editing=mid; save(); render(); }
+  else if(act==='newdraft'){ const c=blankCase(a.dataset.t); const mid='m'+rid(6); S.made[mid]={c, stake:0, published:null, tested:false, createdAt:Date.now()}; S.editing=mid; save(); render(); window.scrollTo(0,0); }
+  else if(act==='testcase'){ const mid=a.dataset.id; const m=S.made[mid]; if(!m||validateCase(m.c).length) return; S.testing={mid, cid:m.c.id}; delete S.inv[m.c.id+'#test']; S.caseId=m.c.id; S.tab='desk'; save(); SFX.play('paper'); render(); window.scrollTo(0,0); }
+  else if(act==='endtest'){ const mid=S.testing&&S.testing.mid; S.testing=null; S.caseId=D.cases[0].id; S.tab='cases'; S.casesTab='make'; S.editing=mid; save(); render(); }
+  else if(act==='practice'){ S.practice=a.dataset.id; delete S.inv[a.dataset.id+'#practice']; S.caseId=a.dataset.id; S.tab='desk'; closeSheet(); save(); render(); window.scrollTo(0,0); }
+  else if(act==='endpractice'){ const cid=S.practice; S.practice=null; delete S.inv[cid+'#practice']; save(); render(); }
+  else if(act==='playdaily'){ const date=todayKey(); const cid=dailyCaseId(date); S.daily={cid,date}; delete S.inv[cid+'#daily'+date]; S.caseId=cid; S.tab='desk'; save(); render(); window.scrollTo(0,0); }
+  else if(act==='enddaily'){ const d=S.daily; S.daily=null; if(d) delete S.inv[d.cid+'#daily'+d.date]; save(); render(); }
+  else if(act==='hints'){ openHints(); }
+  else if(act==='buyhint'){ const c=cur(); const list=hintsFor(c); const used=hintsUsed(c); const next=list[used]; if(!next||S.money<next.cost) return; addMoney(-next.cost); S.hints[invKey(c.id)]=used+1; SFX.play('coin'); save(); openHints(); render(); }
+  else if(act==='rate'){ const cid=a.dataset.id; if(!ONLINE||S.rated&&S.rated[cid]) return; S.rated=S.rated||{}; S.rated[cid]=true; save(); const f=a.dataset.v; db.doc('cases/'+cid).get().then(sn=>{ if(!sn.exists) return; const d=sn.data(); const u={}; u[f]=(d[f]||0)+1; return db.doc('cases/'+cid).update(u); }).then(()=>toast('Thanks. The maker will see it.')).catch(()=>{}); a.parentElement.innerHTML='<span class="chip">Thanks</span>'; }
+  else if(act==='dismissoffline'){ S.offlineNoteSeen=true; save(); render(); }
   else if(act==='edit'){ S.editing=a.dataset.id; S.casesTab='make'; render(); window.scrollTo(0,0); }
   else if(act==='deldraft'){ const id=a.dataset.id; askSheet({title:'Delete this case?', body:'It goes for good. Copy its case code first if you might want it back.', okLabel:'Delete', danger:true, onOk:()=>{ delete S.made[id]; if(S.editing===id) S.editing=null; save(); closeSheet(); render(); }}); }
   else if(act==='goto'){ const path=a.dataset.path; const el=document.querySelector(`.editor [data-path="${path}"]`); if(el){ el.scrollIntoView({behavior:'smooth', block:'center'}); const box=el.closest('.fld')||el.closest('.eyebrow')||el; box.classList.add('flash'); setTimeout(()=>box.classList.remove('flash'),1600); setTimeout(()=>{ try{ el.focus({preventScroll:true}); }catch(e){} },350); } }
@@ -901,7 +986,7 @@ document.addEventListener('input',e=>{
   const p=e.target.dataset && e.target.dataset.path; if(p && S.editing && S.made[S.editing]){
     const c=S.made[S.editing].c; let v=e.target.value;
     if(p.endsWith('press.keys')) v = v? [v] : [];
-    setPath(c,p,v); save();
+    setPath(c,p,v); S.made[S.editing].tested=false; save();
     if(e.target.tagName==='SELECT' || e.target.type==='radio') render();
   }
 });

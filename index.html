@@ -190,6 +190,9 @@ textarea.nb{width:100%;min-height:260px;resize:vertical;border:0;border-top:1px 
 .editor .eyebrow{color:var(--pencil);display:flex;justify-content:space-between;align-items:center}
 .editor .hintline{color:#7a3b2a}
 .editor .tip{font-size:14px;color:var(--pencil);margin:-2px 0 10px;line-height:1.35}
+.goto{color:#7a3b2a;text-decoration:underline;text-underline-offset:2px;font:inherit;font-style:italic}
+.flash{animation:flash 1.6s ease}
+@keyframes flash{0%,60%{box-shadow:0 0 0 3px var(--lamp);background:var(--lamp-soft)}100%{box-shadow:none;background:transparent}}
 .fld{display:block;margin:0 0 10px}
 .fld span{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--pencil);margin-bottom:3px}
 .fld input,.fld textarea,.fld select{width:100%;border:1px solid var(--paper-shadow);background:#f6efdc;color:var(--ink);font:400 16px var(--sans);padding:8px 10px;border-radius:0}
@@ -569,19 +572,21 @@ function blankCase(){
     suspects:[0,1,2,3].map(i=>({id:sid(), name:'', age:'', job:'', color:['#6b4a3a','#3f5560','#7a6a2e','#5a3f5e'][i], look:'', note:'', answers:['','',''], press:{keys:[], answer:'', miss:''}})),
     culprit:'', solution:'', arrest:''};
 }
+function blank4(c){ const s=c.suspects[3]; return !!s && !String(s.name||'').trim() && !s.answers.some(a=>String(a||'').trim()) && c.culprit!==s.id; }
 function validateCase(c){
-  const errs=[]; const need=(v,l)=>{ if(!String(v||'').trim()) errs.push(l); };
-  need(c.title,'a name for the case'); need(c.brief.victim,'who died'); need(c.brief.weapon,'what killed them'); need(c.brief.time,'when it happened'); need(c.brief.place,'where it happened'); need(c.brief.public,'what the newspaper said');
-  if(!c.brief.facts.some(f=>f.trim())) errs.push('at least one secret clue');
-  c.questions.forEach((q,i)=>need(q,'question '+(i+1)));
-  c.suspects.forEach((s,i)=>{ need(s.name,'suspect '+(i+1)+"'s name"); s.answers.forEach((a,j)=>need(a,(s.name||'suspect '+(i+1))+"'s answer to question "+(j+1))); if(s.press.keys.length) need(s.press.answer,(s.name||'suspect '+(i+1))+(s.id===c.culprit?"'s confession":"'s secret")); });
-  if(!c.suspects.some(s=>s.id===c.culprit)) errs.push('ticking who the killer is');
+  const errs=[]; const need=(v,l,path)=>{ if(!String(v||'').trim()) errs.push({label:l, path}); };
+  need(c.title,'a name for the case','title'); need(c.brief.victim,'who died','brief.victim'); need(c.brief.weapon,'what killed them','brief.weapon'); need(c.brief.time,'when it happened','brief.time'); need(c.brief.place,'where it happened','brief.place'); need(c.brief.public,'what the newspaper said','brief.public');
+  if(!c.brief.facts.some(f=>f.trim())) errs.push({label:'at least one secret clue', path:'brief.facts.0'});
+  c.questions.forEach((q,i)=>need(q,'question '+(i+1),'questions.'+i));
+  c.suspects.forEach((s,i)=>{ if(i===3 && blank4(c)) return; need(s.name,'suspect '+(i+1)+"'s name",'suspects.'+i+'.name'); s.answers.forEach((a,j)=>need(a,(s.name||'suspect '+(i+1))+"'s answer to question "+(j+1),'suspects.'+i+'.answers.'+j)); if(s.press.keys.length) need(s.press.answer,(s.name||'suspect '+(i+1))+(s.id===c.culprit?"'s confession":"'s secret"),'suspects.'+i+'.press.answer'); });
+  if(!c.suspects.some(s=>s.id===c.culprit)) errs.push({label:'ticking who the killer is', path:'culprit'});
   return errs;
 }
-function cleanCase(c){ // trim empty facts, default texts
-  const x=JSON.parse(JSON.stringify(c)); x.brief.facts=x.brief.facts.filter(f=>f.trim()); x.suspects.forEach(s=>{ s.age=String(s.age||'?'); if(!s.press.miss) s.press.miss='Nothing to say to that.'; if(!s.look) s.look='No description given.'; if(!s.note) s.note=''; if(s.press.keys.length && s.id!==x.culprit) s.press.secret=true; }); if(!x.solution) x.solution='The maker left no explanation. Draw your own.'; if(!x.arrest) x.arrest=''; return x; }
+function cleanCase(c){ // trim empty facts, default texts, drop an unused 4th suspect
+  const x=JSON.parse(JSON.stringify(c)); x.brief.facts=x.brief.facts.filter(f=>f.trim());
+  if(blank4(x)){ const gone=x.suspects[3].id; x.suspects=x.suspects.slice(0,3); x.suspects.forEach(s=>{ s.press.keys=s.press.keys.filter(k=>!k.startsWith(gone+':')); if(!s.press.keys.length) s.press.answer=''; }); } x.suspects.forEach(s=>{ s.age=String(s.age||'?'); if(!s.press.miss) s.press.miss='Nothing to say to that.'; if(!s.look) s.look='No description given.'; if(!s.note) s.note=''; if(s.press.keys.length && s.id!==x.culprit) s.press.secret=true; }); if(!x.solution) x.solution='The maker left no explanation. Draw your own.'; if(!x.arrest) x.arrest=''; return x; }
 async function publishCase(mid, stake){
-  const m=S.made[mid]; if(!m||m.published) return; const errs=validateCase(m.c); if(errs.length){ toast('Missing: '+errs.slice(0,3).join(', ')+(errs.length>3?'…':'')); return; }
+  const m=S.made[mid]; if(!m||m.published) return; const errs=validateCase(m.c); if(errs.length){ toast('Missing: '+errs.slice(0,3).map(e=>e.label).join(', ')+(errs.length>3?'…':'')); return; }
   if(!ONLINE){ toast('Publishing needs the online version.'); return; }
   stake=Math.max(0,Math.floor(+stake||0)); if(stake>S.money){ toast('You can\'t cover a £'+stake+' stake.'); return; }
   const c=cleanCase(m.c); const doc={id:c.id, title:c.title, maker:S.pid, makerName:myName(), stake, status:'open', createdAt:Date.now(), caseData:c, solvedBy:null, solvedByName:null, correct:null, solvedAt:null};
@@ -819,7 +824,9 @@ function editorHTML(){
   if(!m){ return `<div class="card-note"><h2>Make your own mystery</h2><p>You decide who died, how, and who did it. You write four suspects and what each one says. Then other detectives try to solve it.</p><p><b>How to make a good one:</b></p><p>1. Pick the killer first.<br>2. Give the killer one slip-up: they mention something only the police know, or they say something a clue proves is a lie.<br>3. Give one innocent person a small secret too, so it isn't too easy.</p><p>You can put money on your case. If a detective gets it right, they win that much from you. If they get it wrong, you win that much from them. Or make it free.</p><div class="row"><button class="btn" data-act="newdraft">Start a new case</button>${Object.keys(S.made).length?'<button class="btn ghost" data-act="ctab" data-ctab="mine">My saved cases</button>':''}</div></div>`; }
   const c=m.c; const errs=validateCase(c);
   const evOpts=(forSid)=>{ const o=[['','— nothing, they never crack —']]; c.brief.facts.forEach((f,i)=>{ if(f.trim()) o.push(['f'+i,'Secret clue '+(i+1)+': '+f.slice(0,40)]); }); c.suspects.forEach(s=>{ if(s.id===forSid) return; s.answers.forEach((a,j)=>{ if(a.trim()) o.push([s.id+':'+j,'What '+(s.name||'a suspect')+' said to Q'+(j+1)+': '+a.slice(0,36)]); }); if(s.press.keys.length&&s.press.answer) o.push([s.id+':press','What '+(s.name||'a suspect')+' admitted: '+s.press.answer.slice(0,30)]); }); return o; };
-  let h=`<div class="editor"><div class="eyebrow">1 · The crime</div>`;
+  let h=`<div class="editor">`;
+  if(errs.length) h+=`<p class="hintline" style="margin-top:0">Still to fill in (tap one to jump to it): ${errs.slice(0,6).map(e=>`<button class="goto" data-act="goto" data-path="${esc(e.path)}">${esc(e.label)}</button>`).join(', ')}${errs.length>6?', and '+(errs.length-6)+' more':''}</p>`;
+  h+=`<div class="eyebrow">1 · The crime</div>`;
   h+=field('title','Name of the case',c.title,{ph:'The Body in the Bell Tower'});
   h+=field('brief.victim','Who died? (name, age, what they did)',c.brief.victim,{ph:'Mr Fry, 50, the baker'})+field('brief.weapon','What killed them?',c.brief.weapon,{ph:'A rolling pin'})+field('brief.time','When did it happen?',c.brief.time,{ph:'Between nine and ten on Friday night'})+field('brief.place','Where did it happen?',c.brief.place,{ph:'The bakery kitchen'});
   h+=field('brief.public','What the newspaper told everyone',c.brief.public,{area:true,ph:'"The baker was found dead in his kitchen." Leave the weapon out: only the police and the killer know it.'});
@@ -829,8 +836,9 @@ function editorHTML(){
   c.questions.forEach((q,i)=>{ h+=field('questions.'+i,'Question '+(i+1),q); });
   c.suspects.forEach((s,i)=>{
     const killer=c.culprit===s.id;
-    h+=`<div class="eyebrow" style="margin-top:14px">${i===0?'3 · ':''}Suspect ${i+1} <label class="cul"><input type="radio" name="culprit" data-path="culprit" value="${s.id}" ${killer?'checked':''}> this is the killer</label></div>`;
-    if(i===0) h+=`<p class="tip">Four suspects. Tick the one who really did it. Only one can be the killer.</p>`;
+    h+=`<div class="eyebrow" style="margin-top:14px">${i===0?'3 · ':''}Suspect ${i+1}${i===3?' (optional)':''} <label class="cul"><input type="radio" name="culprit" data-path="culprit" value="${s.id}" ${killer?'checked':''}> this is the killer</label></div>`;
+    if(i===0) h+=`<p class="tip">Three or four suspects. Tick the one who really did it. Only one can be the killer.</p>`;
+    if(i===3) h+=`<p class="tip">Three suspects are enough. Leave this one blank if you don't need a fourth.</p>`;
     h+=field('suspects.'+i+'.name','Name',s.name,{ph:'Mrs Crumb'})+field('suspects.'+i+'.age','Age',s.age,{ph:'40'})+field('suspects.'+i+'.job','Their job, or how they knew the victim',s.job,{ph:'His wife / the shop boy / a customer'})+field('suspects.'+i+'.look','What they look like',s.look,{ph:'Tall, nervous, flour on her sleeves'})+field('suspects.'+i+'.note','What the police already know about them',s.note,{area:true,ph:'Owed him money. Was seen nearby that night.'});
     s.answers.forEach((a,j)=>{ h+=field('suspects.'+i+'.answers.'+j,'Their answer to question '+(j+1)+(c.questions[j]?': "'+c.questions[j].slice(0,40)+'"':''),a,{area:true,ph:j===0?'I was at home in bed.':''}); });
     h+=`<label class="fld"><span>${killer?'What catches the killer out?':'What proves this person is hiding something? (leave it if they are just honest)'}</span><select data-path="suspects.${i}.press.keys">${evOpts(s.id).map(([v,l])=>`<option value="${esc(v)}" ${s.press.keys[0]===v?'selected':''}>${esc(l)}</option>`).join('')}</select></label>`;
@@ -839,7 +847,7 @@ function editorHTML(){
   });
   h+=`<div class="eyebrow" style="margin-top:14px">4 · The ending</div>`+field('solution','Explain how a clever detective could have worked it out (shown after the arrest)',c.solution,{area:true,rows:3,ph:'Mrs Crumb said she never went in the kitchen, but she knew about the rolling pin, and the newspaper never mentioned it.'})+field('arrest','One last sentence for the ending (you can skip this)',c.arrest,{ph:'She cried all the way to the cells.'});
   h+=`<div class="eyebrow" style="margin-top:14px">5 · Post your case</div><label class="fld"><span>Money on it? Type 0 for free · you have £${S.money}</span><input id="stake" type="number" min="0" max="${S.money}" value="${m.stake||0}"></label><p class="tip">If a detective gets it right, they win this much from you. If they get it wrong, you win this much from them. The money comes out of your purse when you post, and comes back if you take the case down.</p>`;
-  h+= errs.length? `<p class="hintline">Still to fill in: ${esc(errs.slice(0,4).join(', '))}${errs.length>4?'…':''}</p>` : `<p class="hintline">All done. Post it when you're happy with it.</p>`;
+  h+= errs.length? `<p class="hintline">Still to fill in (tap one to jump to it): ${errs.slice(0,6).map(e=>`<button class="goto" data-act="goto" data-path="${esc(e.path)}">${esc(e.label)}</button>`).join(', ')}${errs.length>6?', and '+(errs.length-6)+' more':''}</p>` : `<p class="hintline">All done. Post it when you're happy with it.</p>`;
   h+=`<div class="row" style="margin-top:8px"><button class="btn" data-act="publish" data-id="${mid}" ${errs.length||!ONLINE?'disabled':''}>Post to the board</button><button class="btn ghost" data-act="closeeditor">Save and close</button></div>${ONLINE?'':'<p class="hintline">Your case is saved on this device. Posting needs the online version.</p>'}<p class="hintline" style="margin-top:8px">Everything saves as you type.</p></div>`;
   return h;
 }
@@ -972,6 +980,7 @@ document.addEventListener('click',e=>{
   else if(act==='newdraft'){ const c=blankCase(); const mid='m'+rid(6); S.made[mid]={c, stake:0, published:null, createdAt:Date.now()}; S.editing=mid; save(); render(); }
   else if(act==='edit'){ S.editing=a.dataset.id; S.casesTab='make'; render(); window.scrollTo(0,0); }
   else if(act==='deldraft'){ if(confirm('Delete this draft?')){ delete S.made[a.dataset.id]; if(S.editing===a.dataset.id) S.editing=null; save(); render(); } }
+  else if(act==='goto'){ const path=a.dataset.path; const el=document.querySelector(`.editor [data-path="${path}"]`); if(el){ el.scrollIntoView({behavior:'smooth', block:'center'}); const box=el.closest('.fld')||el.closest('.eyebrow')||el; box.classList.add('flash'); setTimeout(()=>box.classList.remove('flash'),1600); setTimeout(()=>{ try{ el.focus({preventScroll:true}); }catch(e){} },350); } }
   else if(act==='closeeditor'){ S.editing=null; S.casesTab='mine'; save(); render(); }
   else if(act==='publish'){ publishCase(a.dataset.id, $('#stake')&&$('#stake').value); }
   else if(act==='withdraw'){ withdrawCase(a.dataset.id); }

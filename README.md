@@ -17,7 +17,7 @@ have known, an alibi that contradicts the file, a register entry, a physical des
 
 ## Play
 
-Open `index.html` from any static web server (it needs `icons/` beside it):
+Open `index.html` from any static web server (it needs `icons/` and `audio/` beside it):
 
 ```
 python -m http.server 8766
@@ -41,7 +41,13 @@ Everything lives in `index.html`. Cases, suspects, answers, decor and notebook h
 JSON block at the top of the file, so new cases are data, not code. `make_icons.py` redraws
 the icon set in `icons/`; `manifest.json` makes it installable.
 
+## Sound
+
+Effects (paper, pen scratch, stamp, cell door, coins, drawer) and a rain-and-clock ambience are
+synthesised in the browser with the Web Audio API; no files. The speaker button in the header
+opens the sound settings. Effects are on by default, ambience and music are off.
+
 ## Music
 
-No tracks ship yet. Drop files in `audio/` and list them in the `TRACKS` array in
-`index.html`; the ♪ button and desk music bar appear automatically, off by default.
+`audio/theme-1.m4a` and `theme-2.m4a` are the theme tracks, loudness-normalised AAC, listed in
+the `TRACKS` array in `index.html`. Open `index.html` from a server with `audio/` beside it.

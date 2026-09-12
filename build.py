@@ -2,7 +2,8 @@
 
 The repo version references audio/theme-N.m4a so it plays from GitHub Pages or any
 static host. The bundled version is a single file for hosts that block external media
-(for example the claude.ai artifact sandbox).
+(for example the claude.ai artifact sandbox). The artifact uses the claude.ai runtime
+for online play, so the Firestore config tag is dropped from the bundle.
 """
 import base64, pathlib, re
 
@@ -15,8 +16,7 @@ def inline(m):
     return f"data:audio/mp4;base64,{b64}"
 
 out = re.sub(r"audio/theme-\d+\.m4a", inline, src)
-out = out.replace('<script src="firebase-config.js"></script>
-', '')  # the artifact uses the claude.ai runtime, not Firestore
+out = out.replace('<script src="firebase-config.js"></script>\n', '')
 dist = root / "dist"
 dist.mkdir(exist_ok=True)
 (dist / "index.html").write_text(out, encoding="utf-8")

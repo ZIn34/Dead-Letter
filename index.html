@@ -178,6 +178,30 @@ textarea.nb{width:100%;min-height:260px;resize:vertical;border:0;border-top:1px 
 .handrow .buy.inuse{background:var(--lamp);border-color:#f0d27a}
 .handrow .buy[disabled]{opacity:.45}
 
+
+/* Online: subtabs, editor, co-op */
+.subtabs{display:flex;gap:2px;margin-bottom:14px;border-bottom:1px solid var(--brass-dim)}
+.subtabs button{flex:1;padding:8px 4px;font:400 15px var(--fell);color:var(--brass-dim);letter-spacing:.06em;text-transform:uppercase;border-bottom:2px solid transparent;margin-bottom:-1px}
+.subtabs button.on{color:var(--brass);border-bottom-color:var(--brass)}
+.empty{color:var(--brass-dim);font-style:italic;padding:8px 2px}
+.casebtn .st .btn{padding:7px 10px;font-size:13px}
+.casebtn .st .chip{font-size:12px}
+.editor{background:var(--paper);color:var(--ink);padding:16px 14px 18px;box-shadow:0 10px 24px rgba(0,0,0,.35)}
+.editor .eyebrow{color:var(--pencil);display:flex;justify-content:space-between;align-items:center}
+.editor .hintline{color:#7a3b2a}
+.fld{display:block;margin:0 0 10px}
+.fld span{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--pencil);margin-bottom:3px}
+.fld input,.fld textarea,.fld select{width:100%;border:1px solid var(--paper-shadow);background:#f6efdc;color:var(--ink);font:400 16px var(--sans);padding:8px 10px;border-radius:0}
+.fld textarea{resize:vertical;min-height:48px;font-family:var(--hand);font-size:19px;line-height:1.25}
+.fld input:focus,.fld textarea:focus,.fld select:focus{outline:2px solid var(--lamp);outline-offset:1px}
+#sheet .fld input{background:#fff}
+.cul{font:400 13px var(--sans);letter-spacing:.04em;text-transform:none;color:var(--red);display:flex;align-items:center;gap:6px}
+.cul input{accent-color:var(--red)}
+.code-in{width:110px;border:1px solid var(--brass-dim);background:rgba(0,0,0,.25);color:var(--lamp);font:400 22px var(--fell);letter-spacing:.3em;text-align:center;padding:8px 6px;text-transform:uppercase}
+#sheet .code-in{background:#fff;color:var(--ink)}
+.card-note.coop{border-color:var(--lamp)}
+.card-note.coop .code{font:400 22px var(--fell);letter-spacing:.3em;color:var(--lamp);margin-left:6px}
+
 /* Tabs */
 nav.tabs{position:fixed;left:50%;bottom:0;transform:translateX(-50%);width:100%;max-width:480px;display:grid;grid-template-columns:repeat(4,1fr);background:#141a17;border-top:1px solid var(--brass-dim);z-index:10;padding-bottom:env(safe-area-inset-bottom)}
 nav.tabs button{padding:12px 4px 10px;font:400 14px var(--fell);letter-spacing:.1em;text-transform:uppercase;color:var(--brass-dim);position:relative}
@@ -393,42 +417,53 @@ nav.tabs button.pulse{color:var(--lamp);text-shadow:0 0 8px var(--lamp)}
 const D = JSON.parse(document.getElementById('game-data').textContent);
 const C = Object.fromEntries(D.cases.map(c=>[c.id,c]));
 const R = D.rules;
-const KEY='deadletter.v4';
+const KEY='deadletter.v5';
+const rid=(n=10)=>Array.from(crypto.getRandomValues(new Uint8Array(n))).map(b=>'abcdefghijkmnpqrstuvwxyz23456789'[b%32]).join('');
 
-const fresh=()=>({tab:'desk', money:0, solved:{}, inv:{}, caseId:D.cases[0].id, owned:[], hand:'caveat', notebook:'', intro:true, tut:0, music:false, track:0});
+const fresh=()=>({tab:'desk', money:0, solved:{}, inv:{}, caseId:D.cases[0].id, owned:[], hand:'caveat', notebook:'', intro:true, tut:0, music:false, track:0,
+  pid:'p'+rid(10), name:'', made:{}, taken:{}, coop:null, coopApplied:{}, casesTab:'files', editing:null});
 let S=load();
-function load(){ try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s && s.caseId && C[s.caseId]) return s; }catch(e){} return fresh(); }
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+let db=null, room=null, ONLINE=false, BOARD=[], COOP=null, unsubCoop=null, PEERS=[], netNote='';
+function load(){ try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s && s.caseId){ if(!s.pid) s.pid='p'+rid(10); s.made=s.made||{}; s.taken=s.taken||{}; s.coopApplied=s.coopApplied||{}; return s; } }catch(e){} return fresh(); }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} try{ pushSave(); }catch(e){} }
 const $=s=>document.querySelector(s);
-function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-const cur=()=>C[S.caseId];
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 const idx=id=>D.cases.findIndex(c=>c.id===id);
-function unlocked(id){ const i=idx(id); return i===0 || !!S.solved[D.cases[i-1].id]; }
-function inv(cid){ return S.inv[cid] || (S.inv[cid]={asked:{}, presses:[], revealed:{}, broken:false}); }
-function nAsked(cid){ return Object.values(inv(cid).asked).reduce((a,l)=>a+l.length,0); }
+const isStory=id=>!!C[id];
+function getCase(id){ if(C[id]) return C[id]; if(COOP && COOP.caseId===id && COOP.caseData) return COOP.caseData; if(S.taken[id]) return S.taken[id].c; return null; }
+function cur(){ if(COOP && COOP.caseData) return COOP.caseData; return getCase(S.caseId) || (S.caseId=D.cases[0].id, C[S.caseId]); }
+function unlocked(id){ if(!isStory(id)) return true; const i=idx(id); return i===0 || !!S.solved[D.cases[i-1].id]; }
+function localInv(cid){ return S.inv[cid] || (S.inv[cid]={asked:{}, presses:[], revealed:{}, broken:false}); }
+function inv(cid){ if(COOP && COOP.caseId===cid) return COOP.inv || {asked:{},presses:[],revealed:{},broken:false}; return localInv(cid); }
+function nAsked(cid){ return Object.values(inv(cid).asked||{}).reduce((a,l)=>a+l.length,0); }
 function qLeft(cid){ return Math.max(0, R.questions - nAsked(cid)); }
-function pLeft(cid){ return Math.max(0, R.presses - inv(cid).presses.length); }
-function nextCase(){ const i=idx(S.caseId); return D.cases[i+1]||null; }
+function pLeft(cid){ return Math.max(0, R.presses - (inv(cid).presses||[]).length); }
+function nextCase(){ if(!isStory(S.caseId)) return null; const i=idx(S.caseId); return D.cases[i+1]||null; }
 function handOf(){ return D.hands.find(x=>x.id===S.hand)||D.hands[0]; }
 function sus(c,sid){ return c.suspects.find(x=>x.id===sid); }
+function myName(){ return S.name || 'Detective '+S.pid.slice(1,5).toUpperCase(); }
+function inCoop(){ return !!(S.coop && COOP); }
 
 /* Evidence available to press with: facts, heard statements, reveals */
 function evidence(c){
   const I=inv(c.id); const out=[];
   c.brief.facts.forEach((f,i)=>out.push({id:'f'+i, kind:'fact', who:'Case file', text:f}));
-  c.suspects.forEach(s=>{ (I.asked[s.id]||[]).slice().sort().forEach(qi=>out.push({id:s.id+':'+qi, kind:'said', who:s.name, text:s.answers[qi]})); if(I.revealed[s.id]) out.push({id:s.id+':press', kind:'press', who:s.name+', pressed', text:s.press.answer}); });
+  c.suspects.forEach(s=>{ ((I.asked||{})[s.id]||[]).slice().sort().forEach(qi=>out.push({id:s.id+':'+qi, kind:'said', who:s.name, text:s.answers[qi]})); if((I.revealed||{})[s.id]) out.push({id:s.id+':press', kind:'press', who:s.name+', pressed', text:s.press.answer}); });
   return out;
 }
 function evText(c,id){ const e=evidence(c).find(x=>x.id===id); return e? e.who+': '+e.text : id; }
+
+/* ---------- Money ---------- */
+function addMoney(d){ S.money=Math.max(0, S.money+d); save(); pushPlayer(); }
 
 /* ---------- Tutorial ---------- */
 const first=D.cases[0].id;
 const TUT=[
  {t:"A case file. Read it twice: what the Gazette printed, and what only this office knows. Then tap a suspect.", done:s=>!!s.tutOpened},
  {t:"You get <b>six questions</b> for four people, so choose. Their descriptions and notes are there to help you decide whom to ask what.", done:s=>nAsked(first)>=2||!!s.solved[first]},
- {t:"When something a suspect says doesn't square with the file, or with what someone else said, <b>press</b> them with it. Two presses a case. A press can break a killer, or make an honest liar admit what they were really hiding.", done:s=>inv(first).presses.length>=1||!!s.solved[first]},
+ {t:"When something a suspect says doesn't square with the file, or with what someone else said, <b>press</b> them with it. Two presses a case. A press can break a killer, or make an honest liar admit what they were really hiding.", done:s=>(localInv(first).presses.length>=1)||!!s.solved[first]},
  {t:"Accuse from the suspect's page when you're sure. A wrong arrest goes cold with no pay. A right one pays, and £2 more if you broke them first: the magistrate likes a confession.", done:s=>!!s.solved[first]},
- {t:"That's the job. A cold case is not the end of it: the one who walked turns up in later files. The <b>Cases</b> board keeps the score.", done:s=>!!s.tutAck, ack:true}
+ {t:"That's the job. Cold cases follow you into later files. The <b>Cases</b> board keeps the score, and it's also where other detectives post cases of their own, for stakes, and where you can open a co-op room.", done:s=>!!s.tutAck, ack:true}
 ];
 function advanceTut(){ if(S.tut===null||S.tut===undefined) return; while(S.tut<TUT.length && TUT[S.tut].done(S)) S.tut++; if(S.tut>=TUT.length) S.tut=null; }
 function coachHTML(){ if(S.intro||S.tut===null||S.tut===undefined) return ''; const st=TUT[S.tut]; if(!st) return ''; return `<div class="coach"><small>The Inspector</small><p>${st.t}</p><div class="row">${st.ack?'<button class="ok" data-act="ack">Understood</button>':''}<button data-act="skiptut">Skip the lesson</button></div></div>`; }
@@ -445,6 +480,175 @@ const ART={
  typewriter:`<svg viewBox="0 0 80 56"><rect x="24" y="2" width="32" height="20" fill="#efe6d2" stroke="#b8925a" stroke-width="1"/><rect x="8" y="22" width="64" height="26" rx="4" fill="#2a2320" stroke="#b8925a" stroke-width="1.5"/><rect x="4" y="46" width="72" height="8" rx="2" fill="#3a2a1e" stroke="#b8925a" stroke-width="1"/>${[0,1,2,3,4,5,6].map(i=>`<circle cx="${18+i*7.5}" cy="32" r="2" fill="#b8925a"/><circle cx="${22+i*7.5}" cy="39" r="2" fill="#b8925a"/>`).join('')}</svg>`
 };
 
+/* ---------- Online (claude.ai artifact runtime) ---------- */
+async function initNet(){
+  try{
+    if(!(window.claude && typeof window.claude.use==='function')){ netNote='offline'; return; }
+    db=await window.claude.use('db');
+    if(!db){ netNote='offline'; render(); return; }
+    ONLINE=true; netNote='';
+    await syncPlayer();
+    db.collection('cases').orderBy('createdAt','desc').limit(60).onSnapshot(snap=>{ BOARD=snap.docs.map(d=>d.data()).filter(Boolean); checkLost(); render(); }, e=>{ netNote='board '+e.code; render(); });
+    watchPlayer();
+    if(S.coop) joinCoop(S.coop.code, true);
+    room=await window.claude.use('room');
+    if(room){ room.onPeers(ch=>{ PEERS=ch.peers.slice(); renderCoopPeers(); }); pushPresence(); }
+    render();
+  }catch(e){ netNote='offline'; render(); }
+}
+async function syncPlayer(){
+  const ref=db.doc('players/'+S.pid); const snap=await ref.get();
+  if(snap.exists){ const d=snap.data(); if(S.account && d.save) adoptSave(d.save); if(typeof d.money==='number') S.money=d.money; if(d.name && !S.name) S.name=d.name; save(); if(d.name!==myName()) pushPlayer(); }
+  else await ref.set({pid:S.pid, name:myName(), money:S.money, save:S.account?saveBlob():null, updatedAt:Date.now()});
+}
+let pushT; function pushPlayer(){ if(!ONLINE) return; clearTimeout(pushT); pushT=setTimeout(()=>{ db.doc('players/'+S.pid).set({pid:S.pid, name:myName(), money:S.money, updatedAt:Date.now()}).catch(()=>{}); },150); }
+function pushPresence(){ if(room) room.presence({name:myName(), coop:S.coop?S.coop.code:null}).catch(()=>{}); }
+function boardCase(cid){ return BOARD.find(b=>b.id===cid); }
+function checkLost(){ let changed=false; for(const cid in S.taken){ const b=boardCase(cid); if(b && b.status!=='open' && b.solvedBy!==S.pid && !S.solved[cid]){ delete S.taken[cid]; if(S.caseId===cid) S.caseId=D.cases[0].id; changed=true; toast('Someone closed "'+b.title+'" before you.'); } } if(changed) save(); }
+
+/* ----- accounts: username + password, verified in the page, progress kept in the player doc ----- */
+const hex=b=>Array.from(b).map(x=>x.toString(16).padStart(2,'0')).join('');
+const unhex=h=>new Uint8Array(h.match(/../g).map(x=>parseInt(x,16)));
+async function pbkdf(pw, saltHex){ const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveBits']); const bits=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:unhex(saltHex),iterations:120000},key,256); return hex(new Uint8Array(bits)); }
+const SAVE_KEYS=['money','solved','inv','owned','hand','notebook','taken','made','coopApplied','tut','tutAck','tutOpened','intro','sfx','amb','music'];
+function saveBlob(){ const o={}; SAVE_KEYS.forEach(k=>{ if(S[k]!==undefined) o[k]=S[k]; }); return o; }
+let cloudT; function pushSave(){ if(!ONLINE||!S.account) return; clearTimeout(cloudT); cloudT=setTimeout(()=>{ db.doc('players/'+S.pid).update({save:saveBlob(), money:S.money, name:myName(), savedAt:Date.now()}).catch(()=>{}); },900); }
+function adoptSave(blob){ if(!blob) return; SAVE_KEYS.forEach(k=>{ if(blob[k]!==undefined) S[k]=blob[k]; }); S.intro=false; S.caseId=D.cases[0].id; S.coop=null; save(); }
+function validUser(u){ return /^[a-z0-9_]{3,16}$/.test(u); }
+async function register(u, pw){
+  u=String(u||'').trim().toLowerCase(); if(!validUser(u)) return 'Username: 3 to 16 letters, numbers or underscores.'; if(String(pw||'').length<4) return 'Password: at least 4 characters.';
+  if(!ONLINE) return 'Accounts need the online version.';
+  const ref=db.doc('accounts/'+u); const lock=await ref.acquire({holder:S.pid, ttlMs:8000}); if(!lock.acquired) return 'Try again in a moment.';
+  const snap=await ref.get(); if(snap.exists) return 'That name is taken.';
+  const salt=hex(crypto.getRandomValues(new Uint8Array(16))); const h=await pbkdf(pw,salt); const pid='p'+rid(10);
+  await ref.set({user:u, salt, hash:h, pid, createdAt:Date.now()});
+  // carry the guest's progress into the new account
+  S.pid=pid; S.account=u; if(!S.name) S.name=u; save();
+  await db.doc('players/'+pid).set({pid, name:myName(), money:S.money, save:saveBlob(), updatedAt:Date.now(), savedAt:Date.now()});
+  watchPlayer(); pushPresence(); return null;
+}
+async function login(u, pw){
+  u=String(u||'').trim().toLowerCase(); if(!ONLINE) return 'Accounts need the online version.';
+  const snap=await db.doc('accounts/'+u).get(); if(!snap.exists) return 'No account by that name.';
+  const a=snap.data(); const h=await pbkdf(pw||'',a.salt); if(h!==a.hash) return 'Wrong password.';
+  S.pid=a.pid; S.account=u; save();
+  const ps=await db.doc('players/'+a.pid).get();
+  if(ps.exists){ const d=ps.data(); if(d.save) adoptSave(d.save); if(typeof d.money==='number') S.money=d.money; if(d.name) S.name=d.name; save(); }
+  else await db.doc('players/'+a.pid).set({pid:a.pid, name:myName(), money:S.money, save:saveBlob(), updatedAt:Date.now()});
+  watchPlayer(); pushPresence(); return null;
+}
+function signOut(){ if(S.coop) leaveCoop(true); const keepSfx={sfx:S.sfx, amb:S.amb}; S=Object.assign(fresh(), keepSfx); save(); watchPlayer(); pushPlayer(); pushPresence(); render(); toast('Signed out. This device is a guest again.'); }
+let unsubPlayer=null;
+const claimed={};
+function watchPlayer(){ if(!ONLINE) return; if(unsubPlayer) unsubPlayer(); unsubPlayer=db.collection('credits').where('to','==',S.pid).onSnapshot(snap=>{ snap.docs.forEach(d=>{ const c=d.data(); if(!c||c.to!==S.pid||claimed[d.id]) return; claimed[d.id]=true; db.doc('credits/'+d.id).delete().then(()=>{ addMoney(+c.amount||0); SFX.play('coin'); toast((c.from||'Someone')+' paid you £'+c.amount+(c.reason?' · '+c.reason:'')+'.'); render(); }).catch(()=>{ claimed[d.id]=false; }); }); }, e=>{}); }
+function credit(to, amount, reason){ if(!ONLINE||!amount) return Promise.resolve(); return db.collection('credits').add({to, amount, from:myName(), fromPid:S.pid, reason, at:Date.now()}).catch(()=>{}); }
+function openAccount(){
+  let h=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>Account</h3>`;
+  if(!ONLINE) h+=`<p class="sub">Offline</p><p>Accounts need the game opened through its claude.ai link. On this copy you are a guest; your progress is saved in this browser only.</p><div class="row"><button class="btn ghost" data-act="rename">Change name</button></div>`;
+  else if(S.account) h+=`<p class="sub">Signed in as ${esc(S.account)}</p><p>Your purse, cases and notebook follow this account to any device. Displayed as <b>${esc(myName())}</b>.</p><div class="row"><button class="btn ghost" data-act="rename">Change display name</button><button class="btn ghost" data-act="signout">Sign out</button></div>`;
+  else h+=`<p class="sub">Guest on this device</p><p>Make an account to keep your purse and progress across devices, and to put a name on the board. Your guest progress comes with you.</p>
+    <label class="fld"><span>Username</span><input id="acc_u" autocapitalize="none" autocomplete="username" placeholder="lowercase, 3 to 16"></label>
+    <label class="fld"><span>Password</span><input id="acc_p" type="password" autocomplete="current-password"></label>
+    <p class="hintline" id="acc_msg" style="min-height:1.2em"></p>
+    <div class="row"><button class="btn" data-act="login">Sign in</button><button class="btn ghost" data-act="register">Create account</button></div>
+    <p class="hintline" style="margin-top:12px;font-size:13px">This is a friends' game, not a bank: passwords are checked in the page and the shared database is open to everyone who has the link. Don't reuse a password you care about.</p>`;
+  h+=`<div class="row" style="margin-top:14px"><button class="btn ghost" data-act="closesheet">Back</button></div>`;
+  $('#sheet').innerHTML=h; $('#sheet').classList.add('open'); $('#scrim').classList.add('on');
+}
+async function accountAction(kind){
+  const u=$('#acc_u')&&$('#acc_u').value, p=$('#acc_p')&&$('#acc_p').value; const msg=$('#acc_msg'); if(msg) msg.textContent='One moment…';
+  try{ const err = kind==='login' ? await login(u,p) : await register(u,p); if(err){ if(msg) msg.textContent=err; return; } closeSheet(); SFX.play('stamp'); toast(kind==='login'?'Signed in as '+S.account+'.':'Account made. Welcome, '+S.account+'.'); render(); }
+  catch(e){ if(msg) msg.textContent='Could not reach the database ('+(e.code||e.message)+').'; }
+}
+
+/* ----- player cases: publish / take / resolve ----- */
+function blankCase(){
+  const sid=()=>'s'+rid(4);
+  return {id:'pc_'+rid(8), title:'', reward:0, brief:{victim:'', weapon:'', time:'', place:'', public:'', facts:['','','']}, questions:['Where were you when it happened?','How did you know the victim?','What do you make of how they died?'],
+    suspects:[0,1,2,3].map(i=>({id:sid(), name:'', age:'', job:'', color:['#6b4a3a','#3f5560','#7a6a2e','#5a3f5e'][i], look:'', note:'', answers:['','',''], press:{keys:[], answer:'', miss:''}})),
+    culprit:'', solution:'', arrest:''};
+}
+function validateCase(c){
+  const errs=[]; const need=(v,l)=>{ if(!String(v||'').trim()) errs.push(l); };
+  need(c.title,'a title'); need(c.brief.victim,'the victim'); need(c.brief.weapon,'the weapon'); need(c.brief.time,'the time'); need(c.brief.place,'the place'); need(c.brief.public,'what the Gazette printed');
+  if(!c.brief.facts.some(f=>f.trim())) errs.push('at least one police fact');
+  c.questions.forEach((q,i)=>need(q,'question '+(i+1)));
+  c.suspects.forEach((s,i)=>{ need(s.name,'suspect '+(i+1)+"'s name"); s.answers.forEach((a,j)=>need(a,(s.name||'suspect '+(i+1))+"'s answer "+(j+1))); if(s.press.keys.length) need(s.press.answer,(s.name||'suspect '+(i+1))+"'s line when the press lands"); });
+  if(!c.suspects.some(s=>s.id===c.culprit)) errs.push('which suspect did it');
+  return errs;
+}
+function cleanCase(c){ // trim empty facts, default texts
+  const x=JSON.parse(JSON.stringify(c)); x.brief.facts=x.brief.facts.filter(f=>f.trim()); x.suspects.forEach(s=>{ s.age=String(s.age||'?'); if(!s.press.miss) s.press.miss='Nothing to say to that.'; if(!s.look) s.look='No description given.'; if(!s.note) s.note=''; if(s.press.keys.length && s.id!==x.culprit) s.press.secret=true; }); if(!x.solution) x.solution='The maker left no explanation. Draw your own.'; if(!x.arrest) x.arrest=''; return x; }
+async function publishCase(mid, stake){
+  const m=S.made[mid]; if(!m||m.published) return; const errs=validateCase(m.c); if(errs.length){ toast('Missing: '+errs.slice(0,3).join(', ')+(errs.length>3?'…':'')); return; }
+  if(!ONLINE){ toast('Publishing needs the online version.'); return; }
+  stake=Math.max(0,Math.floor(+stake||0)); if(stake>S.money){ toast('You can\'t cover a £'+stake+' stake.'); return; }
+  const c=cleanCase(m.c); const doc={id:c.id, title:c.title, maker:S.pid, makerName:myName(), stake, status:'open', createdAt:Date.now(), caseData:c, solvedBy:null, solvedByName:null, correct:null, solvedAt:null};
+  try{ await db.doc('cases/'+c.id).set(doc); }catch(e){ toast('Could not publish: '+(e.code||e.message)); return; }
+  m.published=c.id; m.stake=stake; if(stake) addMoney(-stake); save(); SFX.play('stamp'); toast('Posted to the board'+(stake?' with £'+stake+' on it.':'.')); render();
+}
+async function withdrawCase(mid){
+  const m=S.made[mid]; if(!m||!m.published||!ONLINE) return; const ref=db.doc('cases/'+m.published);
+  const lock=await ref.acquire({holder:S.pid, ttlMs:8000}); if(!lock.acquired){ toast('Someone is closing it right now.'); return; }
+  const snap=await ref.get(); if(!snap.exists||snap.data().status!=='open'){ toast('Too late; it has been closed.'); return; }
+  await ref.update({status:'withdrawn'}); if(m.stake) addMoney(m.stake); m.published=null; save(); toast('Withdrawn. Stake returned.'); render();
+}
+function takeCase(cid){
+  const b=boardCase(cid); if(!b||b.status!=='open') return toast('Not open.'); if(b.maker===S.pid) return toast('That one is yours.'); if(S.taken[cid]) return;
+  if(b.stake>S.money) return toast('You need £'+b.stake+' in the purse to take this on.');
+  S.taken[cid]={c:b.caseData, stake:b.stake, maker:b.maker, makerName:b.makerName, title:b.title, takenAt:Date.now()}; S.caseId=cid; S.tab='desk'; save(); SFX.play('paper'); render(); window.scrollTo(0,0);
+}
+async function resolvePlayerCase(c, sid){
+  const t=S.taken[c.id]; if(!t) return; const I=localInv(c.id);
+  if(!ONLINE){ toast('You need to be online to close a board case.'); return; }
+  if(t.stake>S.money){ toast('You can\'t cover the £'+t.stake+' stake any more.'); return; }
+  const ref=db.doc('cases/'+c.id);
+  const lock=await ref.acquire({holder:S.pid, ttlMs:8000}); if(!lock.acquired){ toast('Someone else is closing this case. Try again in a moment.'); return; }
+  const snap=await ref.get(); const d=snap.exists?snap.data():null;
+  if(!d||d.status!=='open'){ delete S.taken[c.id]; S.caseId=D.cases[0].id; save(); closeSheet(); render(); toast(d&&d.status==='solved'?'Too late. '+(d.solvedByName||'Someone')+' closed it first.':'The maker withdrew this case.'); return; }
+  const correct=sid===c.culprit;
+  try{ await ref.update({status:'solved', solvedBy:S.pid, solvedByName:myName(), correct, solvedAt:Date.now()}); }catch(e){ toast('Could not close: '+(e.code||e.message)); return; }
+  if(t.stake){ if(correct) addMoney(t.stake); else { addMoney(-t.stake); await credit(t.maker, 2*t.stake, 'your case "'+String(c.title).slice(0,24)+'"'); } }
+  S.solved[c.id]={guess:sid, correct, pay:correct?t.stake:0, wager:t.stake, broken:correct&&I.broken, asked:nAsked(c.id), player:true};
+  t.done=true; save();
+  showVerdict(c, sid, correct, correct?t.stake:0, false, t.stake && !correct ? 'You lose your £'+t.stake+' to '+esc(t.makerName)+'.' : (t.stake&&correct?'£'+t.stake+' from '+esc(t.makerName)+"'s stake.":''));
+}
+
+/* ----- co-op ----- */
+function coopRef(code){ return db.doc('coop/'+code); }
+async function createCoop(){
+  if(!ONLINE) return toast('Co-op needs the online version.');
+  const c=cur(); if(S.taken[c.id] && S.taken[c.id].stake>0) return toast('Co-op works on story cases and free board cases, not wagers.');
+  const code=rid(4).toUpperCase().replace(/[^A-Z0-9]/g,'X'); const doc={code, host:S.pid, hostName:myName(), caseId:c.id, kind:isStory(c.id)?'story':'player', caseData:c, members:{[S.pid]:myName()}, inv:{asked:{},presses:[],revealed:{},broken:false}, proposal:null, result:null, createdAt:Date.now()};
+  await coopRef(code).set(doc); S.coop={code}; save(); joinCoop(code,true); pushPresence(); toast('Room '+code+' open.');
+}
+async function joinCoop(code, resume){
+  if(!ONLINE) return toast('Co-op needs the online version.'); code=String(code||'').trim().toUpperCase(); if(!code) return;
+  const ref=coopRef(code); const snap=await ref.get(); if(!snap.exists){ toast('No room '+code+'.'); if(resume){ S.coop=null; save(); } return; }
+  const d=snap.data(); if(d.result && !resume){ toast('That room has already made its arrest.'); return; }
+  if(!d.members[S.pid]){ const members={...d.members,[S.pid]:myName()}; await ref.update({members}); }
+  S.coop={code}; save(); if(unsubCoop) unsubCoop();
+  unsubCoop=ref.onSnapshot(s=>{ if(!s.exists){ leaveCoop(true); return; } COOP=s.data(); onCoopUpdate(); render(); }, e=>{ toast('Room lost: '+e.code); leaveCoop(true); });
+  pushPresence(); S.tab='desk'; render();
+}
+async function leaveCoop(silent){
+  const code=S.coop&&S.coop.code; if(unsubCoop){ unsubCoop(); unsubCoop=null; }
+  if(code && ONLINE && COOP && COOP.members && COOP.members[S.pid] && !COOP.result){ try{ const members={...COOP.members}; delete members[S.pid]; await coopRef(code).update({members}); }catch(e){} }
+  S.coop=null; COOP=null; save(); pushPresence(); if(!silent) toast('Left the room.'); render();
+}
+async function coopUpdateInv(mut){ if(!COOP) return; const I=JSON.parse(JSON.stringify(COOP.inv||{asked:{},presses:[],revealed:{},broken:false})); mut(I); COOP.inv=I; try{ await coopRef(S.coop.code).update({inv:I}); }catch(e){ toast('Could not sync: '+(e.code||e.message)); } }
+async function coopPropose(sid){ if(!COOP||COOP.result) return; await coopRef(S.coop.code).update({proposal:{sid, by:S.pid, byName:myName(), votes:{[S.pid]:true}}}); }
+async function coopVote(yes){ if(!COOP||!COOP.proposal) return; const p={...COOP.proposal, votes:{...COOP.proposal.votes}}; if(yes){ p.votes[S.pid]=true; await coopRef(S.coop.code).update({proposal:p}); } else await coopRef(S.coop.code).update({proposal:null}); }
+async function onCoopUpdate(){
+  const d=COOP; if(!d) return;
+  // proposer finalises when every member has agreed
+  if(d.proposal && !d.result && d.proposal.by===S.pid){ const members=Object.keys(d.members||{}); if(members.every(m=>d.proposal.votes[m])){ const c=d.caseData; const correct=d.proposal.sid===c.culprit; try{ await coopRef(S.coop.code).update({result:{sid:d.proposal.sid, correct, by:S.pid, at:Date.now()}, proposal:null}); }catch(e){} if(d.kind==='player' && db){ try{ const ref=db.doc('cases/'+c.id); const snap=await ref.get(); if(snap.exists&&snap.data().status==='open') await ref.update({status:'solved', solvedBy:S.pid, solvedByName:Object.values(d.members).join(' & '), correct, solvedAt:Date.now()}); }catch(e){} } } }
+  if(d.result && !S.coopApplied[d.code]){ S.coopApplied[d.code]=true; const c=d.caseData; const r=d.result; const already=!!S.solved[c.id];
+    const broken=r.correct && (d.inv&&d.inv.broken); const pay=(!already && r.correct && isStory(c.id)) ? c.reward+(broken?R.breakBonus:0) : 0;
+    if(!already){ S.solved[c.id]={guess:r.sid, correct:r.correct, pay, broken, asked:nAsked(c.id), coop:d.code}; if(S.taken[c.id]) S.taken[c.id].done=true; }
+    if(pay) addMoney(pay); save(); showVerdict(c, r.sid, r.correct, pay, broken, already?'You had already closed this file yourself; no second pay.':'Shared with '+esc(Object.values(d.members).filter(n=>n!==myName()).join(', ')||'nobody')+'.'); }
+}
+
 /* ---------- Render ---------- */
 function render(){
   advanceTut();
@@ -460,60 +664,69 @@ function shelfHTML(){
 }
 function coldNotes(c){ const out=[]; for(const k in (c.cold||{})){ const v=S.solved[k]; if(v && !v.correct) out.push(c.cold[k]); } return out; }
 function fileHTML(c, v){
-  const b=c.brief; const since=coldNotes(c);
+  const b=c.brief; const since=coldNotes(c); const t=S.taken[c.id]; const bc=!isStory(c.id) && (t || boardCase(c.id));
+  const no = isStory(c.id) ? 'Case No. '+(idx(c.id)+1)+' · Saltmarsh Constabulary' : 'Board case · posted by '+esc((t&&t.makerName)||(bc&&bc.makerName)||'a detective')+((t&&t.stake)||(bc&&bc.stake)?' · £'+((t&&t.stake)||(bc&&bc.stake))+' on it':' · no stake');
   return `<article class="paper file">${v?`<div class="stamp${v.correct?'':' cold'}">${v.correct?'Closed<br>Arrest':'Cold<br>Case'}</div>`:''}
-   <div class="no">Case No. ${idx(c.id)+1} · Saltmarsh Constabulary</div><h2>${esc(c.title)}</h2>
+   <div class="no">${no}</div><h2>${esc(c.title)}</h2>
    <dl><dt>Victim</dt><dd>${esc(b.victim)}</dd><dt>Weapon</dt><dd>${esc(b.weapon)}</dd><dt>When</dt><dd>${esc(b.time)}</dd><dt>Where</dt><dd>${esc(b.place)}</dd></dl>
    <div class="sec">What the Gazette printed</div><p class="gaz">${esc(b.public)}</p>
    <div class="sec">Known to the police only</div><ul>${b.facts.map(f=>`<li>${esc(f)}</li>`).join('')}</ul>
    ${since.length?`<div class="sec">Since last time</div><ul>${since.map(f=>`<li class="since">${esc(f)}</li>`).join('')}</ul>`:''}</article>`;
 }
-function initials(n){ return n.split(' ').map(w=>w[0]).filter(ch=>/[A-Z]/.test(ch)).slice(0,2).join(''); }
+function initials(n){ return String(n||'?').split(' ').map(w=>w[0]).filter(ch=>/[A-Za-z]/.test(ch)).slice(0,2).join('').toUpperCase()||'?'; }
 function budgetHTML(c){ const q=qLeft(c.id), p=pLeft(c.id); return `<div class="budget"><span class="chip${q?'':' zero'}"><b>${q}</b> of ${R.questions} questions left</span><span class="chip${p?'':' zero'}"><b>${p}</b> of ${R.presses} presses left</span>${inv(c.id).broken?'<span class="chip"><b>Broken</b> confession in hand</span>':''}</div>`; }
+function coopBanner(){
+  if(!inCoop()) return `<div class="row" style="margin:0 0 14px"><button class="btn ghost" data-act="coopmenu">Co-op room</button><button class="btn ghost" data-act="account">${S.account?esc(S.account):'Account · '+esc(myName())}</button></div>`;
+  const d=COOP; const names=Object.values(d.members||{}); const here=PEERS.filter(p=>p.presence&&p.presence.coop===d.code).map(p=>p.presence.name);
+  let h=`<div class="card-note coop"><h2>Co-op room <span class="code">${esc(d.code)}</span></h2><p>Detectives: ${names.map(esc).join(', ')}${here.length?` · here now: ${here.map(esc).join(', ')}`:''}. One shared budget; every ask and press shows for all of you. An arrest needs everyone to agree.</p>`;
+  if(d.proposal && !d.result){ const s=sus(d.caseData,d.proposal.sid); const mine=d.proposal.by===S.pid; const voted=!!d.proposal.votes[S.pid]; h+=`<p><b>${esc(d.proposal.byName)}</b> wants to arrest <b>${esc(s.name)}</b>. ${Object.keys(d.proposal.votes).length}/${Object.keys(d.members).length} agree.</p><div class="row">${voted?'<span class="chip">You agreed</span>':`<button class="btn danger" data-act="coopvote" data-v="1">Agree</button>`}${mine||!voted?`<button class="btn ghost" data-act="coopvote" data-v="0">${mine?'Withdraw':'Object'}</button>`:''}</div>`; }
+  h+=`<div class="row"><button class="btn ghost" data-act="coopleave">Leave the room</button><button class="btn ghost" data-act="account">${S.account?esc(S.account):'Account · '+esc(myName())}</button></div></div>`;
+  return h;
+}
+function renderCoopPeers(){ if(inCoop()) renderDesk(); }
 function renderDesk(){
   const el=$('#p-desk'); let h='';
   if(S.intro){ h+=`<div class="card-note"><h2>Same desk, worse post</h2><p>After the Kittiwake business the town made its dead-letter clerk a detective. The cases come in a folder now.</p><p>Read the file. Question the suspects, but not all of them about everything: you haven't the time. Press the ones whose story doesn't square. Name the one who did it.</p><div class="row"><button class="btn" data-act="intro">Open the first file</button></div></div>`; el.innerHTML=h; return; }
-  const c=cur(); const v=S.solved[c.id]; const I=inv(c.id);
-  h+=shelfHTML()+coachHTML();
+  const c=cur(); const v=S.solved[c.id] && (!inCoop() || COOP.result) ? S.solved[c.id] : null; const I=inv(c.id);
+  h+=shelfHTML()+coachHTML()+coopBanner();
   h+=fileHTML(c,v);
   if(!v) h+=budgetHTML(c);
   h+=`<div class="eyebrow">${v?'The suspects, as they were':'Suspects'}</div><div class="suspects">`+c.suspects.map(s=>{
-    const n=(I.asked[s.id]||[]).length; const rev=I.revealed[s.id];
+    const n=((I.asked||{})[s.id]||[]).length; const rev=(I.revealed||{})[s.id];
     const cls=['sus', v&&v.guess===s.id&&!v.correct?'guessed':'', v&&s.id===c.culprit?'culprit':''].join(' ');
     const tag = v ? (s.id===c.culprit?'GUILTY':(v.guess===s.id?'RELEASED':'')) : (rev?(s.id===c.culprit?'BROKE':'CAME CLEAN'):(n?n+' asked':''));
-    return `<button class="${cls}" data-act="suspect" data-id="${s.id}"><span class="asked${rev?' hot':''}">${tag}</span><span class="med" style="background:${s.color}">${esc(initials(s.name))}</span><b>${esc(s.name)}</b><i>${s.age} · ${esc(s.job)}</i><p><em>${esc(s.look)}</em></p><p>${esc(s.note)}</p></button>`; }).join('')+`</div>`;
+    return `<button class="${cls}" data-act="suspect" data-id="${s.id}"><span class="asked${rev?' hot':''}">${tag}</span><span class="med" style="background:${esc(s.color)}">${esc(initials(s.name))}</span><b>${esc(s.name)}</b><i>${esc(s.age)} · ${esc(s.job)}</i><p><em>${esc(s.look)}</em></p><p>${esc(s.note)}</p></button>`; }).join('')+`</div>`;
   if(v){
     const g=sus(c,c.culprit); const gs=sus(c,v.guess);
-    h+=`<div class="card-note"><h2>${v.correct?'Arrested: '+esc(g.name):'Released: '+esc(gs.name)}</h2><p>${esc(c.solution)}</p><p><em>${esc(c.arrest)}</em></p>${v.correct?`<p>Paid £${v.pay}${v.broken?', including £'+R.breakBonus+' for the confession':''}.</p>`:`<p>No pay. ${esc(g.name)} walked. The file goes in the cold drawer.</p>`}<div class="row">${nextCase()?`<button class="btn" data-act="opencase" data-id="${nextCase().id}">Next case</button>`:''}<button class="btn ghost" data-act="tab" data-tab="cases">The case board</button></div></div>`;
+    h+=`<div class="card-note"><h2>${v.correct?'Arrested: '+esc(g.name):'Released: '+esc(gs.name)}</h2><p>${esc(c.solution)}</p>${c.arrest?`<p><em>${esc(c.arrest)}</em></p>`:''}${v.correct?`<p>Paid £${v.pay}${v.broken&&!v.player?', including £'+R.breakBonus+' for the confession':''}.</p>`:`<p>No pay. ${esc(g.name)} walked.${v.wager?' £'+v.wager+' went to the maker.':''}</p>`}<div class="row">${nextCase()?`<button class="btn" data-act="opencase" data-id="${nextCase().id}">Next case</button>`:''}<button class="btn ghost" data-act="tab" data-tab="cases">The case board</button></div></div>`;
   } else {
-    h+=`<p class="hintline">Tap a suspect to question or press them. Accuse from their page when you're sure.</p>`;
+    h+=`<p class="hintline">Tap a suspect to question or press them. Accuse from their page when you're sure.${S.taken[c.id]&&S.taken[c.id].stake?' £'+S.taken[c.id].stake+' rides on it, and another detective may close it first.':''}</p>`;
   }
   h+=musicBar();
-  h+=`<p class="foot">Six cases so far. <button data-act="reset">Start over</button></p>`;
+  h+=`<p class="foot">${ONLINE?'Online as '+esc(myName())+'.':'Offline: board and co-op need the claude.ai version.'} <button data-act="reset">Start over</button></p>`;
   el.innerHTML=h; updateMusicUI();
 }
 function openSuspect(sid, keepScroll){
-  const c=cur(); const s=sus(c,sid); if(!s) return; const v=S.solved[c.id]; const I=inv(c.id); I.asked[s.id]=I.asked[s.id]||[];
+  const c=cur(); const s=sus(c,sid); if(!s) return; const v=S.solved[c.id] && (!inCoop()||COOP.result) ? S.solved[c.id] : null; const I=inv(c.id); const askedMe=(I.asked||{})[s.id]||[];
   S.tutOpened=true;
   const q=qLeft(c.id), p=pLeft(c.id);
-  let h=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>${esc(s.name)}</h3><p class="sub">${s.age} · ${esc(s.job)}</p><p><em>${esc(s.look)}</em> ${esc(s.note)}</p>`;
-  if(!v) h+=`<p class="sub" style="margin-top:-4px">${q} question${q===1?'':'s'} · ${p} press${p===1?'':'es'} left</p>`;
+  let h=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>${esc(s.name)}</h3><p class="sub">${esc(s.age)} · ${esc(s.job)}</p><p><em>${esc(s.look)}</em> ${esc(s.note)}</p>`;
+  if(!v) h+=`<p class="sub" style="margin-top:-4px">${q} question${q===1?'':'s'} · ${p} press${p===1?'':'es'} left${inCoop()?' · shared':''}</p>`;
   h+=`<div class="qs">`;
   c.questions.forEach((qq,i)=>{
-    const done=I.asked[s.id].includes(i);
+    const done=askedMe.includes(i);
     if(done||v) h+=`<div class="q"><small>You asked</small>${esc(qq)}</div><p class="a">${esc(s.answers[i])}</p>`;
     else h+=`<button class="q" data-act="ask" data-id="${s.id}" data-q="${i}" ${q?'':'disabled'}><small>${q?'Ask':'No questions left'}</small>${esc(qq)}</button>`;
   });
-  I.presses.filter(x=>x.sid===s.id).forEach(x=>{
-    h+=`<div class="q ev"><small>You pressed with</small>${esc(evText(c,x.ev))}</div><p class="a ${x.hit?(s.id===c.culprit?'break':'secret'):'miss'}">${esc(x.hit?s.press.answer:s.press.miss)}</p>`;
-  });
-  if(v && I.revealed[s.id]===undefined && s.press.keys.length) h+=`<div class="q ev"><small>${s.id===c.culprit?'What a press would have broken':'What a press would have found'}</small>${esc(s.press.answer)}</div>`;
+  (I.presses||[]).filter(x=>x.sid===s.id).forEach(x=>{ h+=`<div class="q ev"><small>Pressed with</small>${esc(evText(c,x.ev))}</div><p class="a ${x.hit?(s.id===c.culprit?'break':'secret'):'miss'}">${esc(x.hit?s.press.answer:s.press.miss)}</p>`; });
+  if(v && !(I.revealed||{})[s.id] && s.press.keys.length) h+=`<div class="q ev"><small>${s.id===c.culprit?'What a press would have broken':'What a press would have found'}</small>${esc(s.press.answer)}</div>`;
   h+=`</div>`;
   if(!v){
-    const canPress = p>0 && !I.revealed[s.id] && (I.asked[s.id].length>0 || Object.values(I.asked).some(l=>l.length));
-    h+=`<div class="row"><button class="btn press" data-act="pressmenu" data-id="${s.id}" ${canPress?'':'disabled'}>${I.revealed[s.id]?'Nothing more to press':'Press '+esc(s.name.split(' ').slice(-1)[0])}</button><button class="btn danger" data-act="accuse" data-id="${s.id}">Accuse</button><button class="btn ghost" data-act="closesheet">Back</button></div>`;
+    const canPress = p>0 && !(I.revealed||{})[s.id] && Object.values(I.asked||{}).some(l=>l.length);
+    const proposalPending = inCoop() && COOP.proposal;
+    h+=`<div class="row"><button class="btn press" data-act="pressmenu" data-id="${s.id}" ${canPress?'':'disabled'}>${(I.revealed||{})[s.id]?'Nothing more to press':'Press '+esc(String(s.name).split(' ').slice(-1)[0])}</button><button class="btn danger" data-act="accuse" data-id="${s.id}" ${proposalPending?'disabled':''}>${inCoop()?'Propose arrest':'Accuse'}</button><button class="btn ghost" data-act="closesheet">Back</button></div>`;
   } else h+=`<div class="row"><button class="btn ghost" data-act="closesheet">Back to the desk</button></div>`;
-  const sh=$('#sheet'); const top=keepScroll?sh.scrollTop:0; sh.innerHTML=h; sh.classList.add('open'); $('#scrim').classList.add('on'); sh.scrollTop=top; save(); render();
+  const sh=$('#sheet'); const top=keepScroll?sh.scrollTop:0; sh.innerHTML=h; sh.classList.add('open'); $('#scrim').classList.add('on'); sh.scrollTop=top; sh.dataset.suspect=sid; save(); render();
 }
 function pressMenu(sid){
   const c=cur(); const s=sus(c,sid); const ev=evidence(c);
@@ -522,51 +735,119 @@ function pressMenu(sid){
   h+=`</div><div class="row"><button class="btn ghost" data-act="suspect" data-id="${sid}">Not yet</button></div>`;
   $('#sheet').innerHTML=h; $('#sheet').scrollTop=0;
 }
-function doPress(sid, evId){
-  const c=cur(); const s=sus(c,sid); const I=inv(c.id); if(S.solved[c.id] || pLeft(c.id)<=0 || I.revealed[s.id]) return;
-  const hit = s.press.keys.includes(evId);
-  I.presses.push({sid, ev:evId, hit});
-  if(hit){ I.revealed[s.id]=true; if(s.id===c.culprit) I.broken=true; SFX.play(s.id===c.culprit?'stamp':'page'); toast(s.id===c.culprit?'They broke.':'They came clean.'); }
-  else { SFX.play('drawer'); toast('A shrug.'); }
+function applyAsk(I, sid, qi){ I.asked[sid]=I.asked[sid]||[]; if(!I.asked[sid].includes(qi)) I.asked[sid].push(qi); }
+function applyPress(I, c, sid, evId){ const s=sus(c,sid); const hit=s.press.keys.includes(evId); I.presses.push({sid, ev:evId, hit, by:myName()}); if(hit){ I.revealed[sid]=true; if(sid===c.culprit) I.broken=true; } return hit; }
+async function doAsk(sid, qi){
+  const c=cur(); if(S.solved[c.id]&&!inCoop()) return; if(qLeft(c.id)<=0) return;
+  if(inCoop()){ if(((COOP.inv.asked||{})[sid]||[]).includes(qi)) return; SFX.play('scratch'); await coopUpdateInv(I=>applyAsk(I,sid,qi)); openSuspect(sid,true); return; }
+  const I=localInv(c.id); const before=(I.asked[sid]||[]).length; applyAsk(I,sid,qi); if((I.asked[sid]||[]).length>before) SFX.play('scratch'); openSuspect(sid,true);
+}
+async function doPress(sid, evId){
+  const c=cur(); const s=sus(c,sid); if((S.solved[c.id]&&!inCoop()) || pLeft(c.id)<=0 || (inv(c.id).revealed||{})[sid]) return;
+  let hit;
+  if(inCoop()){ await coopUpdateInv(I=>{ hit=applyPress(I,c,sid,evId); }); }
+  else { hit=applyPress(localInv(c.id),c,sid,evId); }
+  if(hit){ SFX.play(sid===c.culprit?'stamp':'page'); toast(sid===c.culprit?'They broke.':'They came clean.'); } else { SFX.play('drawer'); toast('A shrug.'); }
   save(); openSuspect(sid,false);
 }
 function confirmAccuse(sid){
-  const c=cur(); const s=sus(c,sid); const I=inv(c.id);
-  $('#sheet').innerHTML=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>Arrest ${esc(s.name)}?</h3><p class="sub">for the murder of ${esc(c.brief.victim.split(',')[0])}</p><p>The Inspector will sign the warrant on your word. If the magistrate lets them go, the case goes cold and you are not paid.${I.broken&&I.revealed[sid]?' You have their confession; the magistrate will like that.':(I.broken?' You broke someone else. Are you sure it is this one?':' No confession yet. You can still press.')}</p><div class="row"><button class="btn danger" data-act="arrest" data-id="${sid}">Sign the warrant</button><button class="btn ghost" data-act="suspect" data-id="${sid}">Not yet</button></div>`;
+  const c=cur(); const s=sus(c,sid); const I=inv(c.id); const t=S.taken[c.id];
+  if(inCoop()){ $('#sheet').innerHTML=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>Propose arresting ${esc(s.name)}?</h3><p class="sub">The others must agree</p><p>Everyone in the room sees the proposal. If all agree the warrant is signed for all of you; anyone can object.</p><div class="row"><button class="btn danger" data-act="cooppropose" data-id="${sid}">Propose</button><button class="btn ghost" data-act="suspect" data-id="${sid}">Not yet</button></div>`; $('#sheet').scrollTop=0; return; }
+  const wager = t && t.stake ? `<p><b>£${t.stake}</b> rides on this. Right, and ${esc(t.makerName)} pays you. Wrong, and you pay them.</p>` : '';
+  $('#sheet').innerHTML=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>Arrest ${esc(s.name)}?</h3><p class="sub">for the murder of ${esc(String(c.brief.victim).split(',')[0])}</p>${wager}<p>The Inspector will sign the warrant on your word. If the magistrate lets them go, the case goes cold and you are not paid.${I.broken&&(I.revealed||{})[sid]?' You have their confession; the magistrate will like that.':(I.broken?' You broke someone else. Are you sure it is this one?':' No confession yet. You can still press.')}</p><div class="row"><button class="btn danger" data-act="arrest" data-id="${sid}">Sign the warrant</button><button class="btn ghost" data-act="suspect" data-id="${sid}">Not yet</button></div>`;
   $('#sheet').scrollTop=0;
 }
-function arrest(sid){
-  const c=cur(); if(S.solved[c.id]) return; const s=sus(c,sid); const I=inv(c.id); const correct=sid===c.culprit; const broken=correct && I.broken;
-  const pay=correct?c.reward+(broken?R.breakBonus:0):0; S.money+=pay;
-  S.solved[c.id]={guess:sid, correct, pay, broken, asked:nAsked(c.id)};
-  SFX.play('stamp'); setTimeout(()=>SFX.play(correct?'clank':'drawer'),420); if(correct) setTimeout(()=>SFX.play('coin'),900);
-  const g=sus(c,c.culprit);
+function showVerdict(c, sid, correct, pay, broken, extra){
+  const s=sus(c,sid); const g=sus(c,c.culprit);
+  SFX.play('stamp'); setTimeout(()=>SFX.play(correct?'clank':'drawer'),420); if(correct&&pay) setTimeout(()=>SFX.play('coin'),900);
   $('#sheet').innerHTML=`<button class="close" data-act="closesheet" aria-label="Close">×</button>
    <p class="verdict${correct?'':' cold'}">${correct?'Arrested.':'Released.'}</p>
-   ${correct?`<p class="pay">+ £${pay}${broken?' <small style="font-size:14px;color:#6f675a">incl. £'+R.breakBonus+' for the confession</small>':''}</p>`:`<p class="sub">The magistrate finds nothing to hold ${esc(s.name)} on. ${esc(g.name)} leaves on the morning coach.</p>`}
-   <p>${esc(c.solution)}</p><p><em>${esc(c.arrest)}</em></p>
+   ${correct?`<p class="pay">${pay?'+ £'+pay:'No pay'}${broken&&pay?' <small style="font-size:14px;color:#6f675a">incl. £'+R.breakBonus+' for the confession</small>':''}</p>`:`<p class="sub">The magistrate finds nothing to hold ${esc(s.name)} on. ${esc(g.name)} walks.</p>`}
+   ${extra?`<p>${extra}</p>`:''}<p>${esc(c.solution)}</p>${c.arrest?`<p><em>${esc(c.arrest)}</em></p>`:''}
    <div class="row">${nextCase()?`<button class="btn" data-act="opencase" data-id="${nextCase().id}">Next case</button>`:''}<button class="btn ghost" data-act="closesheet">Back to the desk</button></div>`;
-  $('#sheet').scrollTop=0;
-  toast(correct?'Arrested. £'+pay+' to the purse.':'Released. No pay.'); render();
+  $('#sheet').classList.add('open'); $('#scrim').classList.add('on'); $('#sheet').scrollTop=0; toast(correct?'Arrested.'+(pay?' £'+pay+' to the purse.':''):'Released. No pay.'); render();
+}
+function arrest(sid){
+  const c=cur(); if(S.solved[c.id]) return; if(!isStory(c.id)){ resolvePlayerCase(c, sid); return; }
+  const I=localInv(c.id); const correct=sid===c.culprit; const broken=correct && I.broken;
+  const pay=correct?c.reward+(broken?R.breakBonus:0):0; if(pay) addMoney(pay);
+  S.solved[c.id]={guess:sid, correct, pay, broken, asked:nAsked(c.id)}; save();
+  showVerdict(c, sid, correct, pay, broken, '');
 }
 function closeSheet(){ $('#sheet').classList.remove('open'); $('#scrim').classList.remove('on'); }
+
+/* ----- Cases tab ----- */
 function renderCases(){
-  const el=$('#p-cases');
-  let h=coachHTML()+`<div class="eyebrow">The case board</div><div class="caselist">`+D.cases.map((c,i)=>{
-    const v=S.solved[c.id]; const un=unlocked(c.id);
-    const st=v?(v.correct?`<span class="st ok">Solved · £${v.pay}</span>`:`<span class="st cold">Cold · ${esc(sus(c,c.culprit).name.split(' ').slice(-1)[0])} walked</span>`):(un?'<span class="st open">Open</span>':'<span class="st cold">Locked</span>');
-    return `<button class="casebtn${un?'':' locked'}${c.id===S.caseId?' cur':''}" data-act="opencase" data-id="${c.id}" ${un?'':'disabled'}><span class="n">${String(i+1).padStart(2,'0')}</span><span><b>${esc(c.title)}</b><i>${esc(c.brief.place)}</i></span>${st}</button>`; }).join('')+`</div>`;
-  const earned=Object.values(S.solved).reduce((a,v)=>a+(v.pay||0),0); const walked=Object.values(S.solved).filter(v=>!v.correct).length;
-  h+=`<p class="hintline" style="margin-top:14px">Earned so far: £${earned}.${walked?' Killers who walked: '+walked+'.':''} Cases open in order. A cold case stays cold.</p>`;
+  const el=$('#p-cases'); const tabs=[['files','Files'],['board','Board'],['mine','Mine'],['make','Make']];
+  let h=coachHTML()+`<div class="subtabs">${tabs.map(([k,n])=>`<button data-ctab="${k}" class="${S.casesTab===k?'on':''}">${n}</button>`).join('')}</div>`;
+  if(S.casesTab==='files'){
+    h+=`<div class="caselist">`+D.cases.map((c,i)=>{ const v=S.solved[c.id]; const un=unlocked(c.id);
+      const st=v?(v.correct?`<span class="st ok">Solved · £${v.pay}</span>`:`<span class="st cold">Cold · ${esc(sus(c,c.culprit).name.split(' ').slice(-1)[0])} walked</span>`):(un?'<span class="st open">Open</span>':'<span class="st cold">Locked</span>');
+      return `<button class="casebtn${un?'':' locked'}${c.id===S.caseId&&!inCoop()?' cur':''}" data-act="opencase" data-id="${c.id}" ${un?'':'disabled'}><span class="n">${String(i+1).padStart(2,'0')}</span><span><b>${esc(c.title)}</b><i>${esc(c.brief.place)}</i></span>${st}</button>`; }).join('')+`</div>`;
+    const earned=Object.values(S.solved).reduce((a,v)=>a+(v.pay||0),0); const walked=Object.values(S.solved).filter(v=>!v.correct).length;
+    h+=`<p class="hintline" style="margin-top:14px">Earned so far: £${earned}.${walked?' Killers who walked: '+walked+'.':''} Cases open in order. A cold case stays cold.</p>`;
+  } else if(S.casesTab==='board'){
+    if(!ONLINE) h+=offlineNote();
+    else {
+      const open=BOARD.filter(b=>b.status==='open'); const closed=BOARD.filter(b=>b.status==='solved').slice(0,10);
+      h+=`<div class="eyebrow">Open on the board</div>`;
+      h+= open.length? `<div class="caselist">`+open.map(b=>{ const mine=b.maker===S.pid; const taken=!!S.taken[b.id]; const can=b.stake<=S.money;
+        return `<div class="casebtn"><span><b>${esc(b.title)}</b><i>by ${esc(b.makerName)} · ${b.stake?'£'+b.stake+' stake':'no stake'}</i></span><span class="st">${mine?'<span class="chip">Yours</span>':taken?`<button class="btn ghost" data-act="opencase" data-id="${b.id}">Open</button>`:`<button class="btn${can?'':' ghost'}" data-act="take" data-id="${b.id}" ${can?'':'disabled'}>${can?'Take on':'Need £'+b.stake}</button>`}</span></div>`; }).join('')+`</div>` : `<p class="empty">Nothing posted yet. Make one.</p>`;
+      if(closed.length) h+=`<div class="eyebrow" style="margin-top:18px">Recently closed</div><div class="caselist">`+closed.map(b=>`<div class="casebtn"><span><b>${esc(b.title)}</b><i>by ${esc(b.makerName)} · ${b.correct?'solved':'botched'} by ${esc(b.solvedByName||'?')}${b.stake?' · £'+b.stake:''}</i></span></div>`).join('')+`</div>`;
+      h+=`<p class="hintline" style="margin-top:14px">Take a case on and it goes to Mine. Solve it first and the stake is yours; get it wrong and the maker takes yours. Another detective can close it before you.</p>`;
+    }
+  } else if(S.casesTab==='mine'){
+    const taken=Object.entries(S.taken); const made=Object.entries(S.made);
+    h+=`<div class="eyebrow">Taken on</div>`;
+    h+= taken.length? `<div class="caselist">`+taken.map(([cid,t])=>{ const v=S.solved[cid]; const b=boardCase(cid); const st=v?(v.correct?`<span class="st ok">Won${t.stake?' £'+t.stake:''}</span>`:`<span class="st cold">Lost${t.stake?' £'+t.stake:''}</span>`):(b&&b.status!=='open'?'<span class="st cold">Closed by another</span>':'<span class="st open">Open</span>');
+        return `<button class="casebtn${cid===S.caseId?' cur':''}" data-act="opencase" data-id="${cid}"><span><b>${esc(t.title)}</b><i>by ${esc(t.makerName)} · ${t.stake?'£'+t.stake:'free'}</i></span>${st}</button>`; }).join('')+`</div>` : `<p class="empty">You haven't taken any board cases on.</p>`;
+    h+=`<div class="eyebrow" style="margin-top:18px">Made by you</div>`;
+    h+= made.length? `<div class="caselist">`+made.map(([mid,m])=>{ const b=m.published?boardCase(m.published):null; const st=m.published?(b?(b.status==='open'?'<span class="st open">On the board</span>':b.status==='solved'?`<span class="st ${b.correct?'cold':'ok'}">${b.correct?'Solved':'Botched'} by ${esc(b.solvedByName||'?')}</span>`:'<span class="st cold">Withdrawn</span>'):'<span class="st open">Posted</span>'):'<span class="st cold">Draft</span>';
+        return `<div class="casebtn"><span><b>${esc(m.c.title||'Untitled case')}</b><i>${m.published?(m.stake?'£'+m.stake+' stake':'no stake'):'draft'}</i></span><span class="st">${st}<br>${m.published?(b&&b.status==='open'?`<button class="btn ghost" data-act="withdraw" data-id="${mid}">Withdraw</button>`:''):`<button class="btn ghost" data-act="edit" data-id="${mid}">Edit</button> <button class="btn ghost" data-act="deldraft" data-id="${mid}">Delete</button>`}</span></div>`; }).join('')+`</div>` : `<p class="empty">No cases of your own yet.</p>`;
+  } else if(S.casesTab==='make'){
+    h+=editorHTML();
+  }
   el.innerHTML=h;
 }
+function offlineNote(){ return `<div class="card-note"><h2>Not connected</h2><p>The board, wagers and co-op rooms need the game opened through its claude.ai link, where other detectives share one database. This copy is playing offline; the story cases, your desk and your notebook all work.</p></div>`; }
+
+/* ----- Case editor ----- */
+function field(path, label, val, opts={}){ const id='f_'+path.replace(/\W/g,'_'); return `<label class="fld"><span>${esc(label)}</span>${opts.area?`<textarea data-path="${path}" rows="${opts.rows||2}" placeholder="${esc(opts.ph||'')}">${esc(val)}</textarea>`:`<input data-path="${path}" value="${esc(val)}" placeholder="${esc(opts.ph||'')}" ${opts.type?'type="'+opts.type+'"':''}>`}</label>`; }
+function editorHTML(){
+  const mid=S.editing; const m=mid&&S.made[mid];
+  if(!m){ return `<div class="card-note"><h2>Make a case</h2><p>Write a file, four suspects with three answers each, and decide who did it. Give the killer a tell: a statement or a police fact that breaks them when pressed. Give one innocent a lie of their own if you like. Then post it to the board, with money on it or free.</p><p>Right answers pay the detective your stake. Wrong answers pay you theirs. You need the stake in your purse to post; they need it to take the case on.</p><div class="row"><button class="btn" data-act="newdraft">New case</button>${Object.keys(S.made).length?'<button class="btn ghost" data-act="ctab" data-ctab="mine">My drafts</button>':''}</div></div>`; }
+  const c=m.c; const errs=validateCase(c);
+  const evOpts=(forSid)=>{ const o=[['','— nothing breaks them —']]; c.brief.facts.forEach((f,i)=>{ if(f.trim()) o.push(['f'+i,'Fact '+(i+1)+': '+f.slice(0,40)]); }); c.suspects.forEach(s=>{ if(s.id===forSid) return; s.answers.forEach((a,j)=>{ if(a.trim()) o.push([s.id+':'+j,(s.name||'suspect')+' answer '+(j+1)+': '+a.slice(0,36)]); }); if(s.press.keys.length&&s.press.answer) o.push([s.id+':press',(s.name||'suspect')+', after a press: '+s.press.answer.slice(0,30)]); }); return o; };
+  let h=`<div class="editor"><div class="eyebrow">The file</div>`;
+  h+=field('title','Case title',c.title,{ph:'The Body in the Bell-Tower'});
+  h+=field('brief.victim','Victim',c.brief.victim,{ph:'Name, age, what they did'})+field('brief.weapon','Weapon',c.brief.weapon)+field('brief.time','When',c.brief.time,{ph:'Between nine and ten, Friday'})+field('brief.place','Where',c.brief.place);
+  h+=field('brief.public','What the Gazette printed',c.brief.public,{area:true,ph:'What the public knows. Keep something back.'});
+  c.brief.facts.forEach((f,i)=>{ h+=field('brief.facts.'+i,'Police fact '+(i+1)+(i?' (optional)':''),f,{area:true}); });
+  h+=`<div class="eyebrow" style="margin-top:14px">The three questions</div>`;
+  c.questions.forEach((q,i)=>{ h+=field('questions.'+i,'Question '+(i+1),q); });
+  c.suspects.forEach((s,i)=>{
+    h+=`<div class="eyebrow" style="margin-top:14px">Suspect ${i+1} <label class="cul"><input type="radio" name="culprit" data-path="culprit" value="${s.id}" ${c.culprit===s.id?'checked':''}> did it</label></div>`;
+    h+=field('suspects.'+i+'.name','Name',s.name)+field('suspects.'+i+'.age','Age',s.age)+field('suspects.'+i+'.job','Occupation or relation',s.job)+field('suspects.'+i+'.look','How they look',s.look,{ph:'Tall, nervous, a burned hand'})+field('suspects.'+i+'.note','What the file says about them',s.note,{area:true});
+    s.answers.forEach((a,j)=>{ h+=field('suspects.'+i+'.answers.'+j,'Answer to question '+(j+1),a,{area:true}); });
+    h+=`<label class="fld"><span>Breaks (or comes clean) when pressed with</span><select data-path="suspects.${i}.press.keys">${evOpts(s.id).map(([v,l])=>`<option value="${esc(v)}" ${s.press.keys[0]===v?'selected':''}>${esc(l)}</option>`).join('')}</select></label>`;
+    h+=field('suspects.'+i+'.press.answer','What they say when it lands',s.press.answer,{area:true,ph:s.id===c.culprit?'The confession.':'The secret they were hiding instead.'})+field('suspects.'+i+'.press.miss','What they say to a bad press',s.press.miss,{ph:'A shrug, in their voice.'});
+  });
+  h+=`<div class="eyebrow" style="margin-top:14px">Afterwards</div>`+field('solution','How it was done (shown after the arrest)',c.solution,{area:true,rows:3})+field('arrest','A last line (optional)',c.arrest);
+  h+=`<div class="eyebrow" style="margin-top:14px">Post it</div><label class="fld"><span>Stake (£0 for free) · you have £${S.money}</span><input id="stake" type="number" min="0" max="${S.money}" value="${m.stake||0}"></label>`;
+  h+= errs.length? `<p class="hintline">Still missing: ${esc(errs.slice(0,4).join(', '))}${errs.length>4?'…':''}</p>` : `<p class="hintline">Complete. Post it when you're happy.</p>`;
+  h+=`<div class="row" style="margin-top:8px"><button class="btn" data-act="publish" data-id="${mid}" ${errs.length||!ONLINE?'disabled':''}>Post to the board</button><button class="btn ghost" data-act="closeeditor">Done for now</button></div>${ONLINE?'':'<p class="hintline">Drafts save here. Posting needs the online version.</p>'}</div>`;
+  return h;
+}
+function setPath(obj, path, val){ const parts=path.split('.'); let o=obj; for(let i=0;i<parts.length-1;i++){ o=o[parts[i]]; } o[parts[parts.length-1]]=val; }
+
+/* ----- Notebook / Shop ----- */
 function renderNotebook(){
   const el=$('#p-notebook'); const c=cur(); const I=inv(c.id);
   let h=coachHTML()+`<div class="eyebrow">Your notebook <span style="color:var(--brass-dim)">· ${esc(handOf().name)}</span></div>`;
   h+=`<textarea class="nb" id="nb" placeholder="Who was where. Who said what they shouldn't know.">${esc(S.notebook)}</textarea>`;
-  const rows=c.suspects.filter(s=>(I.asked[s.id]||[]).length || I.presses.some(x=>x.sid===s.id));
+  const rows=c.suspects.filter(s=>((I.asked||{})[s.id]||[]).length || (I.presses||[]).some(x=>x.sid===s.id));
   h+=`<div class="eyebrow" style="margin-top:22px">Statements · ${esc(c.title)}</div>`;
-  h+= rows.length ? rows.map(s=>`<div class="stm"><b>${esc(s.name)}</b>${(I.asked[s.id]||[]).slice().sort().map(i=>`<div><span>${esc(c.questions[i])}</span><br>${esc(s.answers[i])}</div>`).join('')}${I.presses.filter(x=>x.sid===s.id).map(x=>`<div class="pr"><span>Pressed with: ${esc(evText(c,x.ev))}</span><br>${esc(x.hit?s.press.answer:s.press.miss)}</div>`).join('')}</div>`).join('') : `<p class="hintline">Nothing yet. Every answer you hear is copied here.</p>`;
+  h+= rows.length ? rows.map(s=>`<div class="stm"><b>${esc(s.name)}</b>${((I.asked||{})[s.id]||[]).slice().sort().map(i=>`<div><span>${esc(c.questions[i])}</span><br>${esc(s.answers[i])}</div>`).join('')}${(I.presses||[]).filter(x=>x.sid===s.id).map(x=>`<div class="pr"><span>Pressed with: ${esc(evText(c,x.ev))}${x.by&&inCoop()?' ('+esc(x.by)+')':''}</span><br>${esc(x.hit?s.press.answer:s.press.miss)}</div>`).join('')}</div>`).join('') : `<p class="hintline">Nothing yet. Every answer you hear is copied here.</p>`;
   el.innerHTML=h;
 }
 function renderShop(){
@@ -577,13 +858,13 @@ function renderShop(){
   h+=`<div class="eyebrow">Hands for your notebook</div><div class="hands">`+D.hands.map(x=>{ const own=x.price===0||S.owned.includes('hand:'+x.id); const inuse=S.hand===x.id; const can=S.money>=x.price;
     const btn = inuse?'<button class="buy inuse" disabled>In use</button>':own?`<button class="buy use" data-act="usehand" data-id="${x.id}">Use</button>`:`<button class="buy" data-act="buyhand" data-id="${x.id}" ${can?'':'disabled'}>£${x.price}</button>`;
     return `<div class="handrow"><div class="prev" style="font-family:${x.font};font-size:${x.prev}">Rooney knew about the mallet.<small>${esc(x.name)}</small></div>${btn}</div>`; }).join('')+`</div>`;
-  h+=`<p class="hintline" style="margin-top:14px">Decor sits on the shelf above your desk. A hand changes how your notebook is written.</p>`;
+  h+=`<p class="hintline" style="margin-top:14px">Decor sits on the shelf above your desk. A hand changes how your notebook is written. Stakes won on the board land here too.</p>`;
   el.innerHTML=h;
 }
-let tt; function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('on'); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('on'),1800); }
+let tt; function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('on'); clearTimeout(tt); tt=setTimeout(()=>t.classList.remove('on'),2200); }
 
 /* ---------- Music ---------- */
-const TRACKS=[['Theme I','audio/theme-1.m4a'],['Theme II','audio/theme-2.m4a']]; // the player hides itself while this is empty
+const TRACKS=[['Theme I','audio/theme-1.m4a'],['Theme II','audio/theme-2.m4a']];
 const audio=new Audio(); audio.volume=.8; audio.preload='none';
 let musicWanted = S.music===true;
 function updateMusicUI(){
@@ -641,6 +922,13 @@ function openSound(){
   h+=`<div class="row" style="margin-top:14px"><button class="btn ghost" data-act="closesheet">Back to the desk</button></div>`;
   $('#sheet').innerHTML=h; $('#sheet').classList.add('open'); $('#scrim').classList.add('on');
 }
+function openCoopMenu(){
+  let h=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>Co-op room</h3><p class="sub">Work a case together</p>`;
+  if(!ONLINE) h+=`<p>Co-op needs the game opened through its claude.ai link, so the room can be shared.</p>`;
+  else h+=`<p>Open a room on the case you have on the desk and give the code to another detective. You share one budget of questions and presses, see each other's work as it happens, and must all agree before the warrant is signed. Story cases pay everyone; free board cases work too; wagers don't.</p><div class="row"><button class="btn" data-act="coopcreate">Open a room on “${esc(cur().title)}”</button></div><p class="sub" style="margin-top:16px">Or join one</p><div class="row"><input id="joincode" class="code-in" placeholder="CODE" maxlength="4" autocapitalize="characters"><button class="btn ghost" data-act="coopjoin">Join</button></div>`;
+  h+=`<div class="row" style="margin-top:14px"><button class="btn ghost" data-act="closesheet">Back</button></div>`;
+  $('#sheet').innerHTML=h; $('#sheet').classList.add('open'); $('#scrim').classList.add('on');
+}
 
 /* ---------- Events ---------- */
 let ambStarted=false;
@@ -648,31 +936,61 @@ document.addEventListener('click',e=>{
   if(!ambStarted && S.amb && !S.intro){ ambStarted=true; SFX.ambience(true); }
   if(musicWanted && !S.intro && !audio.src && !e.target.closest('[data-act="music"]')) playTrack(S.track||0);
   const tab=e.target.closest('nav.tabs button'); if(tab){ S.tab=tab.dataset.tab; render(); window.scrollTo(0,0); return; }
+  const ct=e.target.closest('[data-ctab]'); if(ct && !e.target.closest('[data-act]')){ S.casesTab=ct.dataset.ctab; render(); return; }
   if(e.target.id==='scrim'){ closeSheet(); return; }
   const a=e.target.closest('[data-act]'); if(!a) return; const act=a.dataset.act;
   if(act==='intro'){ S.intro=false; SFX.unlock(); SFX.play('paper'); render(); if(S.amb) SFX.ambience(true); }
   else if(act==='sound'){ openSound(); }
   else if(act==='toggle'){ const k=a.dataset.k; if(k==='sfx'){ S.sfx=!(S.sfx!==false); if(S.sfx) SFX.play('knock'); } else if(k==='amb'){ S.amb=!S.amb; SFX.ambience(!!S.amb); } else if(k==='music'){ toggleMusic(); } save(); updateSoundUI(); setTimeout(openSound,k==='music'?150:0); }
   else if(act==='tab'){ S.tab=a.dataset.tab; render(); window.scrollTo(0,0); }
+  else if(act==='ctab'){ S.casesTab=a.dataset.ctab; S.tab='cases'; render(); }
   else if(act==='suspect'){ SFX.play('paper'); openSuspect(a.dataset.id,false); }
-  else if(act==='ask'){ const c=cur(); if(S.solved[c.id]||qLeft(c.id)<=0) return; const l=inv(c.id).asked; l[a.dataset.id]=l[a.dataset.id]||[]; if(!l[a.dataset.id].includes(+a.dataset.q)){ l[a.dataset.id].push(+a.dataset.q); SFX.play('scratch'); } openSuspect(a.dataset.id,true); }
+  else if(act==='ask'){ doAsk(a.dataset.id, +a.dataset.q); }
   else if(act==='pressmenu'){ pressMenu(a.dataset.id); }
   else if(act==='press'){ doPress(a.dataset.id, a.dataset.ev); }
   else if(act==='accuse'){ confirmAccuse(a.dataset.id); }
   else if(act==='arrest'){ arrest(a.dataset.id); }
+  else if(act==='cooppropose'){ coopPropose(a.dataset.id); closeSheet(); }
+  else if(act==='coopvote'){ coopVote(a.dataset.v==='1'); }
+  else if(act==='coopmenu'){ openCoopMenu(); }
+  else if(act==='coopcreate'){ closeSheet(); createCoop(); }
+  else if(act==='coopjoin'){ const v=$('#joincode')&&$('#joincode').value; closeSheet(); joinCoop(v,false); }
+  else if(act==='coopleave'){ leaveCoop(false); }
+  else if(act==='rename'){ const n=prompt('Your name on the board and in rooms:', S.name||''); if(n!==null){ S.name=n.trim().slice(0,24); save(); pushPlayer(); pushPresence(); if(inCoop()&&COOP.members[S.pid]!==myName()){ const members={...COOP.members,[S.pid]:myName()}; coopRef(S.coop.code).update({members}).catch(()=>{}); } render(); } }
+  else if(act==='account'){ openAccount(); }
+  else if(act==='login'){ accountAction('login'); }
+  else if(act==='register'){ accountAction('register'); }
+  else if(act==='signout'){ if(confirm('Sign out? This device goes back to a fresh guest; your progress stays with the account.')){ closeSheet(); signOut(); } }
   else if(act==='closesheet'){ closeSheet(); }
-  else if(act==='opencase'){ if(unlocked(a.dataset.id)){ SFX.play('paper'); S.caseId=a.dataset.id; S.tab='desk'; closeSheet(); render(); window.scrollTo(0,0); } }
-  else if(act==='buy'){ const d=D.decor.find(x=>x.id===a.dataset.id); if(d && S.money>=d.price && !S.owned.includes(d.id)){ S.money-=d.price; S.owned.push(d.id); SFX.play('coin'); setTimeout(()=>SFX.play('knock'),220); toast(d.name+' bought.'); render(); } }
-  else if(act==='buyhand'){ const x=D.hands.find(y=>y.id===a.dataset.id); if(x && S.money>=x.price && !S.owned.includes('hand:'+x.id)){ S.money-=x.price; S.owned.push('hand:'+x.id); S.hand=x.id; SFX.play('coin'); setTimeout(()=>SFX.play('page'),200); toast(x.name+' bought and in use.'); render(); } }
+  else if(act==='opencase'){ if(inCoop()){ toast('Leave the co-op room first.'); return; } if(unlocked(a.dataset.id) && getCase(a.dataset.id)){ SFX.play('paper'); S.caseId=a.dataset.id; S.tab='desk'; closeSheet(); render(); window.scrollTo(0,0); } }
+  else if(act==='take'){ takeCase(a.dataset.id); }
+  else if(act==='newdraft'){ const c=blankCase(); const mid='m'+rid(6); S.made[mid]={c, stake:0, published:null, createdAt:Date.now()}; S.editing=mid; save(); render(); }
+  else if(act==='edit'){ S.editing=a.dataset.id; S.casesTab='make'; render(); window.scrollTo(0,0); }
+  else if(act==='deldraft'){ if(confirm('Delete this draft?')){ delete S.made[a.dataset.id]; if(S.editing===a.dataset.id) S.editing=null; save(); render(); } }
+  else if(act==='closeeditor'){ S.editing=null; S.casesTab='mine'; save(); render(); }
+  else if(act==='publish'){ publishCase(a.dataset.id, $('#stake')&&$('#stake').value); }
+  else if(act==='withdraw'){ withdrawCase(a.dataset.id); }
+  else if(act==='buy'){ const d=D.decor.find(x=>x.id===a.dataset.id); if(d && S.money>=d.price && !S.owned.includes(d.id)){ addMoney(-d.price); S.owned.push(d.id); SFX.play('coin'); setTimeout(()=>SFX.play('knock'),220); toast(d.name+' bought.'); render(); } }
+  else if(act==='buyhand'){ const x=D.hands.find(y=>y.id===a.dataset.id); if(x && S.money>=x.price && !S.owned.includes('hand:'+x.id)){ addMoney(-x.price); S.owned.push('hand:'+x.id); S.hand=x.id; SFX.play('coin'); setTimeout(()=>SFX.play('page'),200); toast(x.name+' bought and in use.'); render(); } }
   else if(act==='usehand'){ S.hand=a.dataset.id; SFX.play('page'); render(); }
   else if(act==='music'){ toggleMusic(); }
   else if(act==='nexttrack'){ playTrack((S.track||0)+1); }
   else if(act==='ack'){ S.tutAck=true; render(); }
   else if(act==='skiptut'){ S.tut=null; render(); }
-  else if(act==='reset'){ if(confirm('Start over from the first case? Purse, desk and notebook go too.')){ S=fresh(); render(); } }
+  else if(act==='reset'){ if(confirm('Start over from the first case? Purse, desk and notebook go too. Your name and board identity stay.')){ const keep={pid:S.pid,name:S.name}; S=Object.assign(fresh(),keep); save(); pushPlayer(); render(); } }
 });
-document.addEventListener('input',e=>{ if(e.target.id==='nb'){ S.notebook=e.target.value; save(); } });
+document.addEventListener('input',e=>{
+  if(e.target.id==='nb'){ S.notebook=e.target.value; save(); return; }
+  const p=e.target.dataset && e.target.dataset.path; if(p && S.editing && S.made[S.editing]){
+    const c=S.made[S.editing].c; let v=e.target.value;
+    if(p.endsWith('press.keys')) v = v? [v] : [];
+    setPath(c,p,v); save();
+    if(e.target.tagName==='SELECT' || e.target.type==='radio') render();
+  }
+});
+document.addEventListener('change',e=>{ const p=e.target.dataset && e.target.dataset.path; if(p && (e.target.type==='radio'||e.target.tagName==='SELECT') && S.editing){ const c=S.made[S.editing].c; let v=e.target.value; if(p.endsWith('press.keys')) v=v?[v]:[]; setPath(c,p,v); save(); render(); } });
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeSheet(); });
 render();
+initNet();
 })();
 </script>

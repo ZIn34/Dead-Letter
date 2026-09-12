@@ -18,6 +18,26 @@ collects every statement and press.
 Six cases are written. Each has a different kind of tell, and every case has one innocent with
 a lie of their own.
 
+## Online: accounts, the board, wagers, co-op
+
+Opened through its claude.ai artifact link, the game shares one database between everyone who
+has the link (the Pages copy plays offline: story cases, desk and notebook only).
+
+- **Accounts.** A username and password. Your purse, cases and notebook follow the account to
+  any device. Passwords are hashed in the page (PBKDF2) and checked in the page; the database is
+  open to anyone with the link, so this is a friends' game, not a bank.
+- **The board.** Any detective can write a case from the template under Cases → Make and post it
+  with a stake, or free. The stake leaves the maker's purse when they post. Another detective
+  needs the same amount to take the case on. Right arrest: the detective keeps the stake. Wrong:
+  the detective pays the same again and the maker gets both. Cases you take on live under Mine
+  until you close them, but anyone else can close them first, and then they are gone.
+- **Co-op.** Open a room on the case on your desk, give the four-letter code to others. One shared
+  budget of questions and presses, every move visible to all, and the warrant needs everyone's
+  agreement. Story cases pay each member; free board cases work; wagers don't.
+
+Payouts between players are written as `credits/` records that the recipient's game claims, so a
+player only ever writes their own purse.
+
 ## Play
 
 Open `index.html` from any static web server (it needs `icons/` and `audio/` beside it):

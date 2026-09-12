@@ -9,6 +9,7 @@
 <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
+<script src="firebase-config.js"></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=Special+Elite&family=Caveat:wght@400;600&family=Homemade+Apple&family=Dancing+Script:wght@500&family=Rock+Salt&family=Shadows+Into+Light&display=swap">
 <style>
 :root{
@@ -285,7 +286,7 @@ const rid=(n=10)=>Array.from(crypto.getRandomValues(new Uint8Array(n))).map(b=>'
 const fresh=()=>({tab:'desk', money:0, solved:{}, inv:{}, caseId:D.cases[0].id, owned:[], hand:'caveat', notebook:'', intro:true, tut:0, music:true, sfx:true, amb:true, easy:true, defaultsV2:true, track:0,
   pid:'p'+rid(10), name:'', made:{}, taken:{}, coop:null, coopApplied:{}, casesTab:'files', editing:null, notes:{}, practice:null, daily:null, dailyPaid:{}, testing:null, hints:{}});
 let S=load();
-let db=null, room=null, ONLINE=false, BOARD=[], COOP=null, unsubCoop=null, PEERS=[], netNote='', DAILY=null;
+let db=null, room=null, ONLINE=false, BOARD=[], COOP=null, unsubCoop=null, PEERS=[], netNote='', DAILY=null, NET_KIND='claude';
 function load(){ try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s && s.caseId){ if(!s.pid) s.pid='p'+rid(10); s.made=s.made||{}; s.taken=s.taken||{}; s.coopApplied=s.coopApplied||{}; s.notes=s.notes||{}; if(s.notebook && !s.notes.general){ s.notes.general=s.notebook; } s.dailyPaid=s.dailyPaid||{}; s.hints=s.hints||{}; s.practice=null; s.daily=null; s.testing=null; if(!s.defaultsV2){ s.defaultsV2=true; s.music=true; s.sfx=true; s.amb=true; s.easy=true; } return s; } }catch(e){} return fresh(); }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} try{ pushSave(); }catch(e){} }
 const $=s=>document.querySelector(s);
@@ -358,11 +359,38 @@ const ART={
  typewriter:`<svg viewBox="0 0 80 56"><rect x="24" y="2" width="32" height="20" fill="#efe6d2" stroke="#b8925a" stroke-width="1"/><rect x="8" y="22" width="64" height="26" rx="4" fill="#2a2320" stroke="#b8925a" stroke-width="1.5"/><rect x="4" y="46" width="72" height="8" rx="2" fill="#3a2a1e" stroke="#b8925a" stroke-width="1"/>${[0,1,2,3,4,5,6].map(i=>`<circle cx="${18+i*7.5}" cy="32" r="2" fill="#b8925a"/><circle cx="${22+i*7.5}" cy="39" r="2" fill="#b8925a"/>`).join('')}</svg>`
 };
 
-/* ---------- Online (claude.ai artifact runtime) ---------- */
+/* ---------- Online: claude.ai artifact runtime, or Firestore when firebase-config.js is present ---------- */
+function loadScript(src){ return new Promise((res,rej)=>{ const el=document.createElement('script'); el.src=src; el.onload=res; el.onerror=()=>rej(new Error('load '+src)); document.head.appendChild(el); }); }
+async function firestoreDb(cfg){
+  await loadScript('https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js');
+  await loadScript('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js');
+  const app=firebase.initializeApp(cfg); const fs=firebase.firestore();
+  const wrapDoc=d=>({id:d.id, exists:!!d.exists, data:()=>d.data(), metadata:{fromCache:!!(d.metadata&&d.metadata.fromCache), hasPendingWrites:!!(d.metadata&&d.metadata.hasPendingWrites)}});
+  const wrapQ=q=>({docs:q.docs.map(wrapDoc), size:q.size, empty:q.empty, docChanges:()=>q.docChanges().map(ch=>({type:ch.type, doc:wrapDoc(ch.doc), oldIndex:ch.oldIndex, newIndex:ch.newIndex})), metadata:{fromCache:!!q.metadata.fromCache, hasPendingWrites:!!q.metadata.hasPendingWrites}});
+  const err=e=>({code:(e&&e.code)||'unavailable', message:(e&&e.message)||String(e)});
+  function docRef(path){ const r=fs.doc(path); return {
+    id:r.id, path,
+    get:()=>r.get().then(wrapDoc), set:d=>r.set(d), update:d=>r.update(d), delete:()=>r.delete(),
+    async acquire({holder, ttlMs=5000}){ const lref=fs.doc('leases/'+path.replace(/\//g,'__')); const now=Date.now(); try{ return await fs.runTransaction(async tx=>{ const ls=await tx.get(lref); const l=ls.exists?ls.data():null; if(l && l.exp>now && l.holder!==holder) return {acquired:false, expiresAt:new Date(l.exp).toISOString()}; tx.set(lref,{holder, exp:now+ttlMs}); return {acquired:true, version:1, holder, expiresAt:new Date(now+ttlMs).toISOString()}; }); }catch(e){ return {acquired:false}; } },
+    onSnapshot:(next,onErr)=>r.onSnapshot(d=>next(wrapDoc(d)), e=>onErr&&onErr(err(e))),
+    collection:p=>colRef(path+'/'+p)
+  }; }
+  function colRef(path, q){ const base=q||fs.collection(path); return {
+    path, doc:id=>docRef(path+'/'+(id||fs.collection(path).doc().id)),
+    add:d=>fs.collection(path).add(d).then(r=>docRef(path+'/'+r.id)),
+    where:(f,op,v)=>colRef(path, base.where(f, op==='=='||op==='eq'?'==':op, v)),
+    orderBy:(f,dir)=>colRef(path, base.orderBy(f,dir||'asc')),
+    limit:n=>colRef(path, base.limit(n)),
+    get:()=>base.get().then(wrapQ),
+    onSnapshot:(next,onErr)=>base.onSnapshot(qs=>next(wrapQ(qs)), e=>onErr&&onErr(err(e)))
+  }; }
+  return {doc:docRef, collection:colRef};
+}
 async function initNet(){
   try{
-    if(!(window.claude && typeof window.claude.use==='function')){ netNote='offline'; return; }
-    db=await window.claude.use('db');
+    if(window.claude && typeof window.claude.use==='function'){ db=await window.claude.use('db'); }
+    else if(window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.projectId){ try{ db=await firestoreDb(window.FIREBASE_CONFIG); NET_KIND='firebase'; }catch(e){ netNote='firebase failed: '+(e.message||e); db=null; } }
+    else { netNote='offline'; return; }
     if(!db){ netNote='offline'; render(); return; }
     ONLINE=true; netNote='';
     await syncPlayer();
@@ -370,7 +398,7 @@ async function initNet(){
     watchPlayer();
     db.doc('daily/'+todayKey()).onSnapshot(snap=>{ DAILY=snap.exists?snap.data():null; render(); }, e=>{});
     if(S.coop) joinCoop(S.coop.code, true);
-    room=await window.claude.use('room');
+    room = (window.claude && window.claude.use) ? await window.claude.use('room') : null;
     if(room){ room.onPeers(ch=>{ PEERS=ch.peers.slice(); renderCoopPeers(); }); pushPresence(); }
     render();
   }catch(e){ netNote='offline'; render(); }
@@ -612,7 +640,7 @@ function modeBanner(c){
   if(m==='test') return `<div class="card-note"><h2>Testing your case</h2><p>Play it the way a detective would. Make the arrest to finish the test; then you can post it.</p><div class="row"><button class="btn ghost" data-act="endtest">Back to the editor</button></div></div>`;
   return '';
 }
-function offlineNote(){ if(ONLINE || S.offlineNoteSeen || S.intro) return ''; return `<div class="card-note"><h2>Offline demo</h2><p>This copy plays the story cases, but accounts, the board, wagers and co-op live at the online version.</p><div class="row"><a class="btn" href="${ONLINE_URL}" target="_blank" rel="noopener">Open the online version</a><button class="btn ghost" data-act="dismissoffline">Got it</button></div></div>`; }
+function offlineNote(){ if(ONLINE || S.offlineNoteSeen || S.intro || netNote.startsWith('firebase')) return ''; return `<div class="card-note"><h2>Offline demo</h2><p>This copy plays the story cases, but accounts, the board, wagers and co-op live at the online version.</p><div class="row"><a class="btn" href="${ONLINE_URL}" target="_blank" rel="noopener">Open the online version</a><button class="btn ghost" data-act="dismissoffline">Got it</button></div></div>`; }
 function coopBanner(){
   if(!inCoop()) return `<div class="row" style="margin:0 0 14px"><button class="btn ghost" data-act="coopmenu">Co-op room</button><button class="btn ghost" data-act="account">${S.account?esc(S.account):'Account · '+esc(myName())}</button></div>`;
   const d=COOP; const names=Object.values(d.members||{}); const here=PEERS.filter(p=>p.presence&&p.presence.coop===d.code).map(p=>p.presence.name);
@@ -642,7 +670,7 @@ function renderDesk(){
     h+=`<p class="hintline">Tap a suspect to question or press them. Accuse from their page when you're sure.${S.taken[c.id]&&S.taken[c.id].stake?' £'+S.taken[c.id].stake+' rides on it, and another detective may close it first.':''}</p>`;
   }
   h+=musicBar();
-  h+=`<p class="foot">${ONLINE?'Online as '+esc(myName())+'.':'Offline: board and co-op need the claude.ai version.'} <button data-act="reset">Start over</button></p>`;
+  h+=`<p class="foot">${ONLINE?'Online as '+esc(myName())+(NET_KIND==='firebase'?' (Firestore)':'')+'.':(netNote.startsWith('firebase')?'Could not reach the database ('+esc(netNote)+').':'Offline: board and co-op need the online version.')} <button data-act="reset">Start over</button></p>`;
   el.innerHTML=h; updateMusicUI();
 }
 function openSuspect(sid, keepScroll){

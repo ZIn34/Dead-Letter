@@ -40,12 +40,6 @@ header h1 small{display:block;font-size:11px;letter-spacing:.18em;text-transform
 .music.on{color:#1b1b17;background:var(--brass);border-color:#d8b478}
 .music.snd{display:grid;place-items:center}
 .music.snd.off .w1,.music.snd.off .w2{display:none}
-.setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px dotted var(--paper-shadow)}
-.setrow:last-of-type{border:0}
-.setrow b{font:400 17px var(--fell)}
-.setrow i{display:block;font-style:normal;font-size:13px;color:var(--pencil)}
-.sw{flex:none;min-width:64px;text-align:center;font:400 13px var(--fell);letter-spacing:.1em;text-transform:uppercase;padding:7px 10px;border:1px solid var(--pencil);color:var(--ink)}
-.sw.on{background:var(--brass);border-color:#d8b478;color:#1b1b17}
 main{flex:1;min-height:0;position:relative}
 .panel{display:none;padding:16px 16px 110px;animation:fade .25s ease}
 .panel.on{display:block}
@@ -80,9 +74,14 @@ main{flex:1;min-height:0;position:relative}
 .file .sec{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--pencil);margin:12px 0 4px;border-bottom:1px solid var(--paper-shadow)}
 .file ul{margin:0;padding-left:18px}
 .file li{margin:3px 0}
+.file li.since{color:#7a3b2a}
 .file .gaz{font-family:var(--sans);font-style:italic;font-size:16px;margin:0}
 .stamp{position:absolute;right:14px;top:14px;transform:rotate(-10deg);border:2px solid var(--red);color:var(--red);font:400 13px/1.15 var(--fell);letter-spacing:.1em;text-transform:uppercase;padding:6px 8px;text-align:center;opacity:.85;border-radius:3px;mix-blend-mode:multiply}
 .stamp.cold{border-color:var(--ink-soft);color:var(--ink-soft)}
+.budget{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+.chip{background:rgba(0,0,0,.22);border:1px solid var(--brass-dim);color:var(--paper);font-size:14px;padding:5px 10px;font-variant-numeric:tabular-nums}
+.chip b{font:400 16px var(--fell);color:var(--lamp)}
+.chip.zero b{color:var(--red)}
 
 .suspects{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
 .sus{background:var(--paper-deep);color:var(--ink);padding:12px 12px 10px;text-align:left;border:1px solid var(--paper-shadow);box-shadow:2px 3px 0 rgba(0,0,0,.25);display:flex;flex-direction:column;gap:6px;position:relative}
@@ -92,6 +91,7 @@ main{flex:1;min-height:0;position:relative}
 .sus i{font-size:13px;color:var(--pencil);font-style:normal;letter-spacing:.04em}
 .sus p{margin:0;font-size:14px;line-height:1.3}
 .sus .asked{position:absolute;top:8px;right:10px;font:400 11px var(--fell);color:var(--pencil);letter-spacing:.1em}
+.sus .asked.hot{color:var(--red)}
 .sus.guessed{outline:2px dashed var(--ink-soft);outline-offset:-2px}
 .sus.culprit{outline:2px solid var(--red);outline-offset:-2px}
 
@@ -100,6 +100,7 @@ main{flex:1;min-height:0;position:relative}
 .btn{background:var(--brass);color:#1b1b17;font:400 15px var(--fell);letter-spacing:.06em;padding:11px 16px;border:1px solid #d8b478;box-shadow:0 2px 0 var(--brass-dim);text-transform:uppercase}
 .btn.ghost{background:transparent;color:var(--brass);border-color:var(--brass-dim);box-shadow:none}
 .btn.danger{background:var(--red);color:var(--paper);border-color:#d0645a;box-shadow:0 2px 0 #6e231c}
+.btn.press{background:var(--ink);color:var(--paper);border-color:#4a5561;box-shadow:0 2px 0 #10161d}
 .btn:active{transform:translateY(1px);box-shadow:none}
 .btn[disabled]{opacity:.45;pointer-events:none}
 .card-note{background:rgba(0,0,0,.18);border:1px solid var(--brass-dim);padding:14px 16px;margin:0 0 16px;color:var(--paper)}
@@ -109,7 +110,7 @@ main{flex:1;min-height:0;position:relative}
 .card-note .row{margin-top:10px}
 
 /* Sheet */
-#sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,110%);width:100%;max-width:480px;background:var(--paper);color:var(--ink);padding:18px 18px 22px;box-shadow:0 -10px 30px rgba(0,0,0,.45);transition:transform .25s ease;z-index:20;max-height:82dvh;overflow:auto}
+#sheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,110%);width:100%;max-width:480px;background:var(--paper);color:var(--ink);padding:18px 18px 22px;box-shadow:0 -10px 30px rgba(0,0,0,.45);transition:transform .25s ease;z-index:20;max-height:84dvh;overflow:auto}
 #sheet.open{transform:translate(-50%,0)}
 #sheet h3{font:400 22px var(--fell);margin:0 0 2px}
 #sheet .sub{color:var(--pencil);font-size:14px;letter-spacing:.06em;text-transform:uppercase;margin:0 0 10px}
@@ -118,12 +119,24 @@ main{flex:1;min-height:0;position:relative}
 .qs{display:flex;flex-direction:column;gap:8px;margin:10px 0 14px}
 .q{text-align:left;border:1px solid var(--paper-shadow);background:#f6efdc;padding:10px 12px;font-size:15.5px;color:var(--ink);width:100%}
 .q small{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--pencil);margin-bottom:2px}
+.q[disabled]{opacity:.5}
+.q.ev{border-left:3px solid var(--brass)}
+.q.ev.fact{border-left-color:var(--ink-soft)}
 .a{font-family:var(--hand);font-size:21px;line-height:1.25;color:#2f2a22;padding:8px 12px 10px 16px;border-left:3px solid var(--brass);margin:0 0 4px}
+.a.break{border-left-color:var(--red);background:var(--red-soft)}
+.a.secret{border-left-color:var(--ink-soft);background:rgba(74,85,97,.08)}
+.a.miss{color:var(--pencil)}
 .scrim{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:15;display:none}
 .scrim.on{display:block}
 .verdict{font:400 30px var(--fell);color:var(--red);margin:0 0 4px}
 .verdict.cold{color:var(--ink-soft)}
 .pay{font:400 24px var(--fell);color:#3b6b3f;margin:0 0 8px}
+.setrow{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px dotted var(--paper-shadow)}
+.setrow:last-of-type{border:0}
+.setrow b{font:400 17px var(--fell)}
+.setrow i{display:block;font-style:normal;font-size:13px;color:var(--pencil)}
+.sw{flex:none;min-width:64px;text-align:center;font:400 13px var(--fell);letter-spacing:.1em;text-transform:uppercase;padding:7px 10px;border:1px solid var(--pencil);color:var(--ink)}
+.sw.on{background:var(--brass);border-color:#d8b478;color:#1b1b17}
 
 /* Cases */
 .caselist{display:flex;flex-direction:column;gap:10px}
@@ -131,7 +144,7 @@ main{flex:1;min-height:0;position:relative}
 .casebtn .n{font:400 13px var(--fell);color:var(--pencil);letter-spacing:.1em;width:28px;flex:none}
 .casebtn b{font:400 17px var(--fell);display:block}
 .casebtn i{font-style:normal;font-size:12px;color:var(--pencil);letter-spacing:.06em;text-transform:uppercase}
-.casebtn .st{margin-left:auto;font:400 13px var(--fell);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.casebtn .st{margin-left:auto;font:400 13px var(--fell);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;text-align:right}
 .casebtn .st.ok{color:#3b6b3f} .casebtn .st.cold{color:var(--pencil)} .casebtn .st.open{color:var(--red)}
 .casebtn.locked{opacity:.45}
 .casebtn.cur{outline:2px solid var(--lamp);outline-offset:-2px}
@@ -143,6 +156,7 @@ textarea.nb{width:100%;min-height:260px;resize:vertical;border:0;border-top:1px 
 .stm b{font:400 16px var(--fell);display:block;margin-bottom:4px}
 .stm div{font-family:var(--typed);font-size:12.5px;line-height:1.5;margin:0 0 4px}
 .stm div span{color:var(--pencil)}
+.stm div.pr{color:#7a3b2a}
 
 /* Shop */
 .money{font:400 26px var(--fell);color:var(--lamp);margin:0 0 12px}
@@ -208,119 +222,149 @@ nav.tabs button.pulse{color:var(--lamp);text-shadow:0 0 8px var(--lamp)}
 
 <script id="game-data" type="application/json">
 {
+"rules":{"questions":6,"presses":2,"breakBonus":2},
 "cases":[
 {"id":"bell","title":"The Yard Behind the Bell","reward":4,
  "brief":{"victim":"Dennis Quaile, 31, cooper's mate","weapon":"A cooper's mallet, found in the rain barrel. Marked T.V.","time":"Between eleven and midnight, Tuesday","place":"The yard behind the Drowned Bell, Quay Street",
-  "public":"\"A dock labourer found dead behind the Drowned Bell; foul play suspected.\" Nothing about the mallet, nothing about the barrel.",
-  "facts":["Struck once, from behind.","The yard gate onto Quay Street was bolted from inside. The only other way in is through the taproom.","The cannery dormitory is bolted at ten every night by the foreman, and was."]},
+  "public":"\"A dock labourer found dead behind the Drowned Bell; foul play suspected.\" Nothing about a mallet, nothing about the barrel.",
+  "facts":["Struck once, from behind, with a cooper's mallet marked T.V. The mallet has been mentioned to nobody outside this office except Teddy Vane, who was shown it at seven this morning to identify.","The yard gate onto Quay Street was bolted from inside. The only other way into the yard is through the taproom.","The rain barrel was full. Whoever pushed the mallet under got a sleeve wet to the elbow."]},
  "questions":["Where were you between eleven and midnight?","How did you know Dennis Quaile?","What do you know about how he died?"],
  "suspects":[
   {"id":"kell","name":"Marta Kell","age":52,"job":"landlady of the Drowned Bell","color":"#6b4a3a","look":"Broad, quick, a bar-towel over one shoulder.","note":"Has run the Bell for twenty years. Twenty drinkers saw her behind the bar until she rang the bell at midnight.",
-   "answers":["Behind my own bar, where I always am, till I rang midnight. Ask any of the twenty.","He drank here. Paid, mostly. Owed Sam Rooney money and Rooney let everyone know it.","Only what the constable told me: found him in my yard this morning. Nobody uses that yard but me and the barrels."]},
+   "answers":["Behind my own bar till I rang midnight; twenty men saw me. Lil went out the back at eleven, white as a sheet, and I covered a quarter hour for her.","He drank here and paid, mostly. He owed Sam Rooney two pound and Rooney let the whole bar know it. Rooney's in the cannery dormitory this week, and Grady bolts that door at ten, so if he tells you he was tucked up by eleven, ask him how he got in.","Only what the constable told me: found in my yard this morning. Nobody uses that yard but me and the barrels."],
+   "press":{"keys":[],"miss":"Press me all you like. I've twenty witnesses and a bar to run."}},
   {"id":"rooney","name":"Sam Rooney","age":27,"job":"dock hand","color":"#3f5560","look":"Big hands, small eyes, a fresh scrape across the right knuckles.","note":"Quaile owed him two pounds since the spring. Sleeps in the cannery dormitory when he is working, which this week he is.",
-   "answers":["In my bunk at the dormitory by eleven. Slept like the dead.","He owed me two pound and he'd have paid it too. No sense killing a man who owes you money.","I don't know anything about any mallet, and I'll thank you not to say I do."]},
+   "answers":["In my bunk at the dormitory by eleven. Slept like the dead.","He owed me two pound and he'd have paid it. No sense killing a man who owes you money.","I don't know anything about any mallet, and I'll thank you not to say I do."],
+   "press":{"keys":["f0","kell:1","lil:press"],"answer":"Nobody said mallet? Marta said... no. The constable, then. — Fine. He laughed at me. In the yard, over two pound, he laughed. I only meant to frighten him. The barrel was to hide it, and my sleeve's still damp if you want to feel it.","miss":"That's nothing. You've got nothing."}},
   {"id":"vane","name":"Teddy Vane","age":40,"job":"cooper, Quaile's brother-in-law","color":"#7a6a2e","look":"Sawdust in his beard, a limp from an old dropped cask.","note":"Employed Quaile. Owns a set of mallets marked T.V.; reported one stolen from his Quay Street yard a week ago.",
-   "answers":["Home in Gull Lane with my wife, his sister. She'll tell you. She'll tell you at length.","I married his sister and I gave him work, and he was bad at it, and I kept him on anyway.","The constable showed me the mallet. It's mine. I reported it gone last Wednesday and there's a constable's note to say so."]},
+   "answers":["Home in Gull Lane with my wife, his sister. She'll tell you. She'll tell you at length.","I married his sister and gave him work, and he was bad at it, and I kept him on anyway.","The constable showed me the mallet at seven this morning; it's mine. I reported it gone last Wednesday and there's a note to say so."],
+   "press":{"keys":[],"miss":"The constable showed it to me himself. Ask him. I've a note about the theft with a date on it."}},
   {"id":"lil","name":"Lil Marr","age":19,"job":"barmaid","color":"#5a3f5e","look":"Small, tired, a cannery hand's roughened palms.","note":"Serves at the Bell four nights a week. Quaile had been pestering her; Marta had warned him off.",
-   "answers":["Serving. I never left the taproom till we'd cleared the glasses at half past twelve.","He wouldn't leave me be. Marta told him if he touched me again she'd bar him. That was Sunday.","Somebody hit him, they say. Good. I'm sorry, but good."]}
+   "answers":["Serving. I never left the taproom till we'd cleared the glasses.","He wouldn't leave me be. Marta told him if he touched me again she'd bar him. That was Sunday.","Somebody hit him, they say. Good. I'm sorry, but good."],
+   "press":{"keys":["kell:0"],"secret":true,"answer":"All right. I went out to the yard at eleven to be sick. I'm carrying, and it was his, and he laughed about that too. When I came back in through the taproom door Sam Rooney was going out through it, and when he came back his right sleeve was wet to the elbow. I said nothing. I was glad.","miss":"I was serving. Ask anyone."}}
  ],
  "culprit":"rooney",
- "solution":"Nobody outside the police knew a mallet was used; the Gazette said only foul play. Rooney denied knowing about 'any mallet' before anyone had mentioned one. His alibi was a bunk in a dormitory that is bolted at ten, an hour before he says he climbed into it. The scrape on his knuckles is from the rim of the rain barrel. Teddy Vane's stolen mallet was stolen by the man who worked the same yard.",
+ "solution":"Rooney knew a mallet had been used when nobody had told him; the Gazette said only foul play, and only Vane had been shown it. His bunk was behind a door Grady bolts at ten. Lil Marr, once she admitted why she left the taproom, had seen him come back from the yard with his sleeve wet to the elbow, where the barrel was. Vane's stolen mallet was stolen by the man who shared his yard.",
  "arrest":"Rooney goes quietly, which surprises everyone but Marta."},
 
 {"id":"loft","title":"The Sailmaker's Loft","reward":5,
+ "cold":{"bell":"Sam Rooney, released in the Quaile matter for want of evidence, has left town owing the Bell four shillings."},
  "brief":{"victim":"Nathaniel Crewe, 58, sail merchant from Harrowgate","weapon":"A sailmaker's needle, driven in under the ribs","time":"Between five and six in the morning, Thursday","place":"The loft above Thorne's sail shop, 8 Rope Walk",
   "public":"\"A visiting merchant found dead in a Rope Walk loft.\" No weapon, no hour.",
-  "facts":["The loft's inside stair was taken down on Wednesday for rebuilding. Since then the only way up is the outside ladder, which Kessler's yard delivered at five on Thursday morning.","Rain fell steadily from four until seven.","Crewe had come to buy Thorne's shop out from under her. The papers were on the loft table, unsigned."]},
+  "facts":["The loft's inside stair was taken down on Wednesday for rebuilding. Since then the only way up is by ladder.","Rain fell steadily from four until seven.","Crewe had come to buy Thorne's shop. The papers were on the table, unsigned, and his pocket-book is missing."]},
  "questions":["Where were you between five and six?","What was your business with Nathaniel Crewe?","How did you learn he was dead?"],
  "suspects":[
   {"id":"thorne","name":"Agnes Thorne","age":61,"job":"sailmaker","color":"#4b5d4a","look":"Thimble-scarred fingers; she does not sit still.","note":"Has made sail on Rope Walk for forty years. Crewe's offer would have made her his employee in her own shop.",
-   "answers":["In my bed at the back of the shop, under the loft. I heard the ladder go up against the wall at five and thought it was Kessler's boys.","He wanted my shop and he'd have had it, the way things are. I told him I'd think on it. I was thinking on it.","I heard two voices overhead a little after five. One was Crewe. The other had that flat up-coast way of talking. Then nothing. I went up when the light came and found him."]},
+   "answers":["In my bed at the back of the shop, under the loft. I heard a ladder go up against the wall at five and thought it was Kessler's boys.","He wanted my shop and he'd have had it, the way things are. I told him I'd think on it. I was thinking on it.","Two voices overhead, a little after five. One was Crewe. The other had that flat up-coast way of talking. Then nothing. I went up at first light and found him."],
+   "press":{"keys":[],"miss":"I've told you what I heard. I'm too old to climb ladders in the rain for a man I could have outlived."}},
   {"id":"piet","name":"Piet Hallam","age":24,"job":"yard hand, the baker's brother","color":"#8a7040","look":"Flour to the elbows, even now.","note":"Works nights at the boatyard and mornings at his sister's ovens. Crewe had refused him a berth on a Harrowgate boat last year and said why, loudly.",
-   "answers":["At the ovens from four, like every morning. Ines will swear to it, and so will half of Rope Walk's noses.","He called me a thief in front of a crew once, over a coil of rope I never took. I hadn't spoken to him since and didn't mean to.","Ines told me when I came off the ovens at seven. The whole street had it by then."]},
+   "answers":["At the ovens from four, like every morning. Ines will swear to it.","He called me a thief once in front of a crew, over a coil of rope I never took. I hadn't spoken to him since.","Ines told me when I came off the ovens at seven. The whole street had it by then."],
+   "press":{"keys":["kessler:2"],"secret":true,"answer":"I went to tell him what I thought of him. From the street; there was no way up and I wouldn't have gone if there were. He put his head out of the window and laughed and I went back to the ovens by a quarter to five. Ines says I never left because I asked her to say it.","miss":"I was at the ovens. Ask my sister."}},
   {"id":"dunn","name":"Cornelius Dunn","age":35,"job":"Crewe's clerk","color":"#4a4f6b","look":"Up-coast vowels; a good coat, damp at the hem.","note":"Kept Crewe's books for nine years. Rooms at the Drowned Bell. Stood to lose his place if Crewe's business failed, which it was doing.",
-   "answers":["Asleep at the Bell until eight. I'd been in the taproom until two. Mrs Kell will remember; she remembers everyone's tab.","I kept his books for nine years. He was a hard man to keep books for, latterly.","I went to the loft at eight to bring him the day's letters. I came up the stair and there he was, on the floor by the table. I sent the boy for the constable."]},
+   "answers":["Asleep at the Bell until eight. I'd been in the taproom until two. Mrs Kell will remember; she remembers everyone's tab.","I kept his books for nine years. He was a hard man to keep books for, latterly.","I went up at eight with the day's letters. I came up the stair and there he was, on the floor by the table. I sent the boy for the constable."],
+   "press":{"keys":["f0","kessler:0","thorne:2"],"answer":"The stair. Yes. I mean the ladder; one says stair from habit. — No. I was there at five. He was going to sign for the shop, and he'd have had the books audited by Michaelmas, and there are nine years in those books that would hang me. The needle was on the table. His pocket-book is up the Bell's chimney.","miss":"I found him. That is the whole of my part in it."}},
   {"id":"kessler","name":"Ruth Kessler","age":44,"job":"boatwright","color":"#6b3f3f","look":"Forearms like hawsers; smells of pitch.","note":"Her yard supplied the ladder. She had quarrelled with Crewe over an unpaid bill for a mast.",
-   "answers":["At my forge from five. My boys carried the ladder round to Thorne's at five and were back by ten past. I never left the yard.","He owed me eleven pounds for a mizzen and had done since March. I'd have taken it out of his hide, but not with a needle.","One of my boys came running at eight, said the merchant was dead. I'd had the fire going three hours by then."]}
+   "answers":["At my forge from five. My boys carried the ladder round to Thorne's at five and were back by ten past. Nobody went up that loft before five unless they flew.","He owed me eleven pounds for a mizzen since March. I'd have had it out of his hide, but not with a needle.","Piet Hallam was in Rope Walk at half past four with flour on him, shouting up at the loft window like a fool. My boys passed him going for the ladder."],
+   "press":{"keys":[],"miss":"Ask my boys. Ask anyone on Rope Walk who heard my hammer."}}
  ],
  "culprit":"dunn",
- "solution":"Dunn says he 'came up the stair' at eight and found Crewe. There was no stair. It had been taken down the day before, and anyone who actually climbed to that loft on Thursday would remember a ladder in the rain. He was not there at eight. He was there a little after five, when Agnes Thorne heard an up-coast voice overhead, and his coat hem was still damp from the ladder. With Crewe dead before he signed for Thorne's shop, Dunn was left holding nine years of books nobody would ever audit.",
+ "solution":"Dunn said he came up the stair. There was no stair, and anyone who climbed to that loft on Thursday climbed a ladder in the rain, which is why his coat hem was damp. Kessler's boys set the ladder at five; Agnes heard an up-coast voice overhead just after. Piet Hallam lied about where he was, but he was in the street shouting at a window he couldn't reach, and the boys saw him. Crewe's signature would have put Dunn's nine years of books in front of an auditor.",
  "arrest":"Dunn asks to fetch his good hat. He is not allowed."},
 
 {"id":"light","title":"The Light Went Out","reward":6,
+ "cold":{"loft":"Cornelius Dunn, released in the Crewe matter, took the up-coast packet on Friday with a heavy bag. Thorne's shop is his, on paper."},
  "brief":{"victim":"Pieter Voss, 66, lighthouse keeper","weapon":"None. A fall of sixty feet from the lamp gallery onto the rock.","time":"Between nine and ten at night, Saturday","place":"The lighthouse, off the end of Gull Lane",
-  "public":"\"The keeper fell from the rocks while fishing.\" The police know better: the gallery door was open and his pipe was on the rail.",
-  "facts":["The harbourmaster's log records the light going out at 9:40, and the Halcyon, inbound, sheering off the rock with feet to spare.","Winn's telegraph log shows a wire delivered to the rock at 9:05; the receipt is signed by Voss.","Voss did not fish. He said so to anyone who asked."]},
+  "public":"\"The keeper fell from the rocks while fishing.\" Nothing else has been said outside this office.",
+  "facts":["Voss went from the lamp gallery, not the rocks: the gallery door was open and his pipe was on the rail. The Gazette was told 'fishing' on purpose.","The harbourmaster's log records the light going out at 9:40, and the Halcyon, inbound, sheering off the rock with feet to spare.","A wire from the Board was delivered to the rock that evening. Its contents are not yet known to this office."]},
  "questions":["Where were you between nine and ten?","What did Pieter Voss mean to you?","What do you think happened to him?"],
  "suspects":[
   {"id":"jonas","name":"Jonas Voss","age":33,"job":"nephew, assistant keeper","color":"#3f5560","look":"Tall, wind-reddened, hands in his pockets.","note":"Next in line for the keeper's post and the cottage. Had asked the Board twice to retire his uncle. The Board had refused twice.",
-   "answers":["The Weavers' Arms, from eight until Pike put me out at eleven. Up the hill. I saw nothing.","My uncle taught me the lamp. He should have given it up five years ago and I said so to his face.","He'd no business out on the gallery in that wind at his age. He'll have leaned on the rail for his pipe and gone over. I told him. I told him a dozen times."]},
-  {"id":"brid","name":"Bríd Nolan","age":70,"job":"brings the keeper his supper","color":"#5a3f5e","look":"Bent, sharp, a basket on her arm from habit.","note":"Has walked Voss's supper out along the causeway every evening for eleven years. The last person known to see him alive but one.",
-   "answers":["Home by half past eight. I left him his supper at eight with the lamp already lit and himself asleep in his chair, and I let myself out.","He was a kind man who never said two words together. I'll miss the quiet of him.","The rocks are wicked in the wet. But he didn't fish, whatever the paper says. He hadn't the patience."]},
+   "answers":["The Weavers' Arms, from eight until Pike put me out at eleven. Up the hill. I saw nothing.","My uncle taught me the lamp. He should have given it up five years ago and I said so to his face.","He'd no business out on the gallery in that wind at his age. He'll have leaned on the rail for his pipe and gone over. I told him. I told him a dozen times."],
+   "press":{"keys":["f0","winn:1","brid:press"],"answer":"The rail, the pipe... everyone knows he smoked on the... No. All right. The wire said the Board had refused me a third time, on his word. He read it out to me on the gallery and he laughed, and I put my hand on his chest. I didn't mean it to be that easy. The light went out because I ran.","miss":"I was at the Arms. Ask Pike."}},
+  {"id":"brid","name":"Bríd Nolan","age":70,"job":"brings the keeper his supper","color":"#5a3f5e","look":"Bent, sharp, a basket on her arm from habit.","note":"Has walked Voss's supper out along the causeway every evening for eleven years.",
+   "answers":["Home by half past eight. I left him his supper at eight and let myself out.","He was a kind man who never said two words together. I'll miss the quiet of him.","The rocks are wicked in the wet. But he didn't fish, whatever the paper says. He hadn't the patience."],
+   "press":{"keys":["winn:0"],"secret":true,"answer":"I stayed. I stayed most nights, if you want it plain, and at seventy I'll not be ashamed of it. I left when Winn came out with the wire, so as not to be seen, and passed him on the causeway at a quarter past. Pieter was alive and cursing the Board. And Jonas was at no public house: his lamp was coming along Gull Lane toward the rock as I went up it.","miss":"An old woman's evening is her own."}},
   {"id":"steel","name":"Captain Amos Steel","age":50,"job":"master of the barque Halcyon","color":"#6b4a3a","look":"Beard like a hedge; still shaking with anger.","note":"His ship came within feet of the rock when the light failed. Twenty crew swear he was on his own quarterdeck all night.",
-   "answers":["On my quarterdeck bringing her in, and then on my quarterdeck bringing her about with the rock under my bowsprit. Ask my crew. Ask my ship's paint.","Nothing, until his light went out and near killed forty men. I'd have had words with him. I never got the chance.","The light went out. That is all I know and all I care to. A keeper who lets his light go out has failed at the one thing."]},
-  {"id":"winn","name":"Clerk Winn","age":45,"job":"telegraphist","color":"#4b5d4a","look":"Ink on his cuffs; precise to the minute.","note":"Delivered a wire to the rock himself at 9:05, the telegraph boy being off sick. The wire was from the Board, about Jonas's application.",
-   "answers":["On the rock at five past nine, off it by quarter past, at my desk by half past. My log says so, and my log is never wrong.","A customer. Four wires a year, all from the Board. I read them, of course. One reads everything.","He was alive and trimming the wick when I left him at quarter past. Whatever happened, happened after."]}
+   "answers":["On my quarterdeck bringing her in, and then on my quarterdeck bringing her about with the rock under my bowsprit. Ask my crew. Ask my ship's paint.","Nothing, until his light went out and near killed forty men. I'd have had words with him. I never got the chance.","The light went out. That is all I know and all I care to. A keeper who lets his light go out has failed at the one thing."],
+   "press":{"keys":[],"miss":"Forty men and a logbook. Go away."}},
+  {"id":"winn","name":"Clerk Winn","age":45,"job":"telegraphist","color":"#4b5d4a","look":"Ink on his cuffs; precise to the minute.","note":"Delivered a wire to the rock himself that evening, the telegraph boy being off sick.",
+   "answers":["On the rock at five past nine, off it by a quarter past, at my desk by half past. My log says so. I passed the Nolan woman on the causeway as I came off, which surprised me, at her age and that hour.","A customer. Four wires a year, all from the Board. I read them, of course. This one told him the Board had refused the nephew's application a third time, on the keeper's own advice.","Alive and trimming the wick when I left him at a quarter past. He said he'd smoke on the gallery and think about the nephew."],
+   "press":{"keys":[],"miss":"My log is never wrong. Neither am I."}}
  ],
  "culprit":"jonas",
- "solution":"The Gazette printed that Voss fell from the rocks while fishing. Only the police knew he had gone from the gallery, with his pipe left on the rail. Jonas Voss described exactly that: the gallery, the rail, the pipe, before anyone had told him. He was not at the Weavers' Arms at 9:40. He was on the rock, where the wire Winn delivered at 9:05 had just told his uncle what Jonas had asked the Board to do to him.",
+ "solution":"The Gazette said Voss fell from the rocks while fishing. Jonas described the gallery, the rail and the pipe before anyone told him. Winn's wire, read to Voss at nine, said the Board had refused Jonas again on his uncle's word. Bríd Nolan, once she admitted she was there, saw Jonas's lamp coming along Gull Lane toward the rock as she left it. He was not at the Arms.",
  "arrest":"Jonas asks who will light the lamp tonight. Nobody answers him."},
 
 {"id":"milk","title":"Milk in the Coffee","reward":7,
+ "cold":{"light":"Jonas Voss keeps the light now. It has gone out twice this month and the Board has written to ask why."},
  "brief":{"victim":"Mr Selim, 60, proprietor of the Turk's Head","weapon":"Laudanum, a heavy dose, in his afternoon coffee","time":"Between three and four in the afternoon, Monday","place":"His own back table at the Turk's Head, Clock Square",
   "public":"\"The coffee-house keeper died suddenly at his table.\" No mention of poison.",
-  "facts":["Selim took his coffee with milk. Everyone else at the table took it black. The pot was shared; the milk jug was his alone.","Mrs Ashby's shop girl carried the milk jug across the square at three, as she did every afternoon. Ashby supplied it under the lease.","Dr Lisle's poison register shows two ounces of laudanum sold that morning to 'Mrs Ashby, for her nerves.'","Winn's telegraph log shows a wire sent by Yusuf Selim at 3:35."]},
+  "facts":["Selim took his coffee with milk, from a small jug that was his alone. The pot was shared with whoever sat at his table.","The jug is missing. It was on the table at three and gone when the constable arrived at half past four.","Laudanum is bitter. A heavy dose would be tasted in black coffee. In milk, less so."]},
  "questions":["Where were you between three and four?","How did you stand with Selim?","Do you take milk in your coffee?"],
  "suspects":[
   {"id":"lisle","name":"Dr Lisle","age":55,"job":"apothecary","color":"#4a4f6b","look":"Stooped, dry, spectacles pushed up.","note":"Took coffee with Selim most afternoons at three. Sells laudanum, keeps a register, and is tired of being asked about it.",
-   "answers":["At Selim's table from three until a quarter past, then back to my shop. Daubeny took my chair when I left.","Friends, of a sort. I have few. He didn't mind a man who read at the table.","Black. Always. Milk spoils coffee and I said so to him weekly."]},
-  {"id":"ashby","name":"Mrs Ashby","age":48,"job":"draper, Selim's landlady","color":"#6b3f3f","look":"Tall, corseted, a tape measure round her neck.","note":"Owns the Turk's Head building and wants it for a larger shop. Had tried for a year to end Selim's lease, and failed.",
-   "answers":["In my shop, measuring Mrs Halloran for a mourning dress. The whole afternoon. She'll say so.","He was a tenant. A tidy one, I'll give him that. We had a disagreement about the lease and left it to the lawyers.","I never touch coffee. Nor laudanum, before you ask; I have never bought a drop of it in my life."]},
+   "answers":["At Selim's table from three until a quarter past, then back to my shop. Daubeny took my chair when I left.","Friends, of a sort. I have few. He didn't mind a man who read at the table.","Black. Always. If you are asking about my register, and you will: I sold two ounces of laudanum that morning to Mrs Ashby, for her nerves, as I have every month this year. It is in the book."],
+   "press":{"keys":[],"miss":"I keep a register. That is the extent of my involvement with anybody's coffee."}},
+  {"id":"ashby","name":"Mrs Ashby","age":48,"job":"draper, Selim's landlady","color":"#6b3f3f","look":"Tall, corseted, a tape measure round her neck.","note":"Owns the Turk's Head building and wants it for a larger shop. Had tried for a year to end Selim's lease, and failed. Supplies his milk under the lease.",
+   "answers":["In my shop, measuring Mrs Halloran for a mourning dress. The whole afternoon. She'll say so.","He was a tenant. A tidy one, I'll give him that. We had a disagreement about the lease and left it to the lawyers.","I never touch coffee. Nor laudanum, before you ask; I have never bought a drop of it in my life."],
+   "press":{"keys":["lisle:2","daubeny:2"],"answer":"Lisle's book. Of course. I take it for my nerves, and I have nerves because that man sat in my building for eleven years drinking my milk. It was in the jug. The jug is in the harbour. I'd have had my shop by Christmas.","miss":"I have a witness for the whole afternoon and a solicitor for the rest of it."}},
   {"id":"yusuf","name":"Yusuf Selim","age":28,"job":"the son","color":"#7a6a2e","look":"His father's eyes, a newer coat.","note":"Wanted to sell the coffee house and go to London. They had quarrelled about it in front of customers.",
-   "answers":["Sending a wire to London at half past three. Winn will have it in his book. Then walking. I didn't go back in till five, and by then...","We fought. Fathers and sons. I wanted him to sell and rest, and he wanted to die at that table, and he did.","Black. Like him? No. He took milk. He was the only one who did; he said it was how his mother made it."]},
+   "answers":["Sending a wire to London at half past three. Winn has it in his book, timed. Then walking. I didn't come back in till five.","We fought. Fathers and sons. I wanted him to sell and rest, and he wanted to die at that table, and he did.","Black. He took milk; he was the only one who did. He said it was how his mother made it."],
+   "press":{"keys":["daubeny:1"],"secret":true,"answer":"The wire was to a buyer in London. I'd been to the bank that morning to see if Rooke would lend against the lease so I could sell without him. I was going behind his back, yes. I was not poisoning him. Walking meant walking; I couldn't face him.","miss":"Winn has my wire. Timed."}},
   {"id":"daubeny","name":"Daubeny","age":63,"job":"printer, chess partner","color":"#3f5560","look":"Ink under every nail; a slow talker.","note":"Played chess with Selim every afternoon from three. Left at four when Selim said he felt unwell. Prints the Gazette.",
-   "answers":["At his table from three, when Lisle gave up his chair, till four. We'd got to the middle game. He said he felt heavy and I said go and lie down, and I went home.","Twenty years of chess. He was better than me and never let it show.","Black. We drank from the one pot, the two of us, and I'm still here, so it wasn't the pot."]}
+   "answers":["At his table from three, when Lisle gave up his chair, till four. He said he felt heavy; I said go and lie down, and I went home.","Twenty years of chess. That afternoon he was off his game. His boy had been at the bank that morning asking Rooke about a loan against the lease, and Rooke had told him, and it sat on him.","Black. We drank from the one pot, the two of us, and I'm here. The girl from Ashby's brought his milk jug at three as always, and Mrs Ashby herself came across for the jug at four, which she never does. Said the girl had forgotten it."],
+   "press":{"keys":[],"miss":"I drank from the pot. I'm here. Draw your own conclusions; I print them."}}
  ],
  "culprit":"ashby",
- "solution":"The pot was shared and only Selim died, so the poison was in the one thing only he took: the milk, sent across the square from Mrs Ashby's shop at three. Dr Lisle's register records Mrs Ashby buying two ounces of laudanum that same morning. She told you she has never bought a drop in her life. Yusuf's wire at 3:35 puts him at the telegraph office. Daubeny drank from the same pot and lived.",
+ "solution":"Only Selim took milk, and the jug vanished. Daubeny saw Mrs Ashby herself come for it at four, which she never does, while she swore she never left her shop. Dr Lisle's register has her buying two ounces of laudanum that morning, which she said she had never bought in her life. Yusuf was going behind his father's back to sell the lease, which is a betrayal but not a murder; his wire is timed at 3:35.",
  "arrest":"Mrs Ashby asks to close the shop first. The shop stays open."},
 
 {"id":"pier","title":"A Shot on the Pier","reward":8,
- "brief":{"victim":"Constable Jory Penhale, 29, on guard over the seized Kittiwake","weapon":"A .38 revolver, one shot. Recovered from the water at dawn, its number filed off.","time":"Half past midnight, Friday. The harbourmaster's log records the shot.","place":"The cannery pier, off Cannery Row",
+ "cold":{"milk":"Mrs Ashby has taken the Turk's Head lease. The coffee is worse and nobody takes milk."},
+ "brief":{"victim":"Constable Jory Penhale, 29, on guard over the seized Kittiwake","weapon":"A .38 revolver, one shot","time":"Half past midnight, Friday. The harbourmaster's log records the shot.","place":"The cannery pier, off Cannery Row",
   "public":"\"A constable shot on the cannery pier.\" The revolver's recovery was not printed.",
-  "facts":["Under the revolver's grip, scratched into the metal: the letters S.M. Pawnbrokers mark their stock that way.","Solly Marsh's pawn ledger shows a .38 revolver sold on the 3rd to a customer entered only as 'T.'","The tide was on the flood at midnight. Anything dropped off the pier's north side drifts toward Kessler's yard, where the gun was found.","Penhale was shot from the front, at close range, by someone he had let walk right up to him."]},
+  "facts":["One shot, from the front, at close range. Penhale let his killer walk right up to him.","The revolver came out of the water off Kessler's slip at dawn: a .38, its number filed off, and under the grip the scratched letters S.M.","The tide was on the flood. Anything dropped off the pier's north side drifts to Kessler's slip."]},
  "questions":["Where were you at half past midnight?","What do you know about the revolver?","Did you see anyone on Cannery Row that night?"],
  "suspects":[
   {"id":"marsh","name":"Solly Marsh","age":58,"job":"pawnbroker","color":"#5a3f5e","look":"Small, neat, fingers that never stop counting.","note":"Fled the Docks when Grady was arrested and came back a month later swearing his innocence. Paid the Kittiwake's berth for four years.",
-   "answers":["In my bed above the shop, with the door locked, as a man who has been threatened does.","I sell what's brought to me. A .38 came in, a .38 went out, to a customer who gave an initial. That's the trade. Half this town is an initial in my book.","I saw nothing. I heard the shot and put my head under the pillow, and I'd do it again."]},
+   "answers":["In my bed above the shop, with the door locked, as a man who has been threatened does.","A .38 came in, a .38 went out, to a customer who gave an initial. T. It's in my book. Half this town is an initial in my book.","I saw nothing. I heard the shot and put my head under the pillow, and I'd do it again."],
+   "press":{"keys":["ben:press","trask:1"],"answer":"Small man, long coat. There are a dozen... No. He was going to open the hold. There's four years of my money in that boat's ballast and Penhale had the key and a lantern and no sense. I walked up and asked him for a light. The 'T.' in my book was for Trask. Everyone would have believed it.","miss":"A pawnbroker's word against a pawnbroker's book. Read the book."}},
   {"id":"ben","name":"Ben Oduya","age":19,"job":"fishmonger's son","color":"#4b5d4a","look":"Tall, restless, in a blue coat.","note":"Was on the pier at eleven by his own admission, waiting for a girl who did not come. Knew Penhale from school.",
-   "answers":["On the pier till near midnight, then walking home along the Row. I was on Quay Street when the shot went. I ran back.","Nothing. I've never held one.","Yes. Running from the pier end toward Cannery Row, past me as I turned back. A small man in a long coat, hat down. He went into the dark by the pawnshop."]},
+   "answers":["On the pier till near midnight, then walking home along the Row. I was on Quay Street when the shot went. I ran back.","Nothing. I've never held one.","Running from the pier end toward Cannery Row, past me as I turned back. A small man in a long coat, hat down. He went into the dark by the pawnshop."],
+   "press":{"keys":["trask:2"],"secret":true,"answer":"I wasn't on Quay Street. I was in the net loft with Maeve Trask, and you'll leave her name out of it; her father would kill us both. From the loft window I saw a man walk up the pier with his hands out like he was asking for something, and then the flash, and then he ran. Small, hat down. He turned in at the pawnshop door. Not past it. In.","miss":"I told you what I saw."}},
   {"id":"trask","name":"Constable Trask","age":38,"job":"Customs House, suspended","color":"#3f5560","look":"Tall, heavy, a moustache he is proud of.","note":"Named in Grady's confession as the customs man paid to look away. Suspended, not charged. Hated Penhale, who reported him.",
-   "answers":["In the Customs House, on the cot in the back room, where I've slept since my wife found out what Grady said. I heard the shot and got there second. Oduya was first.","I've a service revolver, a .45, and it's in the Inspector's safe, where he put it when he suspended me. I never bought a .38 from Marsh or anyone. 'T.' is not me.","Nobody. The Row was empty by the time I got down it."]},
+   "answers":["In the Customs House, on the cot in the back room, where I've slept since my wife found out what Grady said. I heard the shot and got there second.","My service revolver is a .45, in Dace's safe since he suspended me. I never bought a .38 from Marsh or anyone. Look at me, then look at the man Oduya says he saw, then look at Marsh.","Nobody on the Row when I came down it. The net loft door was open, which it never is, and there was a lamp in it."],
+   "press":{"keys":[],"miss":"I'm suspended, not stupid. I'd not shoot a man with a gun that has a shop's initials under the grip."}},
   {"id":"kessler2","name":"Ruth Kessler","age":44,"job":"boatwright","color":"#6b3f3f","look":"Forearms like hawsers; smells of pitch.","note":"Her yard is beside the pier. She found the revolver in the shallows at dawn and brought it in herself.",
-   "answers":["In my yard, working late on a hull. The forge was going. I heard the shot over it, just.","I found it. Six in the morning, in a foot of water off my slip. I know what a filed number means and I brought it straight to Dace.","Nobody on the Row. But a lantern went along the pier at half past twelve, walking, not running, toward the Kittiwake."]}
+   "answers":["In my yard, working late on a hull. The forge was going. I heard the shot over it, just.","I found it at six, in a foot of water off my slip. I know what a filed number means. I took it straight to Dace.","Nobody on the Row. But a lantern went along the pier at half past twelve, walking, not running, toward the Kittiwake. And a second, smaller light behind it, kept low."],
+   "press":{"keys":[],"miss":"I found the gun. That's my part."}}
  ],
  "culprit":"marsh",
- "solution":"The revolver carries a pawnbroker's mark, S.M., under the grip. Marsh's ledger says he sold it to 'T.', an initial meant to point at Trask, who is six feet tall with a moustache. Ben Oduya saw the man who ran from the pier: small, long coat, hat down, vanishing into the dark by the pawnshop. Trask is not small. Marsh is. Penhale let his killer walk right up to him, as a constable would for a harmless little pawnbroker with a complaint. Marsh had paid the Kittiwake's berth for four years, and Penhale was guarding what was still aboard her.",
+ "solution":"The gun carries Marsh's own stock mark, and his ledger names a buyer who is nothing but an initial: 'T.', for Trask, who is six feet tall and moustached. Ben Oduya, once he admitted where he really was, watched a small man walk up to Penhale with his hands out, fire, and turn in at the pawnshop door, not past it. Marsh had four years of money in the Kittiwake's ballast and Penhale had the key to the hold.",
  "arrest":"Marsh asks what the revolver will fetch. Nobody laughs."},
 
 {"id":"tower","title":"A Quarter Past Six","reward":10,
+ "cold":{"pier":"Solly Marsh has reopened the pawnshop. Constable Trask has resigned and nobody has replaced Penhale on the pier."},
  "brief":{"victim":"E. Rooke, 51, manager of the Savings Bank","weapon":"His own gold watch chain, from behind","time":"Between six and seven in the evening, Wednesday","place":"The stair inside the clock tower, Clock Square",
   "public":"\"The bank manager found dead in the clock tower.\" No cause given.",
-  "facts":["Rooke had held a tower key since the ledgers business. He went up at six each evening to check the mechanism, having no faith in the Vells.","The clock struck six. The quarter-past chime never sounded: the mechanism jammed at 6:15 when the chain fouled the rope in the struggle. It has not struck since.","The mark of the chain runs upward. The killer stood on the step above and pulled. That takes height. Rooke was five feet eight.","Lucie Ferrand found the body at seven, when she came to wind."]},
+  "facts":["Strangled on the tower stair with his own chain. The mark runs upward: the killer stood on the step above and pulled. That takes height. Rooke was five feet eight.","The clock struck six. The quarter-past chime never sounded; the mechanism jammed at 6:15 and has not struck since.","Lucie Ferrand found him at seven when she came to wind. Rooke's tower key was in his pocket; the Vells' key was on its hook in the shop."]},
  "questions":["Where were you between six and seven?","What was your business with Rooke?","Did you hear the clock?"],
  "suspects":[
   {"id":"vell","name":"Auguste Vell","age":74,"job":"clockmaker","color":"#7a6a2e","look":"Bent, small, a watchmaker's glass on a ribbon.","note":"Holds the other tower key. Resented Rooke checking 'his' mechanism nightly. Cannot climb the tower stair without stopping four times.",
-   "answers":["In my shop, with my daughter, from five until Lucie came screaming across the square at seven.","He had a tower key. The bank's key. He'd go up at six and put his hands on my mechanism, and I'd hear it from the shop, the way he handled the escapement.","Six, yes. Then nothing. I said to Marguerite, he's stopped it, the fool. I meant Rooke."]},
+   "answers":["In my shop, with my daughter, from five until Lucie came screaming across the square at seven.","He had the bank's tower key and no business with it. He'd go up at six and put his hands on my mechanism, and I'd hear from the shop how he handled the escapement.","Six, yes. Then nothing. I said to Marguerite, he's stopped it, the fool. I meant Rooke."],
+   "press":{"keys":[],"miss":"I can't climb that stair without stopping four times. Ask my knees."}},
   {"id":"lucie","name":"Lucie Ferrand","age":16,"job":"the clockmaker's granddaughter","color":"#5a3f5e","look":"Small, quick, oil on her fingers.","note":"Winds the clock at seven each evening. Found the body. Had argued with Rooke that morning about his 'interfering'.",
-   "answers":["At my school books at Mama's, on Mercer Row, until I went across to wind at seven. Mama was with me. I found him on the stair.","He treated the clock like a bank vault. I told him so on Monday. He told me I was a child.","It struck six while I was reading. It didn't strike the quarter. I noticed. I notice everything about that clock."]},
+   "answers":["At my school books at Mama's, on Mercer Row, until I went across to wind at seven. Mama was with me. I found him on the stair.","He treated the clock like a bank vault. I told him so on Monday. He told me I was a child.","It struck six while I was reading. It didn't strike the quarter. I noticed. I notice everything about that clock."],
+   "press":{"keys":["coyle:2"],"secret":true,"answer":"I went up to have it out with him. He was on the stair oiling the ratchet as if he owned it. I said my piece and he laughed, and then someone was coming up below us, slow, and tall; I saw the top of a hat. I hid on the gallery landing and went down after they'd passed. I heard the quarter not strike from the square. I was on Mercer Row by twenty past. I didn't tell Mama.","miss":"I found him. I'd rather not have."}},
   {"id":"coyle","name":"Mr Coyle","age":45,"job":"'a corn factor, from up the coast'","color":"#4a4f6b","look":"Very tall, very calm, a heavy gold Albert across his waistcoat.","note":"Arrived Monday; rooms at the Turk's Head. Nobody in the corn trade has heard of him. Had called on Rooke twice about the seized ledgers.",
-   "answers":["Dining at the Turk's Head from half past five. The younger Selim served me and can say so. I was still at table at seven.","Business. I represent certain interests who had money in the ledgers Inspector Dace took. I asked Rooke whether copies existed. He said no. I believed him.","I heard it strike six from the dining room. After that I was not listening for it."]},
+   "answers":["Dining at the Turk's Head from half past five. The younger Selim served me. I was still at table at seven.","Business. I represent certain interests who had money in the ledgers Inspector Dace took. I asked Rooke whether copies existed. He said no. I believed him.","Six, from the dining room. I also saw the Ferrand girl cross the square to the tower at ten to six with her chin out, if that is of interest, and come back at a run a little after the quarter."],
+   "press":{"keys":[],"miss":"I am a corn factor with a good alibi and a better solicitor."}},
   {"id":"quint","name":"Jasper Quint","age":30,"job":"formerly Haldane's clerk","color":"#3f5560","look":"Tall, pale, a coat too thin for the season.","note":"Unemployed since Haldane's arrest. Rooke had refused him a loan that morning and, Quint says, laughed while he did it.",
-   "answers":["The Weavers' Arms. I went in at five with my last shilling and I was still there when I heard the clock strike seven, and I went home.","He refused me a loan of four pounds and laughed. That is the whole of it. I am not proud of being poor.","Six, and seven. I told you. I heard seven strike and I got up and went home to Weavers' Court."]}
+   "answers":["The Weavers' Arms. I went in at five with my last shilling and I was still there when I heard the clock strike seven, and I went home.","He refused me a loan of four pounds and laughed. That is the whole of it. I am not proud of being poor.","Six, and seven. I told you. I heard seven strike and I got up and went home to Weavers' Court."],
+   "press":{"keys":["f1","lucie:2","lucie:press","vell:2"],"answer":"It struck seven, I heard... It didn't. No. I went up because he'd laughed, and he was on the stair with his back to me and his chain hanging out of his waistcoat like a rope somebody had left for me. I am a tall man. It was over before the quarter. I went to the Arms after, and I told myself I'd heard seven.","miss":"Pike will tell you I was there."}}
  ],
  "culprit":"quint",
- "solution":"The clock jammed at a quarter past six and has not struck since. Lucie, who notices everything about that clock, said so. Quint says he heard it strike seven and got up to go home. It did not strike seven. He was not in the Weavers' Arms listening for it; he was on the tower stair, a step above a man who had laughed at him, and he is tall enough to have pulled the chain upward. Coyle is taller still, but Yusuf Selim served him dinner through the whole hour. Old Vell cannot climb the stair. Lucie is too small to have pulled from above.",
+ "solution":"The clock jammed at a quarter past six and has not struck since; Vell heard it stop and Lucie, who notices everything about that clock, said so. Quint said he heard it strike seven. It did not. Lucie, once she admitted she had been on the stair herself, saw a tall man in a hat coming up below her before the quarter. Coyle was at table with a waiter watching him. Old Vell cannot climb the stair. Quint could, and did.",
  "arrest":"Quint asks whether the Arms will keep his tab open. It will not."}
 ],
 "decor":[
@@ -348,9 +392,10 @@ nav.tabs button.pulse{color:var(--lamp);text-shadow:0 0 8px var(--lamp)}
 (function(){
 const D = JSON.parse(document.getElementById('game-data').textContent);
 const C = Object.fromEntries(D.cases.map(c=>[c.id,c]));
-const KEY='deadletter.v3';
+const R = D.rules;
+const KEY='deadletter.v4';
 
-const fresh=()=>({tab:'desk', money:0, solved:{}, asked:{}, caseId:D.cases[0].id, owned:[], hand:'caveat', notebook:'', intro:true, tut:0, music:false, track:0});
+const fresh=()=>({tab:'desk', money:0, solved:{}, inv:{}, caseId:D.cases[0].id, owned:[], hand:'caveat', notebook:'', intro:true, tut:0, music:false, track:0});
 let S=load();
 function load(){ try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s && s.caseId && C[s.caseId]) return s; }catch(e){} return fresh(); }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
@@ -359,18 +404,31 @@ function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;',
 const cur=()=>C[S.caseId];
 const idx=id=>D.cases.findIndex(c=>c.id===id);
 function unlocked(id){ const i=idx(id); return i===0 || !!S.solved[D.cases[i-1].id]; }
-function askedFor(cid){ return S.asked[cid] || (S.asked[cid]={}); }
-function nAsked(cid){ return Object.values(askedFor(cid)).reduce((a,l)=>a+l.length,0); }
+function inv(cid){ return S.inv[cid] || (S.inv[cid]={asked:{}, presses:[], revealed:{}, broken:false}); }
+function nAsked(cid){ return Object.values(inv(cid).asked).reduce((a,l)=>a+l.length,0); }
+function qLeft(cid){ return Math.max(0, R.questions - nAsked(cid)); }
+function pLeft(cid){ return Math.max(0, R.presses - inv(cid).presses.length); }
 function nextCase(){ const i=idx(S.caseId); return D.cases[i+1]||null; }
 function handOf(){ return D.hands.find(x=>x.id===S.hand)||D.hands[0]; }
+function sus(c,sid){ return c.suspects.find(x=>x.id===sid); }
+
+/* Evidence available to press with: facts, heard statements, reveals */
+function evidence(c){
+  const I=inv(c.id); const out=[];
+  c.brief.facts.forEach((f,i)=>out.push({id:'f'+i, kind:'fact', who:'Case file', text:f}));
+  c.suspects.forEach(s=>{ (I.asked[s.id]||[]).slice().sort().forEach(qi=>out.push({id:s.id+':'+qi, kind:'said', who:s.name, text:s.answers[qi]})); if(I.revealed[s.id]) out.push({id:s.id+':press', kind:'press', who:s.name+', pressed', text:s.press.answer}); });
+  return out;
+}
+function evText(c,id){ const e=evidence(c).find(x=>x.id===id); return e? e.who+': '+e.text : id; }
 
 /* ---------- Tutorial ---------- */
+const first=D.cases[0].id;
 const TUT=[
- {t:"A case file. Read it twice. Note what the Gazette printed, and what it didn't. Then tap a suspect.", done:s=>!!s.tutOpened},
- {t:"Three questions each. Ask them all; you're not charged by the word. Everything they say is copied into your <b>Notebook</b>.", done:s=>nAsked(s.caseId)>=3||!!s.solved[D.cases[0].id]},
- {t:"Now compare what they say with what you know. One of them will say something they couldn't know, or couldn't have done.", done:s=>nAsked(s.caseId)>=8||!!s.solved[D.cases[0].id]},
- {t:"When you're sure, accuse from the suspect's page. A wrong arrest closes the case with no pay, so be sure. A right one pays, and pay buys things in the <b>Shop</b>.", done:s=>!!s.solved[D.cases[0].id]},
- {t:"That's the job. Cases pile up on the <b>Cases</b> board. Solve one in eight questions or fewer and the Inspector adds a pound for quick work.", done:s=>!!s.tutAck, ack:true}
+ {t:"A case file. Read it twice: what the Gazette printed, and what only this office knows. Then tap a suspect.", done:s=>!!s.tutOpened},
+ {t:"You get <b>six questions</b> for four people, so choose. Their descriptions and notes are there to help you decide whom to ask what.", done:s=>nAsked(first)>=2||!!s.solved[first]},
+ {t:"When something a suspect says doesn't square with the file, or with what someone else said, <b>press</b> them with it. Two presses a case. A press can break a killer, or make an honest liar admit what they were really hiding.", done:s=>inv(first).presses.length>=1||!!s.solved[first]},
+ {t:"Accuse from the suspect's page when you're sure. A wrong arrest goes cold with no pay. A right one pays, and £2 more if you broke them first: the magistrate likes a confession.", done:s=>!!s.solved[first]},
+ {t:"That's the job. A cold case is not the end of it: the one who walked turns up in later files. The <b>Cases</b> board keeps the score.", done:s=>!!s.tutAck, ack:true}
 ];
 function advanceTut(){ if(S.tut===null||S.tut===undefined) return; while(S.tut<TUT.length && TUT[S.tut].done(S)) S.tut++; if(S.tut>=TUT.length) S.tut=null; }
 function coachHTML(){ if(S.intro||S.tut===null||S.tut===undefined) return ''; const st=TUT[S.tut]; if(!st) return ''; return `<div class="coach"><small>The Inspector</small><p>${st.t}</p><div class="row">${st.ack?'<button class="ok" data-act="ack">Understood</button>':''}<button data-act="skiptut">Skip the lesson</button></div></div>`; }
@@ -400,62 +458,92 @@ function shelfHTML(){
   const items=D.decor.filter(d=>S.owned.includes(d.id));
   return `<div class="shelf" aria-label="Your desk">${items.length?`<div class="items">${items.map(d=>`<span title="${esc(d.name)}">${ART[d.id]}</span>`).join('')}</div>`:`<div class="hint">A bare desk. Pay buys furniture.</div>`}</div>`;
 }
+function coldNotes(c){ const out=[]; for(const k in (c.cold||{})){ const v=S.solved[k]; if(v && !v.correct) out.push(c.cold[k]); } return out; }
 function fileHTML(c, v){
-  const b=c.brief;
+  const b=c.brief; const since=coldNotes(c);
   return `<article class="paper file">${v?`<div class="stamp${v.correct?'':' cold'}">${v.correct?'Closed<br>Arrest':'Cold<br>Case'}</div>`:''}
    <div class="no">Case No. ${idx(c.id)+1} · Saltmarsh Constabulary</div><h2>${esc(c.title)}</h2>
    <dl><dt>Victim</dt><dd>${esc(b.victim)}</dd><dt>Weapon</dt><dd>${esc(b.weapon)}</dd><dt>When</dt><dd>${esc(b.time)}</dd><dt>Where</dt><dd>${esc(b.place)}</dd></dl>
    <div class="sec">What the Gazette printed</div><p class="gaz">${esc(b.public)}</p>
-   <div class="sec">Known to the police only</div><ul>${b.facts.map(f=>`<li>${esc(f)}</li>`).join('')}</ul></article>`;
+   <div class="sec">Known to the police only</div><ul>${b.facts.map(f=>`<li>${esc(f)}</li>`).join('')}</ul>
+   ${since.length?`<div class="sec">Since last time</div><ul>${since.map(f=>`<li class="since">${esc(f)}</li>`).join('')}</ul>`:''}</article>`;
 }
 function initials(n){ return n.split(' ').map(w=>w[0]).filter(ch=>/[A-Z]/.test(ch)).slice(0,2).join(''); }
+function budgetHTML(c){ const q=qLeft(c.id), p=pLeft(c.id); return `<div class="budget"><span class="chip${q?'':' zero'}"><b>${q}</b> of ${R.questions} questions left</span><span class="chip${p?'':' zero'}"><b>${p}</b> of ${R.presses} presses left</span>${inv(c.id).broken?'<span class="chip"><b>Broken</b> confession in hand</span>':''}</div>`; }
 function renderDesk(){
   const el=$('#p-desk'); let h='';
-  if(S.intro){ h+=`<div class="card-note"><h2>Same desk, worse post</h2><p>After the Kittiwake business the town made its dead-letter clerk a detective. The cases come in a folder now.</p><p>Read the file. Question the suspects. Name the one who did it. A right arrest pays, and pay buys a better desk.</p><div class="row"><button class="btn" data-act="intro">Open the first file</button></div></div>`; el.innerHTML=h; return; }
-  const c=cur(); const v=S.solved[c.id]; const asked=askedFor(c.id);
+  if(S.intro){ h+=`<div class="card-note"><h2>Same desk, worse post</h2><p>After the Kittiwake business the town made its dead-letter clerk a detective. The cases come in a folder now.</p><p>Read the file. Question the suspects, but not all of them about everything: you haven't the time. Press the ones whose story doesn't square. Name the one who did it.</p><div class="row"><button class="btn" data-act="intro">Open the first file</button></div></div>`; el.innerHTML=h; return; }
+  const c=cur(); const v=S.solved[c.id]; const I=inv(c.id);
   h+=shelfHTML()+coachHTML();
   h+=fileHTML(c,v);
+  if(!v) h+=budgetHTML(c);
   h+=`<div class="eyebrow">${v?'The suspects, as they were':'Suspects'}</div><div class="suspects">`+c.suspects.map(s=>{
-    const n=(asked[s.id]||[]).length; const cls=['sus', v&&v.guess===s.id&&!v.correct?'guessed':'', v&&s.id===c.culprit?'culprit':''].join(' ');
-    return `<button class="${cls}" data-act="suspect" data-id="${s.id}"><span class="asked">${v?(s.id===c.culprit?'GUILTY':(v.guess===s.id?'RELEASED':'')):(n?n+'/3':'')}</span><span class="med" style="background:${s.color}">${esc(initials(s.name))}</span><b>${esc(s.name)}</b><i>${s.age} · ${esc(s.job)}</i><p><em>${esc(s.look)}</em></p><p>${esc(s.note)}</p></button>`; }).join('')+`</div>`;
+    const n=(I.asked[s.id]||[]).length; const rev=I.revealed[s.id];
+    const cls=['sus', v&&v.guess===s.id&&!v.correct?'guessed':'', v&&s.id===c.culprit?'culprit':''].join(' ');
+    const tag = v ? (s.id===c.culprit?'GUILTY':(v.guess===s.id?'RELEASED':'')) : (rev?(s.id===c.culprit?'BROKE':'CAME CLEAN'):(n?n+' asked':''));
+    return `<button class="${cls}" data-act="suspect" data-id="${s.id}"><span class="asked${rev?' hot':''}">${tag}</span><span class="med" style="background:${s.color}">${esc(initials(s.name))}</span><b>${esc(s.name)}</b><i>${s.age} · ${esc(s.job)}</i><p><em>${esc(s.look)}</em></p><p>${esc(s.note)}</p></button>`; }).join('')+`</div>`;
   if(v){
-    const g=c.suspects.find(s=>s.id===c.culprit); const gs=c.suspects.find(s=>s.id===v.guess);
-    h+=`<div class="card-note"><h2>${v.correct?'Arrested: '+esc(g.name):'Released: '+esc(gs.name)}</h2><p>${esc(c.solution)}</p><p><em>${esc(c.arrest)}</em></p>${v.correct?`<p>Paid £${v.pay}${v.bonus?', including £1 for quick work':''}.</p>`:'<p>No pay. The file goes in the cold drawer.</p>'}<div class="row">${nextCase()?`<button class="btn" data-act="opencase" data-id="${nextCase().id}">Next case</button>`:''}<button class="btn ghost" data-act="tab" data-tab="cases">The case board</button></div></div>`;
+    const g=sus(c,c.culprit); const gs=sus(c,v.guess);
+    h+=`<div class="card-note"><h2>${v.correct?'Arrested: '+esc(g.name):'Released: '+esc(gs.name)}</h2><p>${esc(c.solution)}</p><p><em>${esc(c.arrest)}</em></p>${v.correct?`<p>Paid £${v.pay}${v.broken?', including £'+R.breakBonus+' for the confession':''}.</p>`:`<p>No pay. ${esc(g.name)} walked. The file goes in the cold drawer.</p>`}<div class="row">${nextCase()?`<button class="btn" data-act="opencase" data-id="${nextCase().id}">Next case</button>`:''}<button class="btn ghost" data-act="tab" data-tab="cases">The case board</button></div></div>`;
   } else {
-    h+=`<p class="hintline">Tap a suspect to question them. Accuse from their page when you're sure. Questions asked so far: ${nAsked(c.id)}.</p>`;
+    h+=`<p class="hintline">Tap a suspect to question or press them. Accuse from their page when you're sure.</p>`;
   }
   h+=musicBar();
   h+=`<p class="foot">Six cases so far. <button data-act="reset">Start over</button></p>`;
   el.innerHTML=h; updateMusicUI();
 }
-function openSuspect(sid){
-  const c=cur(); const s=c.suspects.find(x=>x.id===sid); if(!s) return; const v=S.solved[c.id]; const asked=askedFor(c.id); asked[s.id]=asked[s.id]||[];
+function openSuspect(sid, keepScroll){
+  const c=cur(); const s=sus(c,sid); if(!s) return; const v=S.solved[c.id]; const I=inv(c.id); I.asked[s.id]=I.asked[s.id]||[];
   S.tutOpened=true;
-  let h=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>${esc(s.name)}</h3><p class="sub">${s.age} · ${esc(s.job)}</p><p><em>${esc(s.look)}</em> ${esc(s.note)}</p><div class="qs">`;
-  c.questions.forEach((q,i)=>{
-    const done=asked[s.id].includes(i);
-    if(done||v) h+=`<div class="q"><small>You asked</small>${esc(q)}</div><p class="a">${esc(s.answers[i])}</p>`;
-    else h+=`<button class="q" data-act="ask" data-id="${s.id}" data-q="${i}"><small>Ask</small>${esc(q)}</button>`;
+  const q=qLeft(c.id), p=pLeft(c.id);
+  let h=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>${esc(s.name)}</h3><p class="sub">${s.age} · ${esc(s.job)}</p><p><em>${esc(s.look)}</em> ${esc(s.note)}</p>`;
+  if(!v) h+=`<p class="sub" style="margin-top:-4px">${q} question${q===1?'':'s'} · ${p} press${p===1?'':'es'} left</p>`;
+  h+=`<div class="qs">`;
+  c.questions.forEach((qq,i)=>{
+    const done=I.asked[s.id].includes(i);
+    if(done||v) h+=`<div class="q"><small>You asked</small>${esc(qq)}</div><p class="a">${esc(s.answers[i])}</p>`;
+    else h+=`<button class="q" data-act="ask" data-id="${s.id}" data-q="${i}" ${q?'':'disabled'}><small>${q?'Ask':'No questions left'}</small>${esc(qq)}</button>`;
   });
+  I.presses.filter(x=>x.sid===s.id).forEach(x=>{
+    h+=`<div class="q ev"><small>You pressed with</small>${esc(evText(c,x.ev))}</div><p class="a ${x.hit?(s.id===c.culprit?'break':'secret'):'miss'}">${esc(x.hit?s.press.answer:s.press.miss)}</p>`;
+  });
+  if(v && I.revealed[s.id]===undefined && s.press.keys.length) h+=`<div class="q ev"><small>${s.id===c.culprit?'What a press would have broken':'What a press would have found'}</small>${esc(s.press.answer)}</div>`;
   h+=`</div>`;
-  if(!v) h+=`<div class="row"><button class="btn danger" data-act="accuse" data-id="${s.id}">Accuse ${esc(s.name.split(' ').slice(-1)[0])}</button><button class="btn ghost" data-act="closesheet">Back to the desk</button></div>`;
-  else h+=`<div class="row"><button class="btn ghost" data-act="closesheet">Back to the desk</button></div>`;
-  const sh=$('#sheet'); const top=sh.scrollTop; sh.innerHTML=h; sh.classList.add('open'); $('#scrim').classList.add('on'); sh.scrollTop=top; save(); render();
+  if(!v){
+    const canPress = p>0 && !I.revealed[s.id] && (I.asked[s.id].length>0 || Object.values(I.asked).some(l=>l.length));
+    h+=`<div class="row"><button class="btn press" data-act="pressmenu" data-id="${s.id}" ${canPress?'':'disabled'}>${I.revealed[s.id]?'Nothing more to press':'Press '+esc(s.name.split(' ').slice(-1)[0])}</button><button class="btn danger" data-act="accuse" data-id="${s.id}">Accuse</button><button class="btn ghost" data-act="closesheet">Back</button></div>`;
+  } else h+=`<div class="row"><button class="btn ghost" data-act="closesheet">Back to the desk</button></div>`;
+  const sh=$('#sheet'); const top=keepScroll?sh.scrollTop:0; sh.innerHTML=h; sh.classList.add('open'); $('#scrim').classList.add('on'); sh.scrollTop=top; save(); render();
+}
+function pressMenu(sid){
+  const c=cur(); const s=sus(c,sid); const ev=evidence(c);
+  let h=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>Press ${esc(s.name)}</h3><p class="sub">With what?</p><p>Pick the fact or statement that doesn't square with their story. A press costs one of your ${R.presses}; a bad one just gets you a shrug.</p><div class="qs">`;
+  ev.forEach(e=>{ h+=`<button class="q ev${e.kind==='fact'?' fact':''}" data-act="press" data-id="${sid}" data-ev="${e.id}"><small>${esc(e.who)}</small>${esc(e.text)}</button>`; });
+  h+=`</div><div class="row"><button class="btn ghost" data-act="suspect" data-id="${sid}">Not yet</button></div>`;
+  $('#sheet').innerHTML=h; $('#sheet').scrollTop=0;
+}
+function doPress(sid, evId){
+  const c=cur(); const s=sus(c,sid); const I=inv(c.id); if(S.solved[c.id] || pLeft(c.id)<=0 || I.revealed[s.id]) return;
+  const hit = s.press.keys.includes(evId);
+  I.presses.push({sid, ev:evId, hit});
+  if(hit){ I.revealed[s.id]=true; if(s.id===c.culprit) I.broken=true; SFX.play(s.id===c.culprit?'stamp':'page'); toast(s.id===c.culprit?'They broke.':'They came clean.'); }
+  else { SFX.play('drawer'); toast('A shrug.'); }
+  save(); openSuspect(sid,false);
 }
 function confirmAccuse(sid){
-  const c=cur(); const s=c.suspects.find(x=>x.id===sid);
-  $('#sheet').innerHTML=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>Arrest ${esc(s.name)}?</h3><p class="sub">for the murder of ${esc(c.brief.victim.split(',')[0])}</p><p>The Inspector will sign the warrant on your word. If the magistrate lets them go, the case goes cold and you are not paid.</p><div class="row"><button class="btn danger" data-act="arrest" data-id="${sid}">Sign the warrant</button><button class="btn ghost" data-act="suspect" data-id="${sid}">Not yet</button></div>`;
+  const c=cur(); const s=sus(c,sid); const I=inv(c.id);
+  $('#sheet').innerHTML=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>Arrest ${esc(s.name)}?</h3><p class="sub">for the murder of ${esc(c.brief.victim.split(',')[0])}</p><p>The Inspector will sign the warrant on your word. If the magistrate lets them go, the case goes cold and you are not paid.${I.broken&&I.revealed[sid]?' You have their confession; the magistrate will like that.':(I.broken?' You broke someone else. Are you sure it is this one?':' No confession yet. You can still press.')}</p><div class="row"><button class="btn danger" data-act="arrest" data-id="${sid}">Sign the warrant</button><button class="btn ghost" data-act="suspect" data-id="${sid}">Not yet</button></div>`;
   $('#sheet').scrollTop=0;
 }
 function arrest(sid){
-  const c=cur(); if(S.solved[c.id]) return; const s=c.suspects.find(x=>x.id===sid); const correct=sid===c.culprit; const n=nAsked(c.id); const bonus=correct && n<=8;
-  const pay=correct?c.reward+(bonus?1:0):0; S.money+=pay;
+  const c=cur(); if(S.solved[c.id]) return; const s=sus(c,sid); const I=inv(c.id); const correct=sid===c.culprit; const broken=correct && I.broken;
+  const pay=correct?c.reward+(broken?R.breakBonus:0):0; S.money+=pay;
+  S.solved[c.id]={guess:sid, correct, pay, broken, asked:nAsked(c.id)};
   SFX.play('stamp'); setTimeout(()=>SFX.play(correct?'clank':'drawer'),420); if(correct) setTimeout(()=>SFX.play('coin'),900);
-  S.solved[c.id]={guess:sid, correct, pay, bonus, asked:n};
-  const g=c.suspects.find(x=>x.id===c.culprit);
+  const g=sus(c,c.culprit);
   $('#sheet').innerHTML=`<button class="close" data-act="closesheet" aria-label="Close">×</button>
    <p class="verdict${correct?'':' cold'}">${correct?'Arrested.':'Released.'}</p>
-   ${correct?`<p class="pay">+ £${pay}${bonus?' <small style="font-size:14px;color:#6f675a">incl. £1 for quick work</small>':''}</p>`:`<p class="sub">The magistrate finds nothing to hold ${esc(s.name)} on. ${esc(g.name)} leaves on the morning coach.</p>`}
+   ${correct?`<p class="pay">+ £${pay}${broken?' <small style="font-size:14px;color:#6f675a">incl. £'+R.breakBonus+' for the confession</small>':''}</p>`:`<p class="sub">The magistrate finds nothing to hold ${esc(s.name)} on. ${esc(g.name)} leaves on the morning coach.</p>`}
    <p>${esc(c.solution)}</p><p><em>${esc(c.arrest)}</em></p>
    <div class="row">${nextCase()?`<button class="btn" data-act="opencase" data-id="${nextCase().id}">Next case</button>`:''}<button class="btn ghost" data-act="closesheet">Back to the desk</button></div>`;
   $('#sheet').scrollTop=0;
@@ -466,19 +554,19 @@ function renderCases(){
   const el=$('#p-cases');
   let h=coachHTML()+`<div class="eyebrow">The case board</div><div class="caselist">`+D.cases.map((c,i)=>{
     const v=S.solved[c.id]; const un=unlocked(c.id);
-    const st=v?(v.correct?`<span class="st ok">Solved · £${v.pay}</span>`:'<span class="st cold">Cold</span>'):(un?'<span class="st open">Open</span>':'<span class="st cold">Locked</span>');
+    const st=v?(v.correct?`<span class="st ok">Solved · £${v.pay}</span>`:`<span class="st cold">Cold · ${esc(sus(c,c.culprit).name.split(' ').slice(-1)[0])} walked</span>`):(un?'<span class="st open">Open</span>':'<span class="st cold">Locked</span>');
     return `<button class="casebtn${un?'':' locked'}${c.id===S.caseId?' cur':''}" data-act="opencase" data-id="${c.id}" ${un?'':'disabled'}><span class="n">${String(i+1).padStart(2,'0')}</span><span><b>${esc(c.title)}</b><i>${esc(c.brief.place)}</i></span>${st}</button>`; }).join('')+`</div>`;
-  const earned=Object.values(S.solved).reduce((a,v)=>a+(v.pay||0),0);
-  h+=`<p class="hintline" style="margin-top:14px">Earned so far: £${earned}. Cases open in order. A cold case stays cold.</p>`;
+  const earned=Object.values(S.solved).reduce((a,v)=>a+(v.pay||0),0); const walked=Object.values(S.solved).filter(v=>!v.correct).length;
+  h+=`<p class="hintline" style="margin-top:14px">Earned so far: £${earned}.${walked?' Killers who walked: '+walked+'.':''} Cases open in order. A cold case stays cold.</p>`;
   el.innerHTML=h;
 }
 function renderNotebook(){
-  const el=$('#p-notebook'); const c=cur(); const asked=askedFor(c.id);
+  const el=$('#p-notebook'); const c=cur(); const I=inv(c.id);
   let h=coachHTML()+`<div class="eyebrow">Your notebook <span style="color:var(--brass-dim)">· ${esc(handOf().name)}</span></div>`;
   h+=`<textarea class="nb" id="nb" placeholder="Who was where. Who said what they shouldn't know.">${esc(S.notebook)}</textarea>`;
-  const rows=c.suspects.filter(s=>(asked[s.id]||[]).length);
+  const rows=c.suspects.filter(s=>(I.asked[s.id]||[]).length || I.presses.some(x=>x.sid===s.id));
   h+=`<div class="eyebrow" style="margin-top:22px">Statements · ${esc(c.title)}</div>`;
-  h+= rows.length ? rows.map(s=>`<div class="stm"><b>${esc(s.name)}</b>${(asked[s.id]||[]).slice().sort().map(i=>`<div><span>${esc(c.questions[i])}</span><br>${esc(s.answers[i])}</div>`).join('')}</div>`).join('') : `<p class="hintline">Nothing yet. Every answer you hear is copied here.</p>`;
+  h+= rows.length ? rows.map(s=>`<div class="stm"><b>${esc(s.name)}</b>${(I.asked[s.id]||[]).slice().sort().map(i=>`<div><span>${esc(c.questions[i])}</span><br>${esc(s.answers[i])}</div>`).join('')}${I.presses.filter(x=>x.sid===s.id).map(x=>`<div class="pr"><span>Pressed with: ${esc(evText(c,x.ev))}</span><br>${esc(x.hit?s.press.answer:s.press.miss)}</div>`).join('')}</div>`).join('') : `<p class="hintline">Nothing yet. Every answer you hear is copied here.</p>`;
   el.innerHTML=h;
 }
 function renderShop(){
@@ -509,7 +597,6 @@ function playTrack(i){ if(!TRACKS.length) return; S.track=((i%TRACKS.length)+TRA
 audio.addEventListener('ended',()=>playTrack((S.track||0)+1)); audio.addEventListener('pause',updateMusicUI); audio.addEventListener('play',updateMusicUI);
 function toggleMusic(){ if(!audio.paused && audio.src){ audio.pause(); S.music=false; musicWanted=false; save(); } else playTrack(S.track||0); }
 function musicBar(){ return `<div class="musicbar"><span>Music · <b>off</b></span><div class="row"><button data-act="music">Play</button><button data-act="nexttrack">Next track</button></div></div>`; }
-
 
 /* ---------- Sound effects (synthesised) ---------- */
 const SFX=(()=>{
@@ -567,8 +654,10 @@ document.addEventListener('click',e=>{
   else if(act==='sound'){ openSound(); }
   else if(act==='toggle'){ const k=a.dataset.k; if(k==='sfx'){ S.sfx=!(S.sfx!==false); if(S.sfx) SFX.play('knock'); } else if(k==='amb'){ S.amb=!S.amb; SFX.ambience(!!S.amb); } else if(k==='music'){ toggleMusic(); } save(); updateSoundUI(); setTimeout(openSound,k==='music'?150:0); }
   else if(act==='tab'){ S.tab=a.dataset.tab; render(); window.scrollTo(0,0); }
-  else if(act==='suspect'){ SFX.play('paper'); openSuspect(a.dataset.id); }
-  else if(act==='ask'){ const l=askedFor(S.caseId); l[a.dataset.id]=l[a.dataset.id]||[]; if(!l[a.dataset.id].includes(+a.dataset.q)){ l[a.dataset.id].push(+a.dataset.q); SFX.play('scratch'); } openSuspect(a.dataset.id); }
+  else if(act==='suspect'){ SFX.play('paper'); openSuspect(a.dataset.id,false); }
+  else if(act==='ask'){ const c=cur(); if(S.solved[c.id]||qLeft(c.id)<=0) return; const l=inv(c.id).asked; l[a.dataset.id]=l[a.dataset.id]||[]; if(!l[a.dataset.id].includes(+a.dataset.q)){ l[a.dataset.id].push(+a.dataset.q); SFX.play('scratch'); } openSuspect(a.dataset.id,true); }
+  else if(act==='pressmenu'){ pressMenu(a.dataset.id); }
+  else if(act==='press'){ doPress(a.dataset.id, a.dataset.ev); }
   else if(act==='accuse'){ confirmAccuse(a.dataset.id); }
   else if(act==='arrest'){ arrest(a.dataset.id); }
   else if(act==='closesheet'){ closeSheet(); }

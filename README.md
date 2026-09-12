@@ -3,17 +3,20 @@
 A one-thumb detective game set at a lamplit desk in the harbour town of Saltmarsh, 1896.
 
 Each case opens as a file: the victim, the weapon, the hour, the place, what the Gazette
-printed, and what only the police know. Four suspects sit on one page with a description
-and a note on each. Ask each of them three questions. One of them will say something they
-could not know, or could not have done. Accuse from their page. A right arrest pays; a wrong
-one sends the case to the cold drawer with no pay.
+printed, and what only the police know. Four suspects sit on one page with a description and a
+note on each. You have **six questions** for the four of them, so the descriptions decide whom
+you ask what. When a statement doesn't square with the file or with another suspect, **press**
+them with it: two presses a case. A press can break the killer or make an honest liar admit what
+they were really hiding, and either way the answer becomes new evidence. Accuse from a suspect's
+page. A right arrest pays, and £2 more if you broke them first. A wrong arrest goes cold with no
+pay, and the one who walked turns up in later files.
 
 Pay buys things for the desk (a briar pipe, a brass lamp, an office cat) and new hands for
 your notebook (typewriter, copperplate, chalk). The notebook itself is yours to type in and
-collects every statement you hear.
+collects every statement and press.
 
-Six cases are written. Each has a different kind of tell: a detail the killer could not
-have known, an alibi that contradicts the file, a register entry, a physical description.
+Six cases are written. Each has a different kind of tell, and every case has one innocent with
+a lie of their own.
 
 ## Play
 

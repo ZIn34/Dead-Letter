@@ -18,8 +18,12 @@ statements without repeating them. (Settings has an easier mode where answers st
 Pay buys things for the desk (a briar pipe, a brass lamp, an office cat) and new hands for
 your notebook (typewriter, copperplate, chalk).
 
-Six cases are written. Each has a different kind of tell, and every case has one innocent with
-a lie of their own.
+Eight story cases, five suspects and four questions each (eight questions and three presses a
+case; the last two allow ten). Each has a different kind of tell and an innocent with a lie of
+their own. A thread runs through all of them from the first night: a man from Harrowgate who
+pays in gold. Case seven gives you almost nothing in the file, so everything comes from people.
+Case eight can only be broken with things people told you in earlier cases, if you asked and
+kept your notes.
 
 ## Online: accounts, the board, wagers, co-op
 

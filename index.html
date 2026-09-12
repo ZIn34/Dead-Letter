@@ -456,7 +456,7 @@ function gateHTML(){
     <label class="fld"><span>Password</span><span class="pwrow"><input id="acc_p" type="password" autocomplete="current-password" placeholder="at least 4 characters"><button type="button" class="showpw" data-act="showpw">Show</button></span></label>
     <p class="hintline" id="acc_msg" style="min-height:1.2em"></p>
     <div class="row"><button class="btn" data-act="register">Create my detective</button><button class="btn ghost" data-act="login">I already have one</button></div>
-    <p class="hintline" style="margin-top:12px;font-size:13px">A friends' game, not a bank: don't reuse a password you care about.</p></div>`;
+</div>`;
 }
 function openAccount(){
   let h=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>Account</h3>`;
@@ -467,12 +467,12 @@ function openAccount(){
     <label class="fld"><span>Password</span><span class="pwrow"><input id="acc_p" type="password" autocomplete="current-password"><button type="button" class="showpw" data-act="showpw">Show</button></span></label>
     <p class="hintline" id="acc_msg" style="min-height:1.2em"></p>
     <div class="row"><button class="btn" data-act="login">Sign in</button><button class="btn ghost" data-act="register">Create account</button></div>
-    <p class="hintline" style="margin-top:12px;font-size:13px">This is a friends' game, not a bank: passwords are checked in the page and the shared database is open to everyone who has the link. Don't reuse a password you care about.</p>`;
+`;
   h+=`<div class="row" style="margin-top:14px"><button class="btn ghost" data-act="closesheet">Back</button></div>`;
   $('#sheet').innerHTML=h; $('#sheet').classList.add('open'); $('#scrim').classList.add('on');
 }
-async function accountAction(kind){
-  const u=$('#acc_u')&&$('#acc_u').value, p=$('#acc_p')&&$('#acc_p').value; const msg=$('#acc_msg'); if(msg) msg.textContent='One moment…';
+async function accountAction(kind, root){
+  root=root||document; const u=root.querySelector('#acc_u')&&root.querySelector('#acc_u').value, p=root.querySelector('#acc_p')&&root.querySelector('#acc_p').value; const msg=root.querySelector('#acc_msg'); if(msg) msg.textContent='One moment…';
   try{ const err = kind==='login' ? await login(u,p) : await register(u,p); if(err){ if(msg) msg.textContent=err; return; } closeSheet(); SFX.unlock(); SFX.play('stamp'); toast(kind==='login'?'Signed in as '+S.account+'.':'Account made. Welcome, '+S.account+'.'); render(); window.scrollTo(0,0); }
   catch(e){ if(msg) msg.textContent='Could not reach the database ('+(e.code||e.message)+').'; }
 }
@@ -976,9 +976,9 @@ document.addEventListener('click',e=>{
   else if(act==='coopleave'){ leaveCoop(false); }
   else if(act==='rename'){ askSheet({title:'Your name', sub:'Shown on the board and in rooms', input:true, value:S.name||'', placeholder:myName(), okLabel:'Save', onOk:(n)=>{ S.name=String(n||'').trim().slice(0,24); save(); pushPlayer(); pushPresence(); if(inCoop()&&COOP.members[S.pid]!==myName()){ const members={...COOP.members,[S.pid]:myName()}; coopRef(S.coop.code).update({members}).catch(()=>{}); } closeSheet(); render(); }}); }
   else if(act==='account'){ openAccount(); }
-  else if(act==='showpw'){ const i=$('#acc_p'); if(i){ const show=i.type==='password'; i.type=show?'text':'password'; a.textContent=show?'Hide':'Show'; i.focus(); } }
-  else if(act==='login'){ accountAction('login'); }
-  else if(act==='register'){ accountAction('register'); }
+  else if(act==='showpw'){ const root=a.closest('.gate,#sheet')||document; const i=root.querySelector('#acc_p'); if(i){ const show=i.type==='password'; i.type=show?'text':'password'; a.textContent=show?'Hide':'Show'; i.focus(); } }
+  else if(act==='login'){ accountAction('login', a.closest('.gate,#sheet')); }
+  else if(act==='register'){ accountAction('register', a.closest('.gate,#sheet')); }
   else if(act==='signout'){ askSheet({title:'Sign out?', body:'This device goes back to a fresh guest. Your purse and cases stay with the account and come back when you sign in.', okLabel:'Sign out', danger:true, onOk:()=>{ closeSheet(); signOut(); }}); }
   else if(act==='closesheet'){ closeSheet(); }
   else if(act==='opencase'){ if(inCoop()){ toast('Leave the co-op room first.'); return; } if(unlocked(a.dataset.id) && getCase(a.dataset.id)){ SFX.play('paper'); S.caseId=a.dataset.id; S.tab='desk'; closeSheet(); render(); window.scrollTo(0,0); } }

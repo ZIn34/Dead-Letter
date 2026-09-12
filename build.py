@@ -15,6 +15,8 @@ def inline(m):
     return f"data:audio/mp4;base64,{b64}"
 
 out = re.sub(r"audio/theme-\d+\.m4a", inline, src)
+out = out.replace('<script src="firebase-config.js"></script>
+', '')  # the artifact uses the claude.ai runtime, not Firestore
 dist = root / "dist"
 dist.mkdir(exist_ok=True)
 (dist / "index.html").write_text(out, encoding="utf-8")

@@ -282,11 +282,11 @@ function rulesOf(c){ return Object.assign({}, R, c && c.rules ? c.rules : {}); }
 const KEY='deadletter.v5';
 const rid=(n=10)=>Array.from(crypto.getRandomValues(new Uint8Array(n))).map(b=>'abcdefghijkmnpqrstuvwxyz23456789'[b%32]).join('');
 
-const fresh=()=>({tab:'desk', money:0, solved:{}, inv:{}, caseId:D.cases[0].id, owned:[], hand:'caveat', notebook:'', intro:true, tut:0, music:true, sfx:true, amb:true, easy:true, track:0,
+const fresh=()=>({tab:'desk', money:0, solved:{}, inv:{}, caseId:D.cases[0].id, owned:[], hand:'caveat', notebook:'', intro:true, tut:0, music:true, sfx:true, amb:true, easy:true, defaultsV2:true, track:0,
   pid:'p'+rid(10), name:'', made:{}, taken:{}, coop:null, coopApplied:{}, casesTab:'files', editing:null, notes:{}, practice:null, daily:null, dailyPaid:{}, testing:null, hints:{}});
 let S=load();
 let db=null, room=null, ONLINE=false, BOARD=[], COOP=null, unsubCoop=null, PEERS=[], netNote='', DAILY=null;
-function load(){ try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s && s.caseId){ if(!s.pid) s.pid='p'+rid(10); s.made=s.made||{}; s.taken=s.taken||{}; s.coopApplied=s.coopApplied||{}; s.notes=s.notes||{}; if(s.notebook && !s.notes.general){ s.notes.general=s.notebook; } s.dailyPaid=s.dailyPaid||{}; s.hints=s.hints||{}; s.practice=null; s.daily=null; s.testing=null; return s; } }catch(e){} return fresh(); }
+function load(){ try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s && s.caseId){ if(!s.pid) s.pid='p'+rid(10); s.made=s.made||{}; s.taken=s.taken||{}; s.coopApplied=s.coopApplied||{}; s.notes=s.notes||{}; if(s.notebook && !s.notes.general){ s.notes.general=s.notebook; } s.dailyPaid=s.dailyPaid||{}; s.hints=s.hints||{}; s.practice=null; s.daily=null; s.testing=null; if(!s.defaultsV2){ s.defaultsV2=true; s.music=true; s.sfx=true; s.amb=true; s.easy=true; } return s; } }catch(e){} return fresh(); }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} try{ pushSave(); }catch(e){} }
 const $=s=>document.querySelector(s);
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
@@ -389,10 +389,10 @@ function checkLost(){ let changed=false; for(const cid in S.taken){ const b=boar
 const hex=b=>Array.from(b).map(x=>x.toString(16).padStart(2,'0')).join('');
 const unhex=h=>new Uint8Array(h.match(/../g).map(x=>parseInt(x,16)));
 async function pbkdf(pw, saltHex){ const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveBits']); const bits=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:unhex(saltHex),iterations:120000},key,256); return hex(new Uint8Array(bits)); }
-const SAVE_KEYS=['money','solved','inv','owned','hand','notebook','notes','easy','taken','made','coopApplied','tut','tutAck','tutOpened','intro','sfx','amb','music','dailyPaid','hints','hintTokens'];
+const SAVE_KEYS=['money','solved','inv','owned','hand','notebook','notes','easy','taken','made','coopApplied','tut','tutAck','tutOpened','intro','sfx','amb','music','dailyPaid','hints','hintTokens','defaultsV2'];
 function saveBlob(){ const o={}; SAVE_KEYS.forEach(k=>{ if(S[k]!==undefined) o[k]=S[k]; }); return o; }
 let cloudT; function pushSave(){ if(!ONLINE||!S.account) return; clearTimeout(cloudT); cloudT=setTimeout(()=>{ db.doc('players/'+S.pid).update({save:saveBlob(), money:S.money, name:myName(), savedAt:Date.now()}).catch(()=>{}); },900); }
-function adoptSave(blob){ if(!blob) return; SAVE_KEYS.forEach(k=>{ if(blob[k]!==undefined) S[k]=blob[k]; }); S.intro=false; S.caseId=D.cases[0].id; S.coop=null; save(); }
+function adoptSave(blob){ if(!blob) return; SAVE_KEYS.forEach(k=>{ if(blob[k]!==undefined) S[k]=blob[k]; }); if(!blob.defaultsV2){ S.music=true; S.sfx=true; S.amb=true; S.easy=true; } S.defaultsV2=true; S.intro=false; S.caseId=D.cases[0].id; S.coop=null; save(); }
 function validUser(u){ return /^[a-z0-9_]{3,16}$/.test(u); }
 async function register(u, pw){
   u=String(u||'').trim().toLowerCase(); if(!validUser(u)) return 'Username: 3 to 16 letters, numbers or underscores.'; if(String(pw||'').length<4) return 'Password: at least 4 characters.';

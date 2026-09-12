@@ -371,7 +371,7 @@ async function firestoreDb(cfg){
   function docRef(path){ const r=fs.doc(path); return {
     id:r.id, path,
     get:()=>r.get().then(wrapDoc), set:d=>r.set(d), update:d=>r.update(d), delete:()=>r.delete(),
-    async acquire({holder, ttlMs=5000}){ const lref=fs.doc('leases/'+path.replace(/\//g,'__')); const now=Date.now(); try{ return await fs.runTransaction(async tx=>{ const ls=await tx.get(lref); const l=ls.exists?ls.data():null; if(l && l.exp>now && l.holder!==holder) return {acquired:false, expiresAt:new Date(l.exp).toISOString()}; tx.set(lref,{holder, exp:now+ttlMs}); return {acquired:true, version:1, holder, expiresAt:new Date(now+ttlMs).toISOString()}; }); }catch(e){ return {acquired:false}; } },
+    async acquire({holder, ttlMs=5000}){ const lref=fs.doc('leases/'+path.replace(/\//g,'__')); const now=Date.now(); try{ return await fs.runTransaction(async tx=>{ const ls=await tx.get(lref); const l=ls.exists?ls.data():null; if(l && l.exp>now && l.holder!==holder) return {acquired:false, expiresAt:new Date(l.exp).toISOString()}; tx.set(lref,{holder, exp:now+ttlMs}); return {acquired:true, version:1, holder, expiresAt:new Date(now+ttlMs).toISOString()}; }); }catch(e){ return {acquired:false, error:(e&&e.code)||'unavailable', message:(e&&e.message)||String(e)}; } },
     onSnapshot:(next,onErr)=>r.onSnapshot(d=>next(wrapDoc(d)), e=>onErr&&onErr(err(e))),
     collection:p=>colRef(path+'/'+p)
   }; }
@@ -425,7 +425,7 @@ function validUser(u){ return /^[a-z0-9_]{3,16}$/.test(u); }
 async function register(u, pw){
   u=String(u||'').trim().toLowerCase(); if(!validUser(u)) return 'Username: 3 to 16 letters, numbers or underscores.'; if(String(pw||'').length<4) return 'Password: at least 4 characters.';
   if(!ONLINE) return 'Accounts need the online version.';
-  const ref=db.doc('accounts/'+u); const lock=await ref.acquire({holder:S.pid, ttlMs:8000}); if(!lock.acquired) return 'Try again in a moment.';
+  const ref=db.doc('accounts/'+u); const lock=await ref.acquire({holder:S.pid, ttlMs:8000}); if(!lock.acquired) return lock.error ? 'The database can't be reached ('+lock.error+'). It may not have been created yet.' : 'Someone else is taking that name right now. Try again in a moment.';
   const snap=await ref.get(); if(snap.exists) return 'That name is taken.';
   const salt=hex(crypto.getRandomValues(new Uint8Array(16))); const h=await pbkdf(pw,salt); const pid='p'+rid(10);
   await ref.set({user:u, salt, hash:h, pid, createdAt:Date.now()});

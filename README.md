@@ -11,9 +11,12 @@ they were really hiding, and either way the answer becomes new evidence. Accuse 
 page. A right arrest pays, and £2 more if you broke them first. A wrong arrest goes cold with no
 pay, and the one who walked turns up in later files.
 
+Answers are shown once, while you are on the suspect's page, and then they are gone. Nothing is
+logged for you: the notebook under every interview is the only record, and the press picker names
+statements without repeating them. (Settings has an easier mode where answers stay.)
+
 Pay buys things for the desk (a briar pipe, a brass lamp, an office cat) and new hands for
-your notebook (typewriter, copperplate, chalk). The notebook itself is yours to type in and
-collects every statement and press.
+your notebook (typewriter, copperplate, chalk).
 
 Six cases are written. Each has a different kind of tell, and every case has one innocent with
 a lie of their own.

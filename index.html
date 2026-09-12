@@ -127,6 +127,9 @@ a.btn{text-decoration:none;display:inline-block}
 .a.break{border-left-color:var(--red);background:var(--red-soft)}
 .a.secret{border-left-color:var(--ink-soft);background:rgba(74,85,97,.08)}
 .a.miss{color:var(--pencil)}
+.a.gone{font-family:var(--sans);font-size:14px;font-style:italic;color:var(--pencil);border-left-color:var(--paper-shadow)}
+textarea.nb.small{min-height:120px;font-size:calc(var(--nbsize) * .9)}
+#sheet .nbwrap .eyebrow{color:var(--pencil)}
 .scrim{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:15;display:none}
 .scrim.on{display:block}
 .verdict{font:400 30px var(--fell);color:var(--red);margin:0 0 4px}
@@ -426,10 +429,10 @@ const KEY='deadletter.v5';
 const rid=(n=10)=>Array.from(crypto.getRandomValues(new Uint8Array(n))).map(b=>'abcdefghijkmnpqrstuvwxyz23456789'[b%32]).join('');
 
 const fresh=()=>({tab:'desk', money:0, solved:{}, inv:{}, caseId:D.cases[0].id, owned:[], hand:'caveat', notebook:'', intro:true, tut:0, music:false, track:0,
-  pid:'p'+rid(10), name:'', made:{}, taken:{}, coop:null, coopApplied:{}, casesTab:'files', editing:null});
+  pid:'p'+rid(10), name:'', made:{}, taken:{}, coop:null, coopApplied:{}, casesTab:'files', editing:null, notes:{}, easy:false});
 let S=load();
 let db=null, room=null, ONLINE=false, BOARD=[], COOP=null, unsubCoop=null, PEERS=[], netNote='';
-function load(){ try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s && s.caseId){ if(!s.pid) s.pid='p'+rid(10); s.made=s.made||{}; s.taken=s.taken||{}; s.coopApplied=s.coopApplied||{}; return s; } }catch(e){} return fresh(); }
+function load(){ try{ const s=JSON.parse(localStorage.getItem(KEY)); if(s && s.caseId){ if(!s.pid) s.pid='p'+rid(10); s.made=s.made||{}; s.taken=s.taken||{}; s.coopApplied=s.coopApplied||{}; s.notes=s.notes||{}; if(s.notebook && !s.notes.general){ s.notes.general=s.notebook; } return s; } }catch(e){} return fresh(); }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} try{ pushSave(); }catch(e){} }
 const $=s=>document.querySelector(s);
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
@@ -449,6 +452,12 @@ function sus(c,sid){ return c.suspects.find(x=>x.id===sid); }
 function myName(){ return S.name || 'Detective '+S.pid.slice(1,5).toUpperCase(); }
 function inCoop(){ return !!(S.coop && COOP); }
 
+/* What's visible right now: answers show once, while the suspect's page is open */
+let SESSION={sid:null, seen:[], press:false};
+function easy(){ return S.easy===true; }
+function noteKey(){ return cur().id; }
+function noteBox(){ return `<div class="nbwrap"><div class="eyebrow" style="margin:14px 0 6px">Your notebook · ${esc(cur().title)}</div><textarea class="nb small" data-note="${esc(noteKey())}" placeholder="Write down what matters. Nobody else will.">${esc(S.notes[noteKey()]||'')}</textarea></div>`; }
+
 /* Evidence available to press with: facts, heard statements, reveals */
 function evidence(c){
   const I=inv(c.id); const out=[];
@@ -456,7 +465,8 @@ function evidence(c){
   c.suspects.forEach(s=>{ ((I.asked||{})[s.id]||[]).slice().sort().forEach(qi=>out.push({id:s.id+':'+qi, kind:'said', who:s.name, text:s.answers[qi]})); if((I.revealed||{})[s.id]) out.push({id:s.id+':press', kind:'press', who:s.name+', pressed', text:s.press.answer}); });
   return out;
 }
-function evText(c,id){ const e=evidence(c).find(x=>x.id===id); return e? e.who+': '+e.text : id; }
+function evLabel(c,e){ if(e.kind==='fact') return e.who+': '+e.text; const qi=+e.id.split(':')[1]; if(e.kind==='press') return 'What '+e.who.replace(', pressed','')+' admitted when pressed'; return 'What '+e.who+' said to question '+(qi+1)+(easy()?': '+e.text:''); }
+function evText(c,id){ const e=evidence(c).find(x=>x.id===id); return e? evLabel(c,e) : id; }
 
 /* ---------- Money ---------- */
 function addMoney(d){ S.money=Math.max(0, S.money+d); save(); pushPlayer(); }
@@ -465,8 +475,8 @@ function addMoney(d){ S.money=Math.max(0, S.money+d); save(); pushPlayer(); }
 const first=D.cases[0].id;
 const TUT=[
  {t:"A case file. Read it twice: what the Gazette printed, and what only this office knows. Then tap a suspect.", done:s=>!!s.tutOpened},
- {t:"You get <b>six questions</b> for four people, so choose. Their descriptions and notes are there to help you decide whom to ask what.", done:s=>nAsked(first)>=2||!!s.solved[first]},
- {t:"When something a suspect says doesn't square with the file, or with what someone else said, <b>press</b> them with it. Two presses a case. A press can break a killer, or make an honest liar admit what they were really hiding.", done:s=>(localInv(first).presses.length>=1)||!!s.solved[first]},
+ {t:"You get <b>six questions</b> for four people, so choose. And listen: an answer is shown once. Leave the page and it's gone. <b>Write down what matters</b> in the notebook under the interview.", done:s=>nAsked(first)>=2||!!s.solved[first]},
+ {t:"When something a suspect said doesn't square with the file, or with what someone else said, <b>press</b> them with it. Two presses a case. The picker names statements but doesn't repeat them: your notebook does. A press can break a killer, or make an honest liar admit what they were hiding.", done:s=>(localInv(first).presses.length>=1)||!!s.solved[first]},
  {t:"Accuse from the suspect's page when you're sure. A wrong arrest goes cold with no pay. A right one pays, and £2 more if you broke them first: the magistrate likes a confession.", done:s=>!!s.solved[first]},
  {t:"That's the job. Cold cases follow you into later files. The <b>Cases</b> board keeps the score, and it's also where other detectives post cases of their own, for stakes, and where you can open a co-op room.", done:s=>!!s.tutAck, ack:true}
 ];
@@ -515,7 +525,7 @@ function checkLost(){ let changed=false; for(const cid in S.taken){ const b=boar
 const hex=b=>Array.from(b).map(x=>x.toString(16).padStart(2,'0')).join('');
 const unhex=h=>new Uint8Array(h.match(/../g).map(x=>parseInt(x,16)));
 async function pbkdf(pw, saltHex){ const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveBits']); const bits=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:unhex(saltHex),iterations:120000},key,256); return hex(new Uint8Array(bits)); }
-const SAVE_KEYS=['money','solved','inv','owned','hand','notebook','taken','made','coopApplied','tut','tutAck','tutOpened','intro','sfx','amb','music'];
+const SAVE_KEYS=['money','solved','inv','owned','hand','notebook','notes','easy','taken','made','coopApplied','tut','tutAck','tutOpened','intro','sfx','amb','music'];
 function saveBlob(){ const o={}; SAVE_KEYS.forEach(k=>{ if(S[k]!==undefined) o[k]=S[k]; }); return o; }
 let cloudT; function pushSave(){ if(!ONLINE||!S.account) return; clearTimeout(cloudT); cloudT=setTimeout(()=>{ db.doc('players/'+S.pid).update({save:saveBlob(), money:S.money, name:myName(), savedAt:Date.now()}).catch(()=>{}); },900); }
 function adoptSave(blob){ if(!blob) return; SAVE_KEYS.forEach(k=>{ if(blob[k]!==undefined) S[k]=blob[k]; }); S.intro=false; S.caseId=D.cases[0].id; S.coop=null; save(); }
@@ -719,6 +729,8 @@ function renderDesk(){
 }
 function openSuspect(sid, keepScroll){
   const c=cur(); const s=sus(c,sid); if(!s) return; const v=S.solved[c.id] && (!inCoop()||COOP.result) ? S.solved[c.id] : null; const I=inv(c.id); const askedMe=(I.asked||{})[s.id]||[];
+  if(SESSION.sid!==sid){ SESSION={sid, seen:[], press:false}; }
+  const show=(qi)=> !!v || easy() || SESSION.seen.includes(qi);
   S.tutOpened=true;
   const q=qLeft(c.id), p=pLeft(c.id);
   let h=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>${esc(s.name)}</h3><p class="sub">${esc(s.age)} · ${esc(s.job)}</p><p><em>${esc(s.look)}</em> ${esc(s.note)}</p>`;
@@ -726,10 +738,10 @@ function openSuspect(sid, keepScroll){
   h+=`<div class="qs">`;
   c.questions.forEach((qq,i)=>{
     const done=askedMe.includes(i);
-    if(done||v) h+=`<div class="q"><small>You asked</small>${esc(qq)}</div><p class="a">${esc(s.answers[i])}</p>`;
+    if(done||v) h+=`<div class="q"><small>You asked</small>${esc(qq)}</div>`+(show(i)?`<p class="a">${esc(s.answers[i])}</p>`:`<p class="a gone">You heard the answer. Whatever you wrote down is what you have.</p>`);
     else h+=`<button class="q" data-act="ask" data-id="${s.id}" data-q="${i}" ${q?'':'disabled'}><small>${q?'Ask':'No questions left'}</small>${esc(qq)}</button>`;
   });
-  (I.presses||[]).filter(x=>x.sid===s.id).forEach(x=>{ h+=`<div class="q ev"><small>Pressed with</small>${esc(evText(c,x.ev))}</div><p class="a ${x.hit?(s.id===c.culprit?'break':'secret'):'miss'}">${esc(x.hit?s.press.answer:s.press.miss)}</p>`; });
+  (I.presses||[]).filter(x=>x.sid===s.id).forEach(x=>{ const vis=!!v||easy()||SESSION.press; h+=`<div class="q ev"><small>Pressed with</small>${esc(evText(c,x.ev))}</div>`+(vis?`<p class="a ${x.hit?(s.id===c.culprit?'break':'secret'):'miss'}">${esc(x.hit?s.press.answer:s.press.miss)}</p>`:`<p class="a gone">${x.hit?(s.id===c.culprit?'They confessed. You heard it.':'They admitted something. You heard it.'):'A shrug.'}</p>`); });
   if(v && !(I.revealed||{})[s.id] && s.press.keys.length) h+=`<div class="q ev"><small>${s.id===c.culprit?'What a press would have broken':'What a press would have found'}</small>${esc(s.press.answer)}</div>`;
   h+=`</div>`;
   if(!v){
@@ -737,19 +749,22 @@ function openSuspect(sid, keepScroll){
     const proposalPending = inCoop() && COOP.proposal;
     h+=`<div class="row"><button class="btn press" data-act="pressmenu" data-id="${s.id}" ${canPress?'':'disabled'}>${(I.revealed||{})[s.id]?'Nothing more to press':'Press '+esc(String(s.name).split(' ').slice(-1)[0])}</button><button class="btn danger" data-act="accuse" data-id="${s.id}" ${proposalPending?'disabled':''}>${inCoop()?'Propose arrest':'Accuse'}</button><button class="btn ghost" data-act="closesheet">Back</button></div>`;
   } else h+=`<div class="row"><button class="btn ghost" data-act="closesheet">Back to the desk</button></div>`;
+  if(!v) h+=noteBox();
   const sh=$('#sheet'); const top=keepScroll?sh.scrollTop:0; sh.innerHTML=h; sh.classList.add('open'); $('#scrim').classList.add('on'); sh.scrollTop=top; sh.dataset.suspect=sid; save(); render();
 }
 function pressMenu(sid){
   const c=cur(); const s=sus(c,sid); const ev=evidence(c);
   let h=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>Press ${esc(s.name)}</h3><p class="sub">With what?</p><p>Pick the fact or statement that doesn't square with their story. A press costs one of your ${R.presses}; a bad one just gets you a shrug.</p><div class="qs">`;
-  ev.forEach(e=>{ h+=`<button class="q ev${e.kind==='fact'?' fact':''}" data-act="press" data-id="${sid}" data-ev="${e.id}"><small>${esc(e.who)}</small>${esc(e.text)}</button>`; });
-  h+=`</div><div class="row"><button class="btn ghost" data-act="suspect" data-id="${sid}">Not yet</button></div>`;
+  ev.forEach(e=>{ const fact=e.kind==='fact'; h+=`<button class="q ev${fact?' fact':''}" data-act="press" data-id="${sid}" data-ev="${e.id}"><small>${esc(fact?'Case file':(e.kind==='press'?'Pressed':'Statement'))}</small>${esc(fact?e.text:evLabel(c,e))}</button>`; });
+  if(!easy()) h+=`<p class="hintline" style="margin-top:6px">Statements aren't quoted back. Your notebook says what each one was.</p>`;
+  h+=`</div><div class="row"><button class="btn ghost" data-act="suspect" data-id="${sid}">Not yet</button></div>`+noteBox();
   $('#sheet').innerHTML=h; $('#sheet').scrollTop=0;
 }
 function applyAsk(I, sid, qi){ I.asked[sid]=I.asked[sid]||[]; if(!I.asked[sid].includes(qi)) I.asked[sid].push(qi); }
 function applyPress(I, c, sid, evId){ const s=sus(c,sid); const hit=s.press.keys.includes(evId); I.presses.push({sid, ev:evId, hit, by:myName()}); if(hit){ I.revealed[sid]=true; if(sid===c.culprit) I.broken=true; } return hit; }
 async function doAsk(sid, qi){
   const c=cur(); if(S.solved[c.id]&&!inCoop()) return; if(qLeft(c.id)<=0) return;
+  if(SESSION.sid!==sid) SESSION={sid, seen:[], press:false}; if(!SESSION.seen.includes(qi)) SESSION.seen.push(qi);
   if(inCoop()){ if(((COOP.inv.asked||{})[sid]||[]).includes(qi)) return; SFX.play('scratch'); await coopUpdateInv(I=>applyAsk(I,sid,qi)); openSuspect(sid,true); return; }
   const I=localInv(c.id); const before=(I.asked[sid]||[]).length; applyAsk(I,sid,qi); if((I.asked[sid]||[]).length>before) SFX.play('scratch'); openSuspect(sid,true);
 }
@@ -759,7 +774,8 @@ async function doPress(sid, evId){
   if(inCoop()){ await coopUpdateInv(I=>{ hit=applyPress(I,c,sid,evId); }); }
   else { hit=applyPress(localInv(c.id),c,sid,evId); }
   if(hit){ SFX.play(sid===c.culprit?'stamp':'page'); toast(sid===c.culprit?'They broke.':'They came clean.'); } else { SFX.play('drawer'); toast('A shrug.'); }
-  save(); openSuspect(sid,false);
+  if(SESSION.sid!==sid) SESSION={sid, seen:[], press:false}; SESSION.press=true;
+  save(); openSuspect(sid,true);
 }
 function confirmAccuse(sid){
   const c=cur(); const s=sus(c,sid); const I=inv(c.id); const t=S.taken[c.id];
@@ -785,7 +801,7 @@ function arrest(sid){
   S.solved[c.id]={guess:sid, correct, pay, broken, asked:nAsked(c.id)}; save();
   showVerdict(c, sid, correct, pay, broken, '');
 }
-function closeSheet(){ $('#sheet').classList.remove('open'); $('#scrim').classList.remove('on'); }
+function closeSheet(){ $('#sheet').classList.remove('open'); $('#scrim').classList.remove('on'); SESSION={sid:null, seen:[], press:false}; }
 
 /* ----- Cases tab ----- */
 function renderCases(){
@@ -861,12 +877,13 @@ function setPath(obj, path, val){ const parts=path.split('.'); let o=obj; for(le
 
 /* ----- Notebook / Shop ----- */
 function renderNotebook(){
-  const el=$('#p-notebook'); const c=cur(); const I=inv(c.id);
+  const el=$('#p-notebook'); const c=cur(); const page=S.notePage==='general'?'general':c.id;
   let h=coachHTML()+`<div class="eyebrow">Your notebook <span style="color:var(--brass-dim)">· ${esc(handOf().name)}</span></div>`;
-  h+=`<textarea class="nb" id="nb" placeholder="Who was where. Who said what they shouldn't know.">${esc(S.notebook)}</textarea>`;
-  const rows=c.suspects.filter(s=>((I.asked||{})[s.id]||[]).length || (I.presses||[]).some(x=>x.sid===s.id));
-  h+=`<div class="eyebrow" style="margin-top:22px">Statements · ${esc(c.title)}</div>`;
-  h+= rows.length ? rows.map(s=>`<div class="stm"><b>${esc(s.name)}</b>${((I.asked||{})[s.id]||[]).slice().sort().map(i=>`<div><span>${esc(c.questions[i])}</span><br>${esc(s.answers[i])}</div>`).join('')}${(I.presses||[]).filter(x=>x.sid===s.id).map(x=>`<div class="pr"><span>Pressed with: ${esc(evText(c,x.ev))}${x.by&&inCoop()?' ('+esc(x.by)+')':''}</span><br>${esc(x.hit?s.press.answer:s.press.miss)}</div>`).join('')}</div>`).join('') : `<p class="hintline">Nothing yet. Every answer you hear is copied here.</p>`;
+  h+=`<div class="subtabs"><button data-act="notepage" data-p="case" class="${page!=='general'?'on':''}">${esc(c.title)}</button><button data-act="notepage" data-p="general" class="${page==='general'?'on':''}">Loose pages</button></div>`;
+  h+=`<textarea class="nb" data-note="${esc(page)}" placeholder="${page==='general'?'Anything. Names that keep coming up. Grudges.':'Who was where. Who said what. What doesn\'t add up.'}">${esc(S.notes[page]||'')}</textarea>`;
+  h+=`<p class="hintline" style="margin-top:12px">Nothing is written here for you. Answers are shown once, on the suspect's page, and then they're gone.${easy()?' (Easier mode is on: answers stay.)':''}</p>`;
+  const done=Object.keys(S.notes).filter(k=>k!=='general'&&k!==c.id&&S.notes[k]&&S.notes[k].trim());
+  if(done.length) h+=`<div class="eyebrow" style="margin-top:18px">Old pages</div>`+done.map(k=>{ const cc=getCase(k); return `<div class="stm"><b>${esc(cc?cc.title:k)}</b><div style="font-family:var(--nbfont);font-size:16px;white-space:pre-wrap">${esc(S.notes[k])}</div></div>`; }).join('');
   el.innerHTML=h;
 }
 function renderShop(){
@@ -934,9 +951,10 @@ const SFX=(()=>{
 function updateSoundUI(){ const b=$('#sndBtn'); if(!b) return; const any=(S.sfx!==false)||S.amb===true; b.classList.toggle('off',!any); b.classList.toggle('on',S.amb===true); }
 function openSound(){
   const row=(k,label,sub,val)=>`<div class="setrow"><span><b>${label}</b><i>${sub}</i></span><button class="sw${val?' on':''}" data-act="toggle" data-k="${k}">${val?'On':'Off'}</button></div>`;
-  let h=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>Sound</h3><p class="sub">Settings</p>`;
+  let h=`<button class="close" data-act="closesheet" aria-label="Close">×</button><h3>Settings</h3><p class="sub">Sound and game</p>`;
   h+=row('sfx','Effects','Paper, pen, stamp, coins, the cell door.',S.sfx!==false);
   h+=row('amb','Rain and the clock','A quiet room under everything.',S.amb===true);
+  h+=`<div class="setrow"><span><b>Answers stay on the page</b><i>Easier. Off means answers show once and your notebook is all you have.</i></span><button class="sw${easy()?' on':''}" data-act="easy">${easy()?'On':'Off'}</button></div>`;
   if(TRACKS.length) h+=row('music','Music',TRACKS.map(t=>t[0]).join(', '),!audio.paused&&!!audio.src);
   h+=`<div class="row" style="margin-top:14px"><button class="btn ghost" data-act="closesheet">Back to the desk</button></div>`;
   $('#sheet').innerHTML=h; $('#sheet').classList.add('open'); $('#scrim').classList.add('on');
@@ -974,6 +992,8 @@ document.addEventListener('click',e=>{
   else if(act==='toggle'){ const k=a.dataset.k; if(k==='sfx'){ S.sfx=!(S.sfx!==false); if(S.sfx) SFX.play('knock'); } else if(k==='amb'){ S.amb=!S.amb; SFX.ambience(!!S.amb); } else if(k==='music'){ toggleMusic(); } save(); updateSoundUI(); setTimeout(openSound,k==='music'?150:0); }
   else if(act==='tab'){ S.tab=a.dataset.tab; render(); window.scrollTo(0,0); }
   else if(act==='ctab'){ S.casesTab=a.dataset.ctab; S.tab='cases'; render(); }
+  else if(act==='notepage'){ S.notePage=a.dataset.p; render(); }
+  else if(act==='easy'){ S.easy=!S.easy; save(); render(); setTimeout(openSound,0); }
   else if(act==='suspect'){ SFX.play('paper'); openSuspect(a.dataset.id,false); }
   else if(act==='ask'){ doAsk(a.dataset.id, +a.dataset.q); }
   else if(act==='pressmenu'){ pressMenu(a.dataset.id); }
@@ -1015,7 +1035,7 @@ document.addEventListener('click',e=>{
   else if(act==='reset'){ askSheet({title:'Start over?', body:'Back to the first case. Purse, desk and notebook go too. Your name and account stay.', okLabel:'Start over', danger:true, onOk:()=>{ const keep={pid:S.pid,name:S.name,account:S.account,sfx:S.sfx,amb:S.amb}; S=Object.assign(fresh(),keep); save(); pushPlayer(); closeSheet(); render(); }}); }
 });
 document.addEventListener('input',e=>{
-  if(e.target.id==='nb'){ S.notebook=e.target.value; save(); return; }
+  if(e.target.dataset && e.target.dataset.note!==undefined){ S.notes[e.target.dataset.note]=e.target.value; save(); return; }
   const p=e.target.dataset && e.target.dataset.path; if(p && S.editing && S.made[S.editing]){
     const c=S.made[S.editing].c; let v=e.target.value;
     if(p.endsWith('press.keys')) v = v? [v] : [];

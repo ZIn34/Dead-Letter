@@ -430,7 +430,7 @@ function validUser(u){ return /^[a-z0-9_]{3,16}$/.test(u); }
 async function register(u, pw){
   u=String(u||'').trim().toLowerCase(); if(!validUser(u)) return 'Username: 3 to 16 letters, numbers or underscores.'; if(String(pw||'').length<4) return 'Password: at least 4 characters.';
   if(!ONLINE) return 'Accounts need the online version.';
-  const ref=db.doc('accounts/'+u); const lock=await ref.acquire({holder:S.pid, ttlMs:8000}); if(!lock.acquired) return lock.error ? 'The database can't be reached ('+lock.error+'). It may not have been created yet.' : 'Someone else is taking that name right now. Try again in a moment.';
+  const ref=db.doc('accounts/'+u); const lock=await ref.acquire({holder:S.pid, ttlMs:8000}); if(!lock.acquired) return lock.error ? 'The database cannot be reached ('+lock.error+'). It may not have been created yet.' : 'Someone else is taking that name right now. Try again in a moment.';
   const snap=await ref.get(); if(snap.exists) return 'That name is taken.';
   const salt=hex(crypto.getRandomValues(new Uint8Array(16))); const h=await pbkdf(pw,salt); const pid='p'+rid(10);
   await ref.set({user:u, salt, hash:h, pid, createdAt:Date.now()});

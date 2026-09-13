@@ -389,7 +389,12 @@ async function firestoreDb(cfg){
 async function initNet(){
   try{
     if(window.claude && typeof window.claude.use==='function'){ db=await window.claude.use('db'); }
-    else if(window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.projectId){ try{ db=await firestoreDb(window.FIREBASE_CONFIG); NET_KIND='firebase'; }catch(e){ netNote='firebase failed: '+(e.message||e); db=null; } }
+    else if(window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.projectId){
+      try{ db=await firestoreDb(window.FIREBASE_CONFIG); NET_KIND='firebase';
+        // make sure the database really answers before we show any online screens
+        const ok=await Promise.race([db.doc('players/_probe').get().then(()=>true).catch(()=>false), new Promise(r=>setTimeout(()=>r(false),7000))]);
+        if(!ok){ db=null; netNote='offline'; render(); return; }
+      }catch(e){ netNote='offline'; db=null; render(); return; } }
     else { netNote='offline'; return; }
     if(!db){ netNote='offline'; render(); return; }
     ONLINE=true; netNote='';
